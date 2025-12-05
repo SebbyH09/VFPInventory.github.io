@@ -36,11 +36,39 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Row added successfully');
     });
     
-    // Global function to update row numbers after deletion
-    window.updateRowNumbers = function() {
-        // Remove the row first (the button's parent row)
-        event.target.closest('tr').remove();
-        
+    // Global function to delete row and update row numbers
+    window.updateRowNumbers = async function() {
+        const row = event.target.closest('tr');
+        const itemId = row.dataset.itemId;
+
+        // If this is an existing item (has an ID), delete it from the database
+        if (itemId && itemId !== 'undefined') {
+            try {
+                const response = await fetch(`/entry/${itemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    console.error('Error deleting item:', error);
+                    alert('Failed to delete item: ' + (error.message || 'Unknown error'));
+                    return; // Don't remove the row if delete failed
+                }
+
+                console.log('Item deleted successfully from database');
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                alert('Failed to delete item. Please try again.');
+                return; // Don't remove the row if delete failed
+            }
+        }
+
+        // Remove the row from the DOM
+        row.remove();
+
         // Then renumber all remaining rows
         const rows = tbody.querySelectorAll('tr');
         rows.forEach((row, index) => {

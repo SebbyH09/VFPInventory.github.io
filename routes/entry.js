@@ -75,8 +75,43 @@ router.post("/", requireAuth, async (req, res) => {
         
     } catch (error) {
         console.error('Error saving inventory:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             message: "Error saving data",
+            error: error.message
+        });
+    }
+});
+
+// DELETE route - delete inventory item by ID
+router.delete("/:id", requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Validate ID format
+        if (!id || id === 'undefined') {
+            return res.status(400).json({
+                message: "Invalid item ID"
+            });
+        }
+
+        // Delete the item from database
+        const deletedItem = await inventory.findByIdAndDelete(id);
+
+        if (!deletedItem) {
+            return res.status(404).json({
+                message: "Item not found"
+            });
+        }
+
+        res.json({
+            message: "Item deleted successfully",
+            deletedItem
+        });
+
+    } catch (error) {
+        console.error('Error deleting inventory item:', error);
+        res.status(500).json({
+            message: "Error deleting item",
             error: error.message
         });
     }
