@@ -1,0 +1,92 @@
+   /* .menulist {
+    float: left;
+    background-color: rgb(52, 125, 39);
+    display: inline-block;
+    position: relative;
+  }
+
+  .navbutton {
+    background-color: black;
+    color: rgb(52,125,39) ;
+    padding: 10px 50px;
+    font-size: 20px;
+    border: none;
+    transition: 1s;
+    display: inline-block;
+    position: relative;
+  } */
+
+  .menulist {
+    color: rgb(52,125,39);
+    display: inline-block;
+    border: none;
+  }
+
+  .menulist {
+    display: inline-block;
+  }
+
+
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: rgb(68, 85, 240);
+    padding: 10px 24px;
+  }
+
+  .dropdown-content a {
+    color: rgb(158, 59, 59);
+    padding: 10px 24px;
+    text-decoration: none;
+    display: block;
+  }
+
+  .menulist:hover .dropdown-content {
+    display: block;
+  }
+
+
+  fieldset {
+    background-color: rgb(52, 125, 39);
+    border: none;
+  }
+
+  #introheader {
+    color: blue;
+    font-size: 1.5em;
+  }
+
+  th {
+    font-size: 35px;
+    padding-right: 1.5em;
+    background-color: rgb(250,130,120);
+    text-align: center;
+    border: 2px solid;
+    border-color: black;
+  }
+
+  .first.column {
+    background-color: rgb(250,130,120);
+    border: 5px;
+    text-align: center;
+
+  }
+
+  #mainTable1{
+    margin-left: auto;
+    margin-right: auto;
+    border-collapse: unset;
+    table-layout: fixed;
+    justify-content: space-between;
+  }
+
+  .columnheaders {
+    display: flex;
+    align-items: center;
+    position: relative;
+    justify-content: space-between;
+    border-color: black;
+  }
+  
+
+

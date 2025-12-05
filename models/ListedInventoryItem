@@ -1,0 +1,16 @@
+const mongoose = require('mongoose')
+
+const Schema = mongoose.Schema;
+
+const InventorySchema = new Schema({
+    item: { type: String, required: true },
+    brand: String,
+    vendor: String,
+    catalog: String,
+    currentquantity: Number,
+    minimumquantity: Number,
+    maximumquantity: Number,
+});
+
+
+module.exports = mongoose.model('ListedInventoryItem', InventorySchema);

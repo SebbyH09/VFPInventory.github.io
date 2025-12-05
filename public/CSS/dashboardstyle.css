@@ -1,0 +1,13 @@
+.ordersTable {
+    display: flex;
+    border: 2px solid;
+    align-items: end;
+    width: 25%;
+    margin-left: auto;
+    margin-right: 0;
+    border-collapse: collapse;
+}
+
+td {
+    padding: 10px;
+}

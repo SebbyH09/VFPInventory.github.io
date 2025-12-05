@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory</title>
+    <link rel="stylesheet" href="/headerstyle.css">
+</head>
+<body>
+    <legend>
+        <h2 id="introheader">
+        Venture Forward Partners, LLC.
+        </h2>
+      </legend>
+      
+          <div class="menulist">
+            <a href="/home">
+              <button class="navbutton">Home</button>
+            </a>
+          </div>
+
+          <div class="menulist">
+            <a href="/entry">
+              <button class="navbutton">Inventory</button>
+            </a>
+          </div>
+
+          <div class="menulist">
+            <div class="dropdown">
+            <button class="navbutton" id="dropbtn">Order</button>
+              <div class="dropdown-content">
+                <a href="#">Link 1</a>
+                <a href="#">Link 2</a>
+                <a href="#">Link 3</a>
+                <a href="#">Link 4</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="menulist">
+            <button class="navbutton">Location</button>
+          </div>
+          
+          <div class="menulist">
+            <a href="/registration">
+              <button class="navbutton">Registration</button>
+              </a>
+          </div>
+
+          <div class="LoginLogoutButtons">
+
+            <% if (!isLoggedIn) { %> 
+            <a href="/login">
+              <button class="navbuttonLogin">Log In</button>
+
+            </a>
+            <% } %>
+
+
+            <% if (isLoggedIn) { %>
+            <form action="/logout" method="POST">
+                <button type="submit" class="navbuttonLogout">Log Out</button>
+            </form>
+            <% } %>
+          </div>
+
+          <hr/>
+
+          
+
+    <br>
+
+
+    <%- body %>
+
+
+    <br>
+
+    <h5>Some copyright or Company logo stuff!!</h5>
+
+</body>
+</html>

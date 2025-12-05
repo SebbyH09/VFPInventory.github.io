@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory Entry</title>
+    <link rel="stylesheet" href="/inventory.css">
+</head>
+<body>
+    <div class="inventory-container">
+        <div class="table-controls">
+            <h2>Inventory</h2>
+            <div class="button-group">
+                <button id="newRowAdditionBtn" class="hidden">Add Item</button>
+                <button id="submitEndOfRow" class="hidden">Submit</button>
+                <button id="editEndOfRow">Edit</button>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="mainTable1">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Item</th>
+                        <th>Brand</th>
+                        <th>Vendor</th>
+                        <th>Catalog #</th>
+                        <th>Current Quantity</th>
+                        <th>Minimum Quantity</th>
+                        <th>Max Quantity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (inventoryItems && inventoryItems.length > 0) { %>
+                        <% inventoryItems.forEach((item, index) => { %>
+                            
+                            <tr data-item-id="<%= item._id %>" data-original='<%= JSON.stringify({
+                                item: item.item,
+                                brand: item.brand,
+                                vendor: item.vendor,
+                                catalogNumber: item.catalog,
+                                currentQuantity: item.currentquantity,
+                                minimumQuantity: item.minimumquantity,
+                                maxQuantity: item.maximumquantity
+                            }) %>'>
+                                                              
+                                <td class="row-number-cell">
+                                    <span class="row-number"><%= index + 1 %></span>
+                                </td>
+                                <td><p class="inventoryitem"><%= item.item %></p></td>
+                                <td><p class="inventoryitem"><%= item.brand %></p></td>
+                                <td><p class="inventoryitem"><%= item.vendor %></p></td>
+                                <td><p class="inventoryitem"><%= item.catalog %></p></td>
+                                <td><p class="inventoryitem"><%= item.currentquantity %></p></td>
+                                <td><p class="inventoryitem"><%= item.minimumquantity %></p></td>
+                                <td><p class="inventoryitem"><%= item.maximumquantity %></p></td>
+                                <td>
+                                    <button class="delete-btn hidden" onclick="updateRowNumbers()">Delete</button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <!-- Empty state - no rows -->
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Load all three scripts -->
+    <script defer src="/editbutton.js"></script>
+    <script defer src="/TableRowAdd.js"></script>
+    <script defer src="/submitbutton.js"></script>
+</body>
+</html>
