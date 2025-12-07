@@ -5,19 +5,28 @@
 
 
 
+<h2>Need to Order</h2>
 <table class="inventoryTable">
     <tr>
-        <th>Date</th>
-        <th>Vendor</th>
-        <th>Items</th>
-        <th>Quantity</th>
+        <th>Item</th>
+        <th>Brand</th>
+        <th>Current Quantity</th>
+        <th>Minimum Quantity</th>
     </tr>
-    <tr>
-        <td>TEST</td>
-        <td>TEST2</td>
-        <td>TEST3</td>
-        <td>45</td>
-    </tr>
+    <% if (lowInventoryItems && lowInventoryItems.length > 0) { %>
+        <% lowInventoryItems.forEach(item => { %>
+            <tr>
+                <td><%= item.item %></td>
+                <td><%= item.brand || 'N/A' %></td>
+                <td><%= item.currentquantity %></td>
+                <td><%= item.minimumquantity %></td>
+            </tr>
+        <% }); %>
+    <% } else { %>
+        <tr>
+            <td colspan="4" style="text-align: center;">No items need to be ordered</td>
+        </tr>
+    <% } %>
 </table>
 
 
