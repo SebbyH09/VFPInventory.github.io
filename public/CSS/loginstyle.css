@@ -70,3 +70,22 @@ input::placeholder{
     border: none;
     cursor: pointer;
 }
+
+/* Registration form container - centered on page */
+.registration-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 150px);
+}
+
+.registrationForm {
+    background-color: rgba(84, 255, 113, 0.863);
+    width: 200px;
+    min-height: 400px;
+    border-radius: 5%;
+    align-items: center;
+    display: block;
+    justify-content: center;
+    padding: 20px;
+}

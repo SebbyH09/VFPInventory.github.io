@@ -1,3 +1,8 @@
+/* Body padding to prevent content from hiding behind fixed footer */
+body {
+    padding-bottom: 60px;
+}
+
 /* Navigation button styling - consistent across all pages */
 .navbutton,
 .navbuttonLogin,
@@ -53,4 +58,21 @@
     display: block;
     float: right;
     transform: translateX(-5px);
+}
+
+/* Footer positioning at bottom of page */
+.page-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f1f1f1;
+    text-align: center;
+    padding: 10px 0;
+    border-top: 1px solid #ddd;
+}
+
+.page-footer h5 {
+    margin: 0;
+    color: #333;
 }
