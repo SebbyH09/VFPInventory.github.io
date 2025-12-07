@@ -9,9 +9,9 @@ const ListedInventoryItem = require('../models/ListedInventoryItem');
 
 router.get('/', (req, res) => {
     if (req.session.isLoggedIn) {
-        res.render('dashboard');
+        res.render('dashboard', {
             lowInventoryItems: []
-    } else {
+        })} else {
         res.render('home');
     }
 });
