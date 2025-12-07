@@ -104,3 +104,18 @@ button:hover {
 body.edit-mode .delete-btn {
     display: inline-block;
 }
+
+/* Conditional formatting for Current Quantity column */
+.qty-zero {
+    background-color: #ef5350 !important; /* Darker red for zero quantity */
+}
+
+.qty-low {
+    background-color: #ffcdd2 !important; /* Light red for below minimum */
+}
+
+/* Ensure the conditional formatting shows even on hover */
+.qty-zero:hover,
+.qty-low:hover {
+    opacity: 0.9;
+}
