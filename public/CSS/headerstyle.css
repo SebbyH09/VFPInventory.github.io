@@ -1,11 +1,27 @@
-.dropdown {
-    position: relative;
+/* Navigation button styling - consistent across all pages */
+.navbutton,
+.navbuttonLogin,
+.navbuttonLogout {
+    background-color: black;
+    color: rgb(52, 125, 39);
+    padding: 10px 50px;
+    font-size: 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
     display: inline-block;
 }
 
-#dropbtn {
-    cursor: pointer;
+.navbutton:hover,
+.navbuttonLogin:hover,
+.navbuttonLogout:hover {
+    background-color: rgb(52, 125, 39);
+    color: black;
+}
 
+.dropdown {
+    position: relative;
+    display: inline-block;
 }
 
 .menulist {
