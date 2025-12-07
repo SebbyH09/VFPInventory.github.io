@@ -24,7 +24,10 @@ router.get('/dashboard', requireAuth, async (req, res) => {
         const lowInventoryItems = await ListedInventoryItem.find({
             $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
         }).sort({ item: 1 });
-
+        
+        console.log('Low inventory items found:', lowInventoryItems.length);
+        console.log('Items:', lowInventoryItems);
+        
         res.render('dashboard', {
             user: req.session.user,
             lowInventoryItems: lowInventoryItems
