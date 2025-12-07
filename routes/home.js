@@ -8,25 +8,31 @@ const ListedInventoryItem = require('../models/ListedInventoryItem');
 
 
 router.get('/', (req, res) => {
+    console.log('===== ROOT ROUTE HIT =====');
+    console.log('Is logged in:', req.session.isLoggedIn);
+    
     if (req.session.isLoggedIn) {
-        res.render('dashboard', {
-            lowInventoryItems: []
-        })} else {
+        console.log('Redirecting to /dashboard');
+        res.render('dashboard');
+    } else {
+        console.log('Rendering home page');
         res.render('home');
     }
 });
 
-
-
-router.get('/dashboard', requireAuth, async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
+    console.log('===== DASHBOARD ROUTE HIT =====');
+    console.log('User:', req.session.user);
+    
     try {
-        // Find items where current quantity is less than minimum quantity
+        console.log('Attempting to fetch low inventory items...');
+        
         const lowInventoryItems = await ListedInventoryItem.find({
             $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
         }).sort({ item: 1 });
         
         console.log('Low inventory items found:', lowInventoryItems.length);
-        console.log('Items:', lowInventoryItems);
+        console.log('Items:', JSON.stringify(lowInventoryItems, null, 2));
         
         res.render('dashboard', {
             user: req.session.user,
@@ -41,8 +47,5 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     }
 });
 
+module.exports = router;
 
-
-
-
-module.exports = router
