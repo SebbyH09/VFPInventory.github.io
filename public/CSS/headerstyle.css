@@ -3,6 +3,29 @@ body {
     padding-bottom: 60px;
 }
 
+/* Navbar container with background image */
+.navbar-container {
+    position: relative;
+    padding: 15px 10px;
+    overflow: hidden;
+}
+
+/* Blurred background image using pseudo-element */
+.navbar-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/Images/Laboratory-Design.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(4px);
+    z-index: -1;
+}
+
 /* Navigation button styling - consistent across all pages */
 .navbutton,
 .navbuttonLogin,
