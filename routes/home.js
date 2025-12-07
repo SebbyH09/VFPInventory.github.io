@@ -12,8 +12,12 @@ router.get('/', async (req, res) => {
         try {
             // Find items where current quantity is less than minimum quantity
             const lowInventoryItems = await ListedInventoryItem.find({
+                currentquantity: { $exists: true },
+                minimumquantity: { $exists: true },
                 $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
             }).sort({ item: 1 });
+
+            console.log('Low inventory items found:', lowInventoryItems.length);
 
             res.render('dashboard', {
                 user: req.session.user,
@@ -37,8 +41,12 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     try {
         // Find items where current quantity is less than minimum quantity
         const lowInventoryItems = await ListedInventoryItem.find({
+            currentquantity: { $exists: true },
+            minimumquantity: { $exists: true },
             $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
         }).sort({ item: 1 });
+
+        console.log('Low inventory items found:', lowInventoryItems.length);
 
         res.render('dashboard', {
             user: req.session.user,
