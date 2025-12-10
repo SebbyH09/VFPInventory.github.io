@@ -1,43 +1,59 @@
-.inventoryTable, .ordersTable {
+/* Dashboard container with side-by-side layout */
+.dashboard-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
     width: 100%;
-    max-width: 100%;
-    border: 2px solid;
+}
+
+/* Table wrapper styling */
+.table-wrapper {
+    width: 48%;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+}
+
+/* Center table titles */
+.table-title {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+/* Common table styling */
+.ordersTable,
+.inventoryTable {
+    width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    display: block;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-.inventoryTable thead, .ordersTable thead,
-.inventoryTable tbody, .ordersTable tbody {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-}
-
-.inventoryTable th, .ordersTable th,
-.inventoryTable td, .ordersTable td {
+.ordersTable th,
+.ordersTable td,
+.inventoryTable th,
+.inventoryTable td {
     padding: 10px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    border: 1px solid #ddd;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
 }
 
-.inventoryTable th, .ordersTable th {
-    background-color: #f2f2f2;
+.ordersTable th,
+.inventoryTable th {
+    background-color: rgb(52, 125, 39);
+    color: white;
     font-weight: bold;
 }
 
-h2 {
-    margin-top: 20px;
-    margin-bottom: 10px;
+.ordersTable tr:hover,
+.inventoryTable tr:hover {
+    background-color: #f5f5f5;
 }
 
-/* Responsive adjustments for smaller screens */
-@media screen and (max-width: 768px) {
-    .inventoryTable th, .ordersTable th,
-    .inventoryTable td, .ordersTable td {
-        padding: 5px;
-        font-size: 14px;
-    }
+.ordersTable tr:last-child td,
+.inventoryTable tr:last-child td {
+    border-bottom: none;
 }
