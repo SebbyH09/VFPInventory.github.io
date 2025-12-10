@@ -1,13 +1,43 @@
-.ordersTable {
-    display: flex;
+.inventoryTable, .ordersTable {
+    width: 100%;
+    max-width: 100%;
     border: 2px solid;
-    align-items: end;
-    width: 25%;
-    margin-left: auto;
-    margin-right: 0;
     border-collapse: collapse;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    display: block;
 }
 
-td {
+.inventoryTable thead, .ordersTable thead,
+.inventoryTable tbody, .ordersTable tbody {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.inventoryTable th, .ordersTable th,
+.inventoryTable td, .ordersTable td {
     padding: 10px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    border: 1px solid #ddd;
+}
+
+.inventoryTable th, .ordersTable th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+h2 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media screen and (max-width: 768px) {
+    .inventoryTable th, .ordersTable th,
+    .inventoryTable td, .ordersTable td {
+        padding: 5px;
+        font-size: 14px;
+    }
 }
