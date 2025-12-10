@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Inventory</title>
+    <link rel="stylesheet" href="/upload.css">
+</head>
+<body>
+    <div class="upload-container">
+        <h2>Upload Inventory from Excel</h2>
+
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Prepare your Excel file with the following columns in order:</li>
+                <ul>
+                    <li><strong>Column A:</strong> Item (required)</li>
+                    <li><strong>Column B:</strong> Brand</li>
+                    <li><strong>Column C:</strong> Vendor</li>
+                    <li><strong>Column D:</strong> Catalog #</li>
+                    <li><strong>Column E:</strong> Current Quantity (number)</li>
+                    <li><strong>Column F:</strong> Minimum Quantity (number)</li>
+                    <li><strong>Column G:</strong> Maximum Quantity (number)</li>
+                </ul>
+                <li>The first row should contain headers and will be skipped</li>
+                <li>Only .xlsx and .xls files are accepted</li>
+            </ol>
+        </div>
+
+        <% if (message) { %>
+            <div class="message <%= message.type %>">
+                <%= message.text %>
+            </div>
+        <% } %>
+
+        <div class="upload-form">
+            <form action="/upload" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="excelFile">Select Excel File:</label>
+                    <input type="file" id="excelFile" name="excelFile" accept=".xlsx,.xls" required>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="upload-btn">Upload Inventory</button>
+                    <a href="/entry">
+                        <button type="button" class="cancel-btn">View Current Inventory</button>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-info">
+            <h3>Excel Template Format:</h3>
+            <div class="template-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Brand</th>
+                            <th>Vendor</th>
+                            <th>Catalog #</th>
+                            <th>Current Quantity</th>
+                            <th>Minimum Quantity</th>
+                            <th>Max Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Test Tube</td>
+                            <td>Acme</td>
+                            <td>Lab Supplies Co</td>
+                            <td>TT-001</td>
+                            <td>50</td>
+                            <td>20</td>
+                            <td>100</td>
+                        </tr>
+                        <tr>
+                            <td>Beaker</td>
+                            <td>Pyrex</td>
+                            <td>Science Warehouse</td>
+                            <td>BK-500</td>
+                            <td>25</td>
+                            <td>10</td>
+                            <td>50</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
