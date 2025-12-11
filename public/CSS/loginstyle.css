@@ -27,6 +27,13 @@
     margin-bottom: 50px;
 }
 
+.header2 {
+    text-align: center;
+    font-size: 45px;
+    text-transform: capitalize;
+    margin-bottom: 50px;
+}
+
 input,
 .submit {
     width: 90%;
