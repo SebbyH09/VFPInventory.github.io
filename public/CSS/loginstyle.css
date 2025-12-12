@@ -4,22 +4,6 @@
     box-sizing: border-box;
 }
 
-
-/* body{
-    position: relative;
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
-    height: auto;
-    justify-content: center;
-    align-items: center;
-    background-image: url('Images/far\ tower.jpg');
-    background-size: cover;
-    background-position: center;
-
-} */
-
-
 .header1{
     text-align: center;
     font-size: 60px;
