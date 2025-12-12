@@ -23,43 +23,50 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemId = row.getAttribute('data-item-id');
             const originalData = row.getAttribute('data-original');
             const rowData = [];
-            
-            // Collect current values
+
+            // Collect current values (skip calculated tracking fields)
             for (let i = 1; i < cells.length - 1; i++) {
                 const input = cells[i].querySelector('input.inventoryitem');
-                
+                const p = cells[i].querySelector('p.inventoryitem');
+
+                // Skip calculated tracking fields
+                if (p && p.classList.contains('tracking-field')) {
+                    continue;
+                }
+
                 if (input) {
                     const value = input.value.trim();
                     rowData.push(value);
-                    
-                    if (value === '') {
+
+                    if (value === '' && i < 8) {
                         hasEmptyFields = true;
                     }
-                } else {
-                    const p = cells[i].querySelector('p.inventoryitem');
-                    rowData.push(p ? p.textContent : '');
+                } else if (p) {
+                    rowData.push(p.textContent);
                 }
             }
-            
+
             // Skip empty rows
             if (!rowData.some(val => val !== '')) {
                 return;
             }
-            
+
             // Check if this is a new item or existing item
             if (itemId && originalData) {
                 // Existing item - check what changed
                 const original = JSON.parse(originalData);
                 const changes = {};
-                
+
                 if (rowData[0] !== original.item) changes.item = rowData[0];
                 if (rowData[1] !== original.brand) changes.brand = rowData[1];
                 if (rowData[2] !== original.vendor) changes.vendor = rowData[2];
-                if (rowData[2] !== original.catalogNumber) changes.catalog = rowData[3];
-                if (parseInt(rowData[3]) !== original.currentQuantity) changes.currentquantity = parseInt(rowData[4]) || 0;
-                if (parseInt(rowData[4]) !== original.minimumQuantity) changes.minimumquantity = parseInt(rowData[5]) || 0;
-                if (parseInt(rowData[5]) !== original.maxQuantity) changes.maximumquantity = parseInt(rowData[6]) || 0;
-                
+                if (rowData[3] !== original.catalogNumber) changes.catalog = rowData[3];
+                if (parseInt(rowData[4]) !== original.currentQuantity) changes.currentquantity = parseInt(rowData[4]) || 0;
+                if (parseInt(rowData[5]) !== original.minimumQuantity) changes.minimumquantity = parseInt(rowData[5]) || 0;
+                if (parseInt(rowData[6]) !== original.maxQuantity) changes.maximumquantity = parseInt(rowData[6]) || 0;
+                if (parseInt(rowData[7]) !== original.cycleCountInterval) changes.cycleCountInterval = parseInt(rowData[7]) || 90;
+                if (parseInt(rowData[8]) !== original.orderFrequencyPeriod) changes.orderFrequencyPeriod = parseInt(rowData[8]) || 30;
+
                 // Only add to update list if something changed
                 if (Object.keys(changes).length > 0) {
                     updatedItems.push({

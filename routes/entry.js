@@ -44,9 +44,11 @@ router.post("/", requireAuth, async (req, res) => {
                 catalog: row[3],
                 currentquantity: parseInt(row[4]) || 0,
                 minimumquantity: parseInt(row[5]) || 0,
-                maximumquantity: parseInt(row[6]) || 0
+                maximumquantity: parseInt(row[6]) || 0,
+                cycleCountInterval: parseInt(row[7]) || 90,
+                orderFrequencyPeriod: parseInt(row[8]) || 30
             }));
-            
+
             const savedItems = await inventory.insertMany(itemsToInsert);
             results.savedItems = savedItems;
             results.newCount = savedItems.length;
@@ -112,6 +114,117 @@ router.delete("/:id", requireAuth, async (req, res) => {
         console.error('Error deleting inventory item:', error);
         res.status(500).json({
             message: "Error deleting item",
+            error: error.message
+        });
+    }
+});
+
+// POST route - mark item as used
+router.post("/mark-used", requireAuth, async (req, res) => {
+    try {
+        const { itemId, date } = req.body;
+
+        if (!itemId) {
+            return res.status(400).json({
+                message: "Item ID is required"
+            });
+        }
+
+        const updatedItem = await inventory.findByIdAndUpdate(
+            itemId,
+            { $set: { lastUsedDate: date || new Date() } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedItem) {
+            return res.status(404).json({
+                message: "Item not found"
+            });
+        }
+
+        res.json({
+            message: "Item marked as used successfully",
+            item: updatedItem
+        });
+
+    } catch (error) {
+        console.error('Error marking item as used:', error);
+        res.status(500).json({
+            message: "Error marking item as used",
+            error: error.message
+        });
+    }
+});
+
+// POST route - record an order
+router.post("/record-order", requireAuth, async (req, res) => {
+    try {
+        const { itemId, date } = req.body;
+
+        if (!itemId) {
+            return res.status(400).json({
+                message: "Item ID is required"
+            });
+        }
+
+        const updatedItem = await inventory.findByIdAndUpdate(
+            itemId,
+            { $push: { orderHistory: date || new Date() } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedItem) {
+            return res.status(404).json({
+                message: "Item not found"
+            });
+        }
+
+        res.json({
+            message: "Order recorded successfully",
+            item: updatedItem
+        });
+
+    } catch (error) {
+        console.error('Error recording order:', error);
+        res.status(500).json({
+            message: "Error recording order",
+            error: error.message
+        });
+    }
+});
+
+// POST route - perform cycle count
+router.post("/cycle-count", requireAuth, async (req, res) => {
+    try {
+        const { itemId, date } = req.body;
+
+        if (!itemId) {
+            return res.status(400).json({
+                message: "Item ID is required"
+            });
+        }
+
+        const updatedItem = await inventory.findByIdAndUpdate(
+            itemId,
+            { $set: { lastCycleCount: date || new Date() } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedItem) {
+            return res.status(404).json({
+                message: "Item not found"
+            });
+        }
+
+        res.json({
+            message: "Cycle count recorded successfully",
+            item: updatedItem
+        });
+
+    } catch (error) {
+        console.error('Error recording cycle count:', error);
+        res.status(500).json({
+            message: "Error recording cycle count",
             error: error.message
         });
     }

@@ -49,4 +49,81 @@
             <% } %>
         </table>
     </div>
+
+    <div class="table-wrapper cycle-count-wrapper">
+        <div class="table-header-controls">
+            <h2 class="table-title">Cycle Counts Due</h2>
+            <div class="display-limit-control">
+                <label for="cycleCountLimit">Show:</label>
+                <select id="cycleCountLimit" onchange="updateCycleCountDisplay()">
+                    <option value="5">5 items</option>
+                    <option value="10" selected>10 items</option>
+                    <option value="15">15 items</option>
+                    <option value="20">20 items</option>
+                    <option value="all">All items</option>
+                </select>
+            </div>
+        </div>
+        <div class="scrollable-table-container">
+            <table class="cycleCountTable" id="cycleCountTable">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Brand</th>
+                        <th>Last Count</th>
+                        <th>Days Since</th>
+                        <th>Interval</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (cycleCountDueItems && cycleCountDueItems.length > 0) { %>
+                        <% cycleCountDueItems.forEach((item, index) => { %>
+                            <tr class="cycle-count-row" data-index="<%= index %>">
+                                <td><%= item.item %></td>
+                                <td><%= item.brand || 'N/A' %></td>
+                                <td><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></td>
+                                <td><%= item.daysSinceCount !== null ? item.daysSinceCount : 'N/A' %></td>
+                                <td><%= item.cycleCountInterval || 90 %> days</td>
+                                <td>
+                                    <% if (!item.lastCycleCount) { %>
+                                        <span class="status-badge status-overdue">Never Counted</span>
+                                    <% } else if (item.daysOverdue > 0) { %>
+                                        <span class="status-badge status-overdue">Overdue by <%= item.daysOverdue %> days</span>
+                                    <% } else { %>
+                                        <span class="status-badge status-due">Due Now</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" style="text-align: center;">No cycle counts due</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<script>
+function updateCycleCountDisplay() {
+    const limit = document.getElementById('cycleCountLimit').value;
+    const rows = document.querySelectorAll('.cycle-count-row');
+
+    rows.forEach((row, index) => {
+        if (limit === 'all') {
+            row.style.display = '';
+        } else {
+            const limitNum = parseInt(limit);
+            row.style.display = index < limitNum ? '' : 'none';
+        }
+    });
+}
+
+// Initialize display on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateCycleCountDisplay();
+});
+</script>

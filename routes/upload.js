@@ -77,7 +77,9 @@ router.post('/', requireAuth, upload.single('excelFile'), async (req, res) => {
                 catalog: row[3] || '',
                 currentquantity: parseInt(row[4]) || 0,
                 minimumquantity: parseInt(row[5]) || 0,
-                maximumquantity: parseInt(row[6]) || 0
+                maximumquantity: parseInt(row[6]) || 0,
+                cycleCountInterval: parseInt(row[7]) || 90,
+                orderFrequencyPeriod: parseInt(row[8]) || 30
             });
         });
 
