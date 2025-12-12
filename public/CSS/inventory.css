@@ -110,6 +110,96 @@ body.edit-mode .delete-btn {
     display: inline-block;
 }
 
+/* Tracking action buttons */
+.mark-used-btn,
+.record-order-btn,
+.cycle-count-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 2px;
+}
+
+.mark-used-btn {
+    background-color: #2196F3;
+    color: white;
+}
+
+.record-order-btn {
+    background-color: #FF9800;
+    color: white;
+}
+
+.cycle-count-btn {
+    background-color: #9C27B0;
+    color: white;
+}
+
+.mark-used-btn:hover {
+    background-color: #1976D2;
+}
+
+.record-order-btn:hover {
+    background-color: #F57C00;
+}
+
+.cycle-count-btn:hover {
+    background-color: #7B1FA2;
+}
+
+/* Show tracking action buttons when in edit mode */
+body.edit-mode .mark-used-btn,
+body.edit-mode .record-order-btn,
+body.edit-mode .cycle-count-btn {
+    display: inline-block;
+}
+
+/* Tracking field visual indicators */
+.never-used {
+    color: #9e9e9e;
+    font-style: italic;
+}
+
+.very-old {
+    background-color: #ffebee !important;
+    color: #c62828;
+    font-weight: bold;
+}
+
+.old {
+    background-color: #fff3e0 !important;
+    color: #e65100;
+}
+
+.high-frequency {
+    background-color: #c8e6c9 !important;
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.medium-frequency {
+    background-color: #fff9c4 !important;
+    color: #f57f17;
+}
+
+.cycle-count-overdue {
+    background-color: #ef5350 !important;
+    color: white;
+    font-weight: bold;
+}
+
+.cycle-count-due {
+    background-color: #ffcdd2 !important;
+    color: #c62828;
+}
+
+.cycle-count-warning {
+    background-color: #fff3e0 !important;
+    color: #e65100;
+}
+
 /* Conditional formatting for Current Quantity column */
 .qty-zero {
     background-color: #ef5350 !important; /* Darker red for zero quantity */

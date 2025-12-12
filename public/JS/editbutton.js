@@ -22,13 +22,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const rows = tbody.querySelectorAll('tr');
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
-            
-            // Skip first (row number) and last (actions) columns
+
+            // Skip first (row number), last (actions), and calculated tracking fields
             for (let i = 1; i < cells.length - 1; i++) {
-                const p = cells[i].querySelector('p.inventoryitem');
-                if (p) {
+                const cell = cells[i];
+                const p = cell.querySelector('p.inventoryitem');
+
+                // Skip calculated tracking fields (they have tracking-field class)
+                if (p && !p.classList.contains('tracking-field')) {
                     const value = p.textContent;
-                    cells[i].innerHTML = `<input type="text" class="inventoryitem" value="${value}">`;
+                    cell.innerHTML = `<input type="text" class="inventoryitem" value="${value}">`;
                 }
             }
         });
