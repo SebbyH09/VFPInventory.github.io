@@ -115,4 +115,46 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     }
 });
 
+// POST route - update cycle count and quantity
+router.post('/dashboard/update-cycle-count', requireAuth, async (req, res) => {
+    try {
+        const { itemId, newQuantity, date } = req.body;
+
+        if (!itemId || newQuantity === undefined) {
+            return res.status(400).json({
+                message: "Item ID and new quantity are required"
+            });
+        }
+
+        const updatedItem = await ListedInventoryItem.findByIdAndUpdate(
+            itemId,
+            {
+                $set: {
+                    currentquantity: newQuantity,
+                    lastCycleCount: date || new Date()
+                }
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedItem) {
+            return res.status(404).json({
+                message: "Item not found"
+            });
+        }
+
+        res.json({
+            message: "Cycle count updated successfully",
+            item: updatedItem
+        });
+
+    } catch (error) {
+        console.error('Error updating cycle count:', error);
+        res.status(500).json({
+            message: "Error updating cycle count",
+            error: error.message
+        });
+    }
+});
+
 module.exports = router;

@@ -74,12 +74,13 @@
                         <th>Days Since</th>
                         <th>Interval</th>
                         <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% if (cycleCountDueItems && cycleCountDueItems.length > 0) { %>
                         <% cycleCountDueItems.forEach((item, index) => { %>
-                            <tr class="cycle-count-row" data-index="<%= index %>">
+                            <tr class="cycle-count-row" data-index="<%= index %>" data-item-id="<%= item._id %>" data-current-qty="<%= item.currentquantity %>">
                                 <td><%= item.item %></td>
                                 <td><%= item.brand || 'N/A' %></td>
                                 <td><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></td>
@@ -94,11 +95,16 @@
                                         <span class="status-badge status-due">Due Now</span>
                                     <% } %>
                                 </td>
+                                <td>
+                                    <button class="cycle-count-update-btn" onclick="openCycleCountModal('<%= item._id %>', '<%= item.item %>', <%= item.currentquantity %>)">
+                                        Update
+                                    </button>
+                                </td>
                             </tr>
                         <% }); %>
                     <% } else { %>
                         <tr>
-                            <td colspan="6" style="text-align: center;">No cycle counts due</td>
+                            <td colspan="7" style="text-align: center;">No cycle counts due</td>
                         </tr>
                     <% } %>
                 </tbody>
@@ -107,7 +113,32 @@
     </div>
 </div>
 
+<!-- Cycle Count Update Modal -->
+<div id="cycleCountModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCycleCountModal()">&times;</span>
+        <h2>Update Cycle Count</h2>
+        <div class="modal-body">
+            <p><strong>Item:</strong> <span id="modalItemName"></span></p>
+            <div class="form-group">
+                <label for="currentQty">Current Quantity:</label>
+                <input type="number" id="currentQty" readonly>
+            </div>
+            <div class="form-group">
+                <label for="updatedQty">Updated Quantity:</label>
+                <input type="number" id="updatedQty" placeholder="Enter counted quantity" required>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-submit" onclick="submitCycleCount()">Submit</button>
+                <button class="btn-cancel" onclick="closeCycleCountModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+let currentItemId = null;
+
 function updateCycleCountDisplay() {
     const limit = document.getElementById('cycleCountLimit').value;
     const rows = document.querySelectorAll('.cycle-count-row');
@@ -120,6 +151,62 @@ function updateCycleCountDisplay() {
             row.style.display = index < limitNum ? '' : 'none';
         }
     });
+}
+
+function openCycleCountModal(itemId, itemName, currentQty) {
+    currentItemId = itemId;
+    document.getElementById('modalItemName').textContent = itemName;
+    document.getElementById('currentQty').value = currentQty;
+    document.getElementById('updatedQty').value = '';
+    document.getElementById('cycleCountModal').style.display = 'block';
+}
+
+function closeCycleCountModal() {
+    document.getElementById('cycleCountModal').style.display = 'none';
+    currentItemId = null;
+}
+
+async function submitCycleCount() {
+    const updatedQty = document.getElementById('updatedQty').value;
+
+    if (!updatedQty || updatedQty === '') {
+        alert('Please enter an updated quantity');
+        return;
+    }
+
+    try {
+        const response = await fetch('/dashboard/update-cycle-count', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                itemId: currentItemId,
+                newQuantity: parseInt(updatedQty),
+                date: new Date().toISOString()
+            })
+        });
+
+        if (response.ok) {
+            alert('Cycle count updated successfully!');
+            closeCycleCountModal();
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Failed to update cycle count: ' + (error.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error updating cycle count:', error);
+        alert('Error updating cycle count');
+    }
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('cycleCountModal');
+    if (event.target == modal) {
+        closeCycleCountModal();
+    }
 }
 
 // Initialize display on page load
