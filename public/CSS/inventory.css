@@ -214,3 +214,15 @@ body.edit-mode .cycle-count-btn {
 .qty-low:hover {
     opacity: 0.9;
 }
+
+/* Hide actions column by default */
+#mainTable1 thead th:last-child,
+#mainTable1 tbody td:last-child {
+    display: none;
+}
+
+/* Show actions column when in edit mode */
+body.edit-mode #mainTable1 thead th:last-child,
+body.edit-mode #mainTable1 tbody td:last-child {
+    display: table-cell;
+}

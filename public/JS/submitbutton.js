@@ -61,7 +61,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (rowData[1] !== original.brand) changes.brand = rowData[1];
                 if (rowData[2] !== original.vendor) changes.vendor = rowData[2];
                 if (rowData[3] !== original.catalogNumber) changes.catalog = rowData[3];
-                if (parseInt(rowData[4]) !== original.currentQuantity) changes.currentquantity = parseInt(rowData[4]) || 0;
+
+                // Check if current quantity changed
+                const currentQtyChanged = parseInt(rowData[4]) !== original.currentQuantity;
+                if (currentQtyChanged) {
+                    changes.currentquantity = parseInt(rowData[4]) || 0;
+                    // Update last used date when quantity changes
+                    changes.lastUsedDate = new Date().toISOString();
+                }
+
                 if (parseInt(rowData[5]) !== original.minimumQuantity) changes.minimumquantity = parseInt(rowData[5]) || 0;
                 if (parseInt(rowData[6]) !== original.maxQuantity) changes.maximumquantity = parseInt(rowData[6]) || 0;
                 if (parseInt(rowData[7]) !== original.cycleCountInterval) changes.cycleCountInterval = parseInt(rowData[7]) || 90;
