@@ -66,6 +66,96 @@
     border-color: rgb(52, 125, 39);
 }
 
+/* Table size controls styling */
+.table-size-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.table-size-controls .table-title {
+    margin-bottom: 0;
+    flex-grow: 1;
+}
+
+.size-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.size-control label {
+    font-weight: bold;
+    color: #333;
+}
+
+.size-control select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.size-control select:hover {
+    border-color: rgb(52, 125, 39);
+}
+
+/* Controls group for cycle count table */
+.controls-group {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Table wrapper size variants */
+.table-size-small {
+    max-height: 250px;
+    font-size: 12px;
+}
+
+.table-size-small .ordersTable th,
+.table-size-small .ordersTable td,
+.table-size-small .inventoryTable th,
+.table-size-small .inventoryTable td {
+    padding: 6px;
+    font-size: 12px;
+}
+
+.table-size-small .scrollable-table-container {
+    max-height: 200px;
+}
+
+.table-size-medium {
+    max-height: 400px;
+    font-size: 14px;
+}
+
+.table-size-medium .scrollable-table-container {
+    max-height: 400px;
+}
+
+.table-size-large {
+    max-height: 600px;
+    font-size: 16px;
+}
+
+.table-size-large .ordersTable th,
+.table-size-large .ordersTable td,
+.table-size-large .inventoryTable th,
+.table-size-large .inventoryTable td,
+.table-size-large .cycleCountTable th,
+.table-size-large .cycleCountTable td {
+    padding: 14px;
+    font-size: 15px;
+}
+
+.table-size-large .scrollable-table-container {
+    max-height: 600px;
+}
+
 /* Scrollable table container */
 .scrollable-table-container {
     max-height: 400px;
