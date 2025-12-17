@@ -90,18 +90,39 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('New items:', newItems);
         console.log('Updated items:', updatedItems);
-        
-        // Validation
-        if (newItems.length === 0 && updatedItems.length === 0) {
-            alert('No changes detected');
-            return;
-        }
-        
-        if (hasEmptyFields) {
+
+        // Validation - only check for empty fields in new items
+        if (hasEmptyFields && newItems.length > 0) {
             alert('Please fill in all fields before submitting');
             return;
         }
-        
+
+        // If no changes, just exit edit mode without server request
+        if (newItems.length === 0 && updatedItems.length === 0) {
+            console.log('No changes detected, exiting edit mode');
+
+            // Convert inputs to paragraphs (visual update)
+            rows.forEach((row) => {
+                const cells = row.querySelectorAll('td');
+
+                for (let i = 1; i < cells.length - 1; i++) {
+                    const input = cells[i].querySelector('input.inventoryitem');
+
+                    if (input) {
+                        const value = input.value.trim();
+                        cells[i].innerHTML = `<p class="inventoryitem">${value}</p>`;
+                    }
+                }
+            });
+
+            // Exit edit mode
+            if (window.hideEditButtons) {
+                window.hideEditButtons();
+            }
+
+            return;
+        }
+
         // Convert inputs to paragraphs (visual update)
         rows.forEach((row) => {
             const cells = row.querySelectorAll('td');
