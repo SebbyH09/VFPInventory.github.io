@@ -8,50 +8,54 @@
 </head>
 <body>
     <header class="header-container">
-        <div class="header-top">
-            <a href="/home">
-              <button class="header-button">Home</button>
-            </a>
+        <div class="header-nav">
+            <div class="nav-left">
+                <a href="/home">
+                  <button class="header-button">Home</button>
+                </a>
 
-            <a href="/entry">
-              <button class="header-button">Inventory</button>
-            </a>
+                <a href="/entry">
+                  <button class="header-button">Inventory</button>
+                </a>
 
-            <a href="/upload">
-              <button class="header-button">Upload Inventory</button>
-            </a>
-
-            <div class="dropdown">
-              <button class="header-button dropbtn" onclick="toggleDropdown()">Order</button>
-              <div class="dropdown-content" id="dropdown-content">
-                <a href="#">Link 1</a>
-                <a href="#">Link 2</a>
-                <a href="#">Link 3</a>
-                <a href="#">Link 4</a>
-              </div>
+                <a href="/upload">
+                  <button class="header-button">Upload Inventory</button>
+                </a>
             </div>
 
-            <button class="header-button">Location</button>
+            <div class="nav-center">
+                <h1 class="header-title">VFP Inventory</h1>
+            </div>
 
-            <a href="/registration">
-              <button class="header-button">Registration</button>
-            </a>
+            <div class="nav-right">
+                <div class="dropdown">
+                  <button class="header-button dropbtn" onclick="toggleDropdown()">Order</button>
+                  <div class="dropdown-content" id="dropdown-content">
+                    <a href="#">Link 1</a>
+                    <a href="#">Link 2</a>
+                    <a href="#">Link 3</a>
+                    <a href="#">Link 4</a>
+                  </div>
+                </div>
 
-            <% if (!isLoggedIn) { %>
-              <a href="/login">
-                <button class="header-button-login">Log In</button>
-              </a>
-            <% } %>
+                <button class="header-button">Location</button>
 
-            <% if (isLoggedIn) { %>
-              <form action="/logout" method="POST" style="display: inline;">
-                <button type="submit" class="header-button-logout">Log Out</button>
-              </form>
-            <% } %>
-        </div>
+                <a href="/registration">
+                  <button class="header-button">Registration</button>
+                </a>
 
-        <div class="header-title">
-            <h1>VFP Inventory</h1>
+                <% if (!isLoggedIn) { %>
+                  <a href="/login">
+                    <button class="header-button-login">Log In</button>
+                  </a>
+                <% } %>
+
+                <% if (isLoggedIn) { %>
+                  <form action="/logout" method="POST" style="display: inline;">
+                    <button type="submit" class="header-button-logout">Log Out</button>
+                  </form>
+                <% } %>
+            </div>
         </div>
     </header>
 
