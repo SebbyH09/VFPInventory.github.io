@@ -226,3 +226,22 @@ body.edit-mode #mainTable1 thead th:last-child,
 body.edit-mode #mainTable1 tbody td:last-child {
     display: table-cell;
 }
+
+/* Make input fields shorter in edit mode to prevent horizontal scrolling */
+#mainTable1 input.inventoryitem {
+    width: 100%;
+    max-width: 120px;
+    padding: 4px 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Adjust specific columns for better fit */
+#mainTable1 td {
+    min-width: 100px;
+    max-width: 150px;
+}
+
+#mainTable1 th {
+    min-width: 100px;
+}
