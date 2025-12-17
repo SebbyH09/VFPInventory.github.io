@@ -4,37 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory</title>
-    <link rel="stylesheet" href="/headerstyle.css">
+    <link rel="stylesheet" href="/CSS/headerstyle.css">
 </head>
 <body>
-    <legend>
-        <h2 id="introheader">
-        Venture Forward Partners, LLC.
-        </h2>
-      </legend>
-
-      <nav class="navbar-container">
-          <div class="menulist">
+    <header class="header-container">
+        <div class="header-top">
             <a href="/home">
-              <button class="navbutton">Home</button>
+              <button class="header-button">Home</button>
             </a>
-          </div>
 
-          <div class="menulist">
             <a href="/entry">
-              <button class="navbutton">Inventory</button>
+              <button class="header-button">Inventory</button>
             </a>
-          </div>
 
-          <div class="menulist">
             <a href="/upload">
-              <button class="navbutton">Upload Inventory</button>
+              <button class="header-button">Upload Inventory</button>
             </a>
-          </div>
 
-          <div class="menulist">
             <div class="dropdown">
-            <button class="navbutton dropbtn" onclick="toggleDropdown()">Order</button>
+              <button class="header-button dropbtn" onclick="toggleDropdown()">Order</button>
               <div class="dropdown-content" id="dropdown-content">
                 <a href="#">Link 1</a>
                 <a href="#">Link 2</a>
@@ -42,37 +30,30 @@
                 <a href="#">Link 4</a>
               </div>
             </div>
-          </div>
 
-          <div class="menulist">
-            <button class="navbutton">Location</button>
-          </div>
+            <button class="header-button">Location</button>
 
-          <div class="menulist">
             <a href="/registration">
-              <button class="navbutton">Registration</button>
-              </a>
-          </div>
-
-          <div class="LoginLogoutButtons">
+              <button class="header-button">Registration</button>
+            </a>
 
             <% if (!isLoggedIn) { %>
-            <a href="/login">
-              <button class="navbuttonLogin">Log In</button>
-
-            </a>
+              <a href="/login">
+                <button class="header-button-login">Log In</button>
+              </a>
             <% } %>
-
 
             <% if (isLoggedIn) { %>
-            <form action="/logout" method="POST">
-                <button type="submit" class="navbuttonLogout">Log Out</button>
-            </form>
+              <form action="/logout" method="POST" style="display: inline;">
+                <button type="submit" class="header-button-logout">Log Out</button>
+              </form>
             <% } %>
-          </div>
-      </nav>
+        </div>
 
-          <hr/>
+        <div class="header-title">
+            <h1>VFP Inventory</h1>
+        </div>
+    </header>
 
           
 
