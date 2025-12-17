@@ -1,12 +1,12 @@
-/* Navbar container with background image */
-.navbar-container {
+/* Header container with background image */
+.header-container {
     position: relative;
-    padding: 15px 10px;
+    padding: 0;
     overflow: hidden;
 }
 
 /* Blurred background image using pseudo-element */
-.navbar-container::before {
+.header-container::before {
     content: "";
     position: absolute;
     top: 0;
@@ -21,14 +21,42 @@
     z-index: -1;
 }
 
-/* Navigation button styling - consistent across all pages with !important to prevent overrides */
-.navbutton,
-.navbuttonLogin,
-.navbuttonLogout {
+/* Header top section with buttons */
+.header-top {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    flex-wrap: wrap;
+}
+
+/* Header title section */
+.header-title {
+    position: relative;
+    text-align: center;
+    padding: 20px 0;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 42px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    letter-spacing: 2px;
+}
+
+/* Header button styling - consistent across all pages */
+.header-button,
+.header-button-login,
+.header-button-logout {
     background-color: rgb(68, 132, 250) !important;
     color: rgb(0, 0, 0) !important;
-    padding: 5px 20px !important;
-    font-size: 20px !important;
+    padding: 8px 24px !important;
+    font-size: 18px !important;
     border: none !important;
     border-radius: 50px !important;
     cursor: pointer !important;
@@ -37,9 +65,9 @@
     opacity: 1 !important;
 }
 
-.navbutton:hover,
-.navbuttonLogin:hover,
-.navbuttonLogout:hover {
+.header-button:hover,
+.header-button-login:hover,
+.header-button-logout:hover {
     background-color: rgb(129, 173, 255) !important;
     color: black !important;
     opacity: 1 !important;
@@ -48,18 +76,6 @@
 .dropdown {
     position: relative;
     display: inline-block;
-}
-
-.menulist {
-    display: inline-block;
-    align-items: center;
-}
-
-
-.LoginLogoutButtons {
-    display: block;
-    float: right;
-    transform: translateX(-5px);
 }
 
 /* Footer positioning at bottom of page */
