@@ -1,14 +1,14 @@
 .inventory-container {
     max-width: 100%;
     margin: 0 auto;
-    padding: 20px;
+    padding: 10px 20px;
 }
 
 .table-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .button-group {
@@ -49,12 +49,20 @@
     border: 1px solid #ddd;
 }
 
+#mainTable1 tbody tr {
+    border-bottom: 4px solid #ffffff;
+}
+
 #mainTable1 tbody tr:hover {
+    background-color: #e8f5e9;
+}
+
+#mainTable1 tbody tr:nth-child(odd) {
     background-color: #f5f5f5;
 }
 
 #mainTable1 tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: #e9e9e9;
 }
 
 /* Button styling - exclude navigation buttons to prevent style conflicts */
@@ -217,7 +225,7 @@ body.edit-mode .cycle-count-btn {
 
 /* Search bar styling */
 .search-bar-container {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 #inventorySearchBar {
@@ -455,12 +463,108 @@ body.modal-open .table-wrapper {
     cursor: pointer;
 }
 
-/* Adjust specific columns for better fit */
+/* Responsive column sizing */
+#mainTable1 th,
 #mainTable1 td {
-    min-width: 100px;
-    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-#mainTable1 th {
+/* Specific column widths for better responsiveness */
+#mainTable1 th:nth-child(1), /* # */
+#mainTable1 td:nth-child(1) {
+    width: 50px;
+    min-width: 50px;
+}
+
+#mainTable1 th:nth-child(2), /* Item */
+#mainTable1 td:nth-child(2),
+#mainTable1 th:nth-child(3), /* Brand */
+#mainTable1 td:nth-child(3),
+#mainTable1 th:nth-child(4), /* Vendor */
+#mainTable1 td:nth-child(4) {
+    min-width: 120px;
+    width: auto;
+}
+
+#mainTable1 th:nth-child(5), /* Catalog # */
+#mainTable1 td:nth-child(5) {
     min-width: 100px;
+    width: auto;
+}
+
+#mainTable1 th:nth-child(6), /* Current Qty */
+#mainTable1 td:nth-child(6),
+#mainTable1 th:nth-child(7), /* Min Qty */
+#mainTable1 td:nth-child(7),
+#mainTable1 th:nth-child(8), /* Max Qty */
+#mainTable1 td:nth-child(8) {
+    min-width: 80px;
+    width: 100px;
+}
+
+#mainTable1 th:nth-child(9), /* Location */
+#mainTable1 td:nth-child(9),
+#mainTable1 th:nth-child(10), /* Type */
+#mainTable1 td:nth-child(10) {
+    min-width: 100px;
+    width: 120px;
+}
+
+/* Actions and Edit columns */
+#mainTable1 th:nth-child(16), /* Actions */
+#mainTable1 td:nth-child(16),
+#mainTable1 th:nth-child(17), /* Edit */
+#mainTable1 td:nth-child(17) {
+    min-width: 80px;
+    width: 100px;
+    text-align: center;
+}
+
+/* Media queries for smaller screens */
+@media screen and (max-width: 1400px) {
+    #mainTable1 th,
+    #mainTable1 td {
+        padding: 8px;
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    #mainTable1 th,
+    #mainTable1 td {
+        padding: 6px;
+        font-size: 12px;
+    }
+
+    #mainTable1 th:nth-child(2),
+    #mainTable1 td:nth-child(2),
+    #mainTable1 th:nth-child(3),
+    #mainTable1 td:nth-child(3),
+    #mainTable1 th:nth-child(4),
+    #mainTable1 td:nth-child(4) {
+        min-width: 100px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .inventory-container {
+        padding: 5px 10px;
+    }
+
+    #mainTable1 th,
+    #mainTable1 td {
+        padding: 4px;
+        font-size: 11px;
+    }
+
+    .table-controls h2 {
+        font-size: 18px;
+    }
+
+    .button-group button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
 }
