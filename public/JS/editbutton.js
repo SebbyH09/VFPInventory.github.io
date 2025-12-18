@@ -23,15 +23,31 @@ document.addEventListener('DOMContentLoaded', function() {
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
 
-            // Skip first (row number), last (actions), and calculated tracking fields
-            for (let i = 1; i < cells.length - 1; i++) {
+            // Skip first (row number), last two (actions, edit), and calculated tracking fields
+            for (let i = 1; i < cells.length - 2; i++) {
                 const cell = cells[i];
                 const p = cell.querySelector('p.inventoryitem');
 
                 // Skip calculated tracking fields (they have tracking-field class)
                 if (p && !p.classList.contains('tracking-field')) {
                     const value = p.textContent;
-                    cell.innerHTML = `<input type="text" class="inventoryitem" value="${value}">`;
+
+                    // Check if this is the Type column (column 9)
+                    if (i === 9) {
+                        cell.innerHTML = `
+                            <select class="inventoryitem">
+                                <option value="">Select Type</option>
+                                <option value="Reagent" ${value === 'Reagent' ? 'selected' : ''}>Reagent</option>
+                                <option value="Equipment" ${value === 'Equipment' ? 'selected' : ''}>Equipment</option>
+                                <option value="Consumable" ${value === 'Consumable' ? 'selected' : ''}>Consumable</option>
+                                <option value="Tool" ${value === 'Tool' ? 'selected' : ''}>Tool</option>
+                                <option value="Chemical" ${value === 'Chemical' ? 'selected' : ''}>Chemical</option>
+                                <option value="Other" ${value === 'Other' ? 'selected' : ''}>Other</option>
+                            </select>
+                        `;
+                    } else {
+                        cell.innerHTML = `<input type="text" class="inventoryitem" value="${value}">`;
+                    }
                 }
             }
         });

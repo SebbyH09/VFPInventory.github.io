@@ -45,8 +45,10 @@ router.post("/", requireAuth, async (req, res) => {
                 currentquantity: parseInt(row[4]) || 0,
                 minimumquantity: parseInt(row[5]) || 0,
                 maximumquantity: parseInt(row[6]) || 0,
-                cycleCountInterval: parseInt(row[7]) || 90,
-                orderFrequencyPeriod: parseInt(row[8]) || 30
+                location: row[7],
+                type: row[8],
+                cycleCountInterval: parseInt(row[9]) || 90,
+                orderFrequencyPeriod: parseInt(row[10]) || 30
             }));
 
             const savedItems = await inventory.insertMany(itemsToInsert);
