@@ -22,16 +22,17 @@
 
 /* Scrollable table wrapper */
 .table-wrapper {
-    overflow-x: auto;
     max-height: 600px;
     overflow-y: auto;
     border: 1px solid #ddd;
+    width: 100%;
 }
 
 /* Table styling */
 #mainTable1 {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 #mainTable1 thead {
@@ -449,13 +450,12 @@ body.modal-open .table-wrapper {
     pointer-events: none;
 }
 
-/* Make input fields shorter in edit mode to prevent horizontal scrolling */
+/* Make input fields fit within cells */
 #mainTable1 input.inventoryitem,
 #mainTable1 select.inventoryitem {
     width: 100%;
-    max-width: 120px;
-    padding: 4px 8px;
-    font-size: 14px;
+    padding: 4px 6px;
+    font-size: 13px;
     box-sizing: border-box;
 }
 
@@ -466,16 +466,17 @@ body.modal-open .table-wrapper {
 /* Responsive column sizing */
 #mainTable1 th,
 #mainTable1 td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* Specific column widths for better responsiveness */
 #mainTable1 th:nth-child(1), /* # */
 #mainTable1 td:nth-child(1) {
-    width: 50px;
-    min-width: 50px;
+    width: 3%;
+    max-width: 50px;
 }
 
 #mainTable1 th:nth-child(2), /* Item */
@@ -484,14 +485,12 @@ body.modal-open .table-wrapper {
 #mainTable1 td:nth-child(3),
 #mainTable1 th:nth-child(4), /* Vendor */
 #mainTable1 td:nth-child(4) {
-    min-width: 120px;
-    width: auto;
+    width: 12%;
 }
 
 #mainTable1 th:nth-child(5), /* Catalog # */
 #mainTable1 td:nth-child(5) {
-    min-width: 100px;
-    width: auto;
+    width: 8%;
 }
 
 #mainTable1 th:nth-child(6), /* Current Qty */
@@ -500,16 +499,14 @@ body.modal-open .table-wrapper {
 #mainTable1 td:nth-child(7),
 #mainTable1 th:nth-child(8), /* Max Qty */
 #mainTable1 td:nth-child(8) {
-    min-width: 80px;
-    width: 100px;
+    width: 6%;
 }
 
 #mainTable1 th:nth-child(9), /* Location */
 #mainTable1 td:nth-child(9),
 #mainTable1 th:nth-child(10), /* Type */
 #mainTable1 td:nth-child(10) {
-    min-width: 100px;
-    width: 120px;
+    width: 8%;
 }
 
 /* Actions and Edit columns */
@@ -517,8 +514,7 @@ body.modal-open .table-wrapper {
 #mainTable1 td:nth-child(16),
 #mainTable1 th:nth-child(17), /* Edit */
 #mainTable1 td:nth-child(17) {
-    min-width: 80px;
-    width: 100px;
+    width: 8%;
     text-align: center;
 }
 
@@ -536,15 +532,6 @@ body.modal-open .table-wrapper {
     #mainTable1 td {
         padding: 6px;
         font-size: 12px;
-    }
-
-    #mainTable1 th:nth-child(2),
-    #mainTable1 td:nth-child(2),
-    #mainTable1 th:nth-child(3),
-    #mainTable1 td:nth-child(3),
-    #mainTable1 th:nth-child(4),
-    #mainTable1 td:nth-child(4) {
-        min-width: 100px;
     }
 }
 
