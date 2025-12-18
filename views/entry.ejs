@@ -38,7 +38,6 @@
                         <th>Cycle Interval (days)</th>
                         <th>Order Period (days)</th>
                         <th>Actions</th>
-                        <th>Edit</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,8 +84,6 @@
                                 <td><p class="inventoryitem"><%= item.orderFrequencyPeriod || 30 %></p></td>
                                 <td class="actions-cell">
                                     <button class="delete-btn hidden" onclick="updateRowNumbers()">Delete</button>
-                                </td>
-                                <td class="edit-cell">
                                     <button class="row-edit-btn" onclick="openEditModal('<%= item._id %>')">Edit</button>
                                 </td>
                             </tr>
