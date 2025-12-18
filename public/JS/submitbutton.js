@@ -24,9 +24,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const originalData = row.getAttribute('data-original');
             const rowData = [];
 
-            // Collect current values (skip calculated tracking fields)
-            for (let i = 1; i < cells.length - 1; i++) {
+            // Collect current values (skip calculated tracking fields and action columns)
+            for (let i = 1; i < cells.length - 2; i++) { // -2 to skip Actions and Edit columns
                 const input = cells[i].querySelector('input.inventoryitem');
+                const select = cells[i].querySelector('select.inventoryitem');
                 const p = cells[i].querySelector('p.inventoryitem');
 
                 // Skip calculated tracking fields
@@ -38,9 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const value = input.value.trim();
                     rowData.push(value);
 
-                    if (value === '' && i < 8) {
+                    if (value === '' && i < 10) { // Updated to account for Location and Type columns
                         hasEmptyFields = true;
                     }
+                } else if (select) {
+                    rowData.push(select.value);
                 } else if (p) {
                     rowData.push(p.textContent);
                 }
@@ -72,8 +75,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (parseInt(rowData[5]) !== original.minimumQuantity) changes.minimumquantity = parseInt(rowData[5]) || 0;
                 if (parseInt(rowData[6]) !== original.maxQuantity) changes.maximumquantity = parseInt(rowData[6]) || 0;
-                if (parseInt(rowData[7]) !== original.cycleCountInterval) changes.cycleCountInterval = parseInt(rowData[7]) || 90;
-                if (parseInt(rowData[8]) !== original.orderFrequencyPeriod) changes.orderFrequencyPeriod = parseInt(rowData[8]) || 30;
+                if (rowData[7] !== original.location) changes.location = rowData[7];
+                if (rowData[8] !== original.type) changes.type = rowData[8];
+                if (parseInt(rowData[9]) !== original.cycleCountInterval) changes.cycleCountInterval = parseInt(rowData[9]) || 90;
+                if (parseInt(rowData[10]) !== original.orderFrequencyPeriod) changes.orderFrequencyPeriod = parseInt(rowData[10]) || 30;
 
                 // Only add to update list if something changed
                 if (Object.keys(changes).length > 0) {
@@ -105,11 +110,15 @@ document.addEventListener('DOMContentLoaded', function() {
             rows.forEach((row) => {
                 const cells = row.querySelectorAll('td');
 
-                for (let i = 1; i < cells.length - 1; i++) {
+                for (let i = 1; i < cells.length - 2; i++) { // -2 to skip Actions and Edit columns
                     const input = cells[i].querySelector('input.inventoryitem');
+                    const select = cells[i].querySelector('select.inventoryitem');
 
                     if (input) {
                         const value = input.value.trim();
+                        cells[i].innerHTML = `<p class="inventoryitem">${value}</p>`;
+                    } else if (select) {
+                        const value = select.value;
                         cells[i].innerHTML = `<p class="inventoryitem">${value}</p>`;
                     }
                 }
@@ -126,12 +135,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Convert inputs to paragraphs (visual update)
         rows.forEach((row) => {
             const cells = row.querySelectorAll('td');
-            
-            for (let i = 1; i < cells.length - 1; i++) {
+
+            for (let i = 1; i < cells.length - 2; i++) { // -2 to skip Actions and Edit columns
                 const input = cells[i].querySelector('input.inventoryitem');
-                
+                const select = cells[i].querySelector('select.inventoryitem');
+
                 if (input) {
                     const value = input.value.trim();
+                    cells[i].innerHTML = `<p class="inventoryitem">${value}</p>`;
+                } else if (select) {
+                    const value = select.value;
                     cells[i].innerHTML = `<p class="inventoryitem">${value}</p>`;
                 }
             }
@@ -173,13 +186,28 @@ document.addEventListener('DOMContentLoaded', function() {
             // Revert to inputs if save failed
             rows.forEach((row) => {
                 const cells = row.querySelectorAll('td');
-                
-                for (let i = 1; i < cells.length - 1; i++) {
+
+                for (let i = 1; i < cells.length - 2; i++) { // -2 to skip Actions and Edit columns
                     const p = cells[i].querySelector('p.inventoryitem');
-                    
-                    if (p) {
+
+                    if (p && !p.classList.contains('tracking-field')) {
                         const value = p.textContent;
-                        cells[i].innerHTML = `<input type="text" class="inventoryitem" value="${value}">`;
+                        // Check if this is the Type column (column 9)
+                        if (i === 9) {
+                            cells[i].innerHTML = `
+                                <select class="inventoryitem">
+                                    <option value="">Select Type</option>
+                                    <option value="Reagent" ${value === 'Reagent' ? 'selected' : ''}>Reagent</option>
+                                    <option value="Equipment" ${value === 'Equipment' ? 'selected' : ''}>Equipment</option>
+                                    <option value="Consumable" ${value === 'Consumable' ? 'selected' : ''}>Consumable</option>
+                                    <option value="Tool" ${value === 'Tool' ? 'selected' : ''}>Tool</option>
+                                    <option value="Chemical" ${value === 'Chemical' ? 'selected' : ''}>Chemical</option>
+                                    <option value="Other" ${value === 'Other' ? 'selected' : ''}>Other</option>
+                                </select>
+                            `;
+                        } else {
+                            cells[i].innerHTML = `<input type="text" class="inventoryitem" value="${value}">`;
+                        }
                     }
                 }
             });

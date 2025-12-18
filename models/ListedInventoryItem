@@ -10,6 +10,8 @@ const InventorySchema = new Schema({
     currentquantity: Number,
     minimumquantity: Number,
     maximumquantity: Number,
+    location: String,
+    type: String,
     lastUsedDate: { type: Date, default: null },
     orderHistory: [{ type: Date }],
     lastCycleCount: { type: Date, default: null },

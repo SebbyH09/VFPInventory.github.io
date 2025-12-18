@@ -11,8 +11,11 @@
             <div class="button-group">
                 <button id="newRowAdditionBtn" class="hidden">Add Item</button>
                 <button id="submitEndOfRow" class="hidden">Submit</button>
-                <button id="editEndOfRow">Edit</button>
             </div>
+        </div>
+
+        <div class="search-bar-container">
+            <input type="text" id="inventorySearchBar" placeholder="Search inventory...">
         </div>
 
         <div class="table-wrapper">
@@ -27,12 +30,15 @@
                         <th>Current Quantity</th>
                         <th>Minimum Quantity</th>
                         <th>Max Quantity</th>
+                        <th>Location</th>
+                        <th>Type</th>
                         <th>Days Since Last Use</th>
                         <th>Orders (Last <span class="order-period-display">30</span> days)</th>
                         <th>Last Cycle Count</th>
                         <th>Cycle Interval (days)</th>
                         <th>Order Period (days)</th>
                         <th>Actions</th>
+                        <th>Edit</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,6 +57,8 @@
                                 currentQuantity: item.currentquantity,
                                 minimumQuantity: item.minimumquantity,
                                 maxQuantity: item.maximumquantity,
+                                location: item.location,
+                                type: item.type,
                                 lastUsedDate: item.lastUsedDate,
                                 orderHistory: item.orderHistory || [],
                                 lastCycleCount: item.lastCycleCount,
@@ -68,13 +76,18 @@
                                 <td><p class="inventoryitem"><%= item.currentquantity %></p></td>
                                 <td><p class="inventoryitem"><%= item.minimumquantity %></p></td>
                                 <td><p class="inventoryitem"><%= item.maximumquantity %></p></td>
+                                <td><p class="inventoryitem"><%= item.location || '' %></p></td>
+                                <td><p class="inventoryitem"><%= item.type || '' %></p></td>
                                 <td class="days-since-use"><p class="inventoryitem tracking-field">-</p></td>
                                 <td class="order-frequency"><p class="inventoryitem tracking-field">0</p></td>
                                 <td class="last-cycle-count"><p class="inventoryitem tracking-field"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></p></td>
                                 <td><p class="inventoryitem"><%= item.cycleCountInterval || 90 %></p></td>
                                 <td><p class="inventoryitem"><%= item.orderFrequencyPeriod || 30 %></p></td>
-                                <td>
+                                <td class="actions-cell">
                                     <button class="delete-btn hidden" onclick="updateRowNumbers()">Delete</button>
+                                </td>
+                                <td class="edit-cell">
+                                    <button class="row-edit-btn" onclick="openEditModal('<%= item._id %>')">Edit</button>
                                 </td>
                             </tr>
                         <% }); %>
@@ -86,11 +99,97 @@
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div id="editModal" class="edit-modal">
+        <div class="edit-modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Item</h2>
+            <div class="edit-modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editItem">Item:</label>
+                        <input type="text" id="editItem" class="edit-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="editBrand">Brand:</label>
+                        <input type="text" id="editBrand" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editVendor">Vendor:</label>
+                        <input type="text" id="editVendor" class="edit-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCatalog">Catalog #:</label>
+                        <input type="text" id="editCatalog" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editCurrentQty">Current Quantity:</label>
+                        <input type="number" id="editCurrentQty" class="edit-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="editMinQty">Minimum Quantity:</label>
+                        <input type="number" id="editMinQty" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editMaxQty">Max Quantity:</label>
+                        <input type="number" id="editMaxQty" class="edit-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="editLocation">Location:</label>
+                        <input type="text" id="editLocation" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editType">Type:</label>
+                        <select id="editType" class="edit-input">
+                            <option value="">Select Type</option>
+                            <option value="Reagent">Reagent</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Consumable">Consumable</option>
+                            <option value="Tool">Tool</option>
+                            <option value="Chemical">Chemical</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCycleInterval">Cycle Interval (days):</label>
+                        <input type="number" id="editCycleInterval" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editOrderPeriod">Order Period (days):</label>
+                        <input type="number" id="editOrderPeriod" class="edit-input">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="mark-used-btn-modal" onclick="markItemAsUsedFromModal()">Mark Used</button>
+                    <button class="record-order-btn-modal" onclick="recordItemOrderFromModal()">Record Order</button>
+                    <button class="cycle-count-btn-modal" onclick="performCycleCountFromModal()">Cycle Count</button>
+                    <button class="delete-btn-modal" onclick="deleteItemFromModal()">Delete</button>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-submit" onclick="submitEditModal()">Save Changes</button>
+                    <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Load all scripts -->
     <script defer src="/editbutton.js"></script>
     <script defer src="/TableRowAdd.js"></script>
     <script defer src="/submitbutton.js"></script>
     <script defer src="/conditionalFormatting.js"></script>
     <script defer src="/inventoryTracking.js"></script>
+    <script defer src="/editModal.js"></script>
+    <script defer src="/searchBar.js"></script>
 </body>
 </html>

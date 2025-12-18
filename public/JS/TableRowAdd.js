@@ -24,32 +24,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 // First column: Row number (non-editable)
                 cell.innerHTML = `<span class="row-number">${rowNumber}</span>`;
                 cell.classList.add('row-number-cell');
-            } else if (i === 8) {
+            } else if (i === 9) {
+                // Type column - dropdown
+                cell.innerHTML = `
+                    <select class="inventoryitem">
+                        <option value="">Select Type</option>
+                        <option value="Reagent">Reagent</option>
+                        <option value="Equipment">Equipment</option>
+                        <option value="Consumable">Consumable</option>
+                        <option value="Tool">Tool</option>
+                        <option value="Chemical">Chemical</option>
+                        <option value="Other">Other</option>
+                    </select>
+                `;
+            } else if (i === 10) {
                 // Days Since Last Use (calculated field)
                 cell.classList.add('days-since-use');
                 cell.innerHTML = '<p class="inventoryitem tracking-field">Never</p>';
-            } else if (i === 9) {
+            } else if (i === 11) {
                 // Order Frequency (calculated field)
                 cell.classList.add('order-frequency');
                 cell.innerHTML = '<p class="inventoryitem tracking-field">0</p>';
-            } else if (i === 10) {
+            } else if (i === 12) {
                 // Last Cycle Count (calculated field)
                 cell.classList.add('last-cycle-count');
                 cell.innerHTML = '<p class="inventoryitem tracking-field">Never</p>';
-            } else if (i === 11) {
+            } else if (i === 13) {
                 // Cycle Interval (editable with default)
                 cell.innerHTML = '<input type="text" class="inventoryitem" value="90">';
-            } else if (i === 12) {
+            } else if (i === 14) {
                 // Order Period (editable with default)
                 cell.innerHTML = '<input type="text" class="inventoryitem" value="30">';
-            } else if (i === columnCount - 1) {
-                // Last column: Action buttons (visible in edit mode)
+            } else if (i === 15) {
+                // Actions column (visible in edit mode)
+                cell.classList.add('actions-cell');
                 cell.innerHTML = `
                     <button class="delete-btn" onclick="updateRowNumbers()">Delete</button>
                     <button class="mark-used-btn hidden">Mark Used</button>
                     <button class="record-order-btn hidden">Record Order</button>
                     <button class="cycle-count-btn hidden">Cycle Count</button>
                 `;
+            } else if (i === 16) {
+                // Edit column
+                cell.classList.add('edit-cell');
+                cell.innerHTML = '<button class="row-edit-btn" onclick="openEditModal(undefined)">Edit</button>';
             } else {
                 // Regular data columns: input fields
                 cell.innerHTML = '<input type="text" class="inventoryitem">';
