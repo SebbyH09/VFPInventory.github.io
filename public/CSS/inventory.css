@@ -555,3 +555,71 @@ body.modal-open .table-wrapper {
         font-size: 12px;
     }
 }
+
+/* Column resize handle styling */
+.column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: col-resize;
+    z-index: 1;
+    background-color: transparent;
+}
+
+.column-resize-handle:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-right: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.column-resize-handle:active {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Column drag and drop styling */
+#mainTable1 th.dragging {
+    opacity: 0.5;
+    background-color: #357a38;
+}
+
+#mainTable1 th.drag-over {
+    background-color: #66bb6a;
+    border-left: 3px solid #fff;
+    border-right: 3px solid #fff;
+}
+
+.column-highlight {
+    background-color: rgba(76, 175, 80, 0.15) !important;
+    outline: 1px dashed #4CAF50;
+}
+
+/* Ensure draggable headers have proper cursor */
+#mainTable1 thead th[draggable="true"] {
+    cursor: move;
+}
+
+/* Add a subtle indicator that columns are draggable */
+#mainTable1 thead th[draggable="true"]::before {
+    content: '⋮⋮';
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: -2px;
+}
+
+/* Ensure resize handle is positioned correctly */
+#mainTable1 thead th {
+    position: relative;
+}
+
+/* Prevent text selection during drag */
+#mainTable1 thead th[draggable="true"] {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
