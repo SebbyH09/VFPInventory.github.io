@@ -27,6 +27,11 @@
                         <th>Current Quantity</th>
                         <th>Minimum Quantity</th>
                         <th>Max Quantity</th>
+                        <th>Days Since Last Use</th>
+                        <th>Orders (Last <span class="order-period-display">30</span> days)</th>
+                        <th>Last Cycle Count</th>
+                        <th>Cycle Interval (days)</th>
+                        <th>Order Period (days)</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -34,16 +39,25 @@
                     <% if (inventoryItems && inventoryItems.length > 0) { %>
                         <% inventoryItems.forEach((item, index) => { %>
                             
-                            <tr data-item-id="<%= item._id %>" data-original='<%= JSON.stringify({
+                            <tr data-item-id="<%= item._id %>"
+                                data-last-used="<%= item.lastUsedDate ? item.lastUsedDate.toISOString() : '' %>"
+                                data-order-history='<%= JSON.stringify(item.orderHistory || []) %>'
+                                data-last-cycle-count="<%= item.lastCycleCount ? item.lastCycleCount.toISOString() : '' %>"
+                                data-original='<%= JSON.stringify({
                                 item: item.item,
                                 brand: item.brand,
                                 vendor: item.vendor,
                                 catalogNumber: item.catalog,
                                 currentQuantity: item.currentquantity,
                                 minimumQuantity: item.minimumquantity,
-                                maxQuantity: item.maximumquantity
+                                maxQuantity: item.maximumquantity,
+                                lastUsedDate: item.lastUsedDate,
+                                orderHistory: item.orderHistory || [],
+                                lastCycleCount: item.lastCycleCount,
+                                cycleCountInterval: item.cycleCountInterval || 90,
+                                orderFrequencyPeriod: item.orderFrequencyPeriod || 30
                             }) %>'>
-                                                              
+
                                 <td class="row-number-cell">
                                     <span class="row-number"><%= index + 1 %></span>
                                 </td>
@@ -54,6 +68,11 @@
                                 <td><p class="inventoryitem"><%= item.currentquantity %></p></td>
                                 <td><p class="inventoryitem"><%= item.minimumquantity %></p></td>
                                 <td><p class="inventoryitem"><%= item.maximumquantity %></p></td>
+                                <td class="days-since-use"><p class="inventoryitem tracking-field">-</p></td>
+                                <td class="order-frequency"><p class="inventoryitem tracking-field">0</p></td>
+                                <td class="last-cycle-count"><p class="inventoryitem tracking-field"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></p></td>
+                                <td><p class="inventoryitem"><%= item.cycleCountInterval || 90 %></p></td>
+                                <td><p class="inventoryitem"><%= item.orderFrequencyPeriod || 30 %></p></td>
                                 <td>
                                     <button class="delete-btn hidden" onclick="updateRowNumbers()">Delete</button>
                                 </td>
@@ -67,9 +86,11 @@
         </div>
     </div>
 
-    <!-- Load all three scripts -->
+    <!-- Load all scripts -->
     <script defer src="/editbutton.js"></script>
     <script defer src="/TableRowAdd.js"></script>
     <script defer src="/submitbutton.js"></script>
+    <script defer src="/conditionalFormatting.js"></script>
+    <script defer src="/inventoryTracking.js"></script>
 </body>
 </html>

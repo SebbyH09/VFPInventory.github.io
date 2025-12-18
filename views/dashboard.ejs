@@ -3,36 +3,277 @@
     <link rel="stylesheet" href="/dashboardstyle.css">
 </head>
 
+<div class="dashboard-container">
+    <div class="table-wrapper" id="ordersTableWrapper">
+        <div class="table-size-controls">
+            <h2 class="table-title">Recent Orders</h2>
+            <div class="size-control">
+                <label for="ordersTableSize">Size:</label>
+                <select id="ordersTableSize" onchange="adjustTableSize('ordersTableWrapper', this.value)">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                </select>
+            </div>
+        </div>
+        <table class="ordersTable">
+            <tr>
+                <th>Date</th>
+                <th>Vendor</th>
+                <th>Items</th>
+                <th>Quantity</th>
+            </tr>
+            <tr>
+                <td>TEST</td>
+                <td>TEST2</td>
+                <td>TEST3</td>
+                <td>45</td>
+            </tr>
+        </table>
+    </div>
 
+    <div class="table-wrapper" id="inventoryTableWrapper">
+        <div class="table-size-controls">
+            <h2 class="table-title">Need to Order</h2>
+            <div class="size-control">
+                <label for="inventoryTableSize">Size:</label>
+                <select id="inventoryTableSize" onchange="adjustTableSize('inventoryTableWrapper', this.value)">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                </select>
+            </div>
+        </div>
+        <table class="inventoryTable">
+            <tr>
+                <th>Item</th>
+                <th>Brand</th>
+                <th>Catalog</th>
+                <th>Current Quantity</th>
+                <th>Minimum Quantity</th>
+            </tr>
+            <% if (lowInventoryItems && lowInventoryItems.length > 0) { %>
+                <% lowInventoryItems.forEach(item => { %>
+                    <tr>
+                        <td><%= item.item %></td>
+                        <td><%= item.brand || 'N/A' %></td>
+                        <td><%= item.catalog || 'N/A' %></td>
+                        <td><%= item.currentquantity %></td>
+                        <td><%= item.minimumquantity %></td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="5" style="text-align: center;">No items need to be ordered</td>
+                </tr>
+            <% } %>
+        </table>
+    </div>
 
-<table class="inventoryTable">
-    <tr>
-        <th>Date</th>
-        <th>Vendor</th>
-        <th>Items</th>
-        <th>Quantity</th>
-    </tr>
-    <tr>
-        <td>TEST</td>
-        <td>TEST2</td>
-        <td>TEST3</td>
-        <td>45</td>
-    </tr>
-</table>
+    <div class="table-wrapper cycle-count-wrapper" id="cycleCountTableWrapper">
+        <div class="table-header-controls">
+            <h2 class="table-title">Cycle Counts Due</h2>
+            <div class="controls-group">
+                <div class="size-control">
+                    <label for="cycleCountTableSize">Size:</label>
+                    <select id="cycleCountTableSize" onchange="adjustTableSize('cycleCountTableWrapper', this.value)">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+                <div class="display-limit-control">
+                    <label for="cycleCountLimit">Show:</label>
+                    <select id="cycleCountLimit" onchange="updateCycleCountDisplay()">
+                        <option value="5">5 items</option>
+                        <option value="10" selected>10 items</option>
+                        <option value="15">15 items</option>
+                        <option value="20">20 items</option>
+                        <option value="all">All items</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="scrollable-table-container">
+            <table class="cycleCountTable" id="cycleCountTable">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Brand</th>
+                        <th>Last Count</th>
+                        <th>Days Since</th>
+                        <th>Interval</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (cycleCountDueItems && cycleCountDueItems.length > 0) { %>
+                        <% cycleCountDueItems.forEach((item, index) => { %>
+                            <tr class="cycle-count-row" data-index="<%= index %>" data-item-id="<%= item._id %>" data-current-qty="<%= item.currentquantity %>">
+                                <td><%= item.item %></td>
+                                <td><%= item.brand || 'N/A' %></td>
+                                <td><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></td>
+                                <td><%= item.daysSinceCount !== null ? item.daysSinceCount : 'N/A' %></td>
+                                <td><%= item.cycleCountInterval || 90 %> days</td>
+                                <td>
+                                    <% if (!item.lastCycleCount) { %>
+                                        <span class="status-badge status-overdue">Never Counted</span>
+                                    <% } else if (item.daysOverdue > 0) { %>
+                                        <span class="status-badge status-overdue">Overdue by <%= item.daysOverdue %> days</span>
+                                    <% } else { %>
+                                        <span class="status-badge status-due">Due Now</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <button class="cycle-count-update-btn" onclick="openCycleCountModal('<%= item._id %>', '<%= item.item %>', <%= item.currentquantity %>)">
+                                        Update
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" style="text-align: center;">No cycle counts due</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
+<!-- Cycle Count Update Modal -->
+<div id="cycleCountModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCycleCountModal()">&times;</span>
+        <h2>Update Cycle Count</h2>
+        <div class="modal-body">
+            <p><strong>Item:</strong> <span id="modalItemName"></span></p>
+            <div class="form-group">
+                <label for="currentQty">Current Quantity:</label>
+                <input type="number" id="currentQty" readonly>
+            </div>
+            <div class="form-group">
+                <label for="updatedQty">Updated Quantity:</label>
+                <input type="number" id="updatedQty" placeholder="Enter counted quantity" required>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-submit" onclick="submitCycleCount()">Submit</button>
+                <button class="btn-cancel" onclick="closeCycleCountModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script>
+let currentItemId = null;
 
-<table class="ordersTable">
-    <tr>
-        <th>Date</th>
-        <th>Vendor</th>
-        <th>Items</th>
-        <th>Quantity</th>
-    </tr>
-    <tr>
-        <td>TEST</td>
-        <td>TEST2</td>
-        <td>TEST3</td>
-        <td>45</td>
-    </tr>
-</table>
+function adjustTableSize(wrapperId, size) {
+    const wrapper = document.getElementById(wrapperId);
+
+    // Remove existing size classes
+    wrapper.classList.remove('table-size-small', 'table-size-medium', 'table-size-large');
+
+    // Add new size class
+    wrapper.classList.add('table-size-' + size);
+
+    // Save preference to localStorage
+    localStorage.setItem(wrapperId + '-size', size);
+}
+
+function updateCycleCountDisplay() {
+    const limit = document.getElementById('cycleCountLimit').value;
+    const rows = document.querySelectorAll('.cycle-count-row');
+
+    rows.forEach((row, index) => {
+        if (limit === 'all') {
+            row.style.display = '';
+        } else {
+            const limitNum = parseInt(limit);
+            row.style.display = index < limitNum ? '' : 'none';
+        }
+    });
+}
+
+function openCycleCountModal(itemId, itemName, currentQty) {
+    currentItemId = itemId;
+    document.getElementById('modalItemName').textContent = itemName;
+    document.getElementById('currentQty').value = currentQty;
+    document.getElementById('updatedQty').value = '';
+    document.getElementById('cycleCountModal').style.display = 'block';
+}
+
+function closeCycleCountModal() {
+    document.getElementById('cycleCountModal').style.display = 'none';
+    currentItemId = null;
+}
+
+async function submitCycleCount() {
+    const updatedQty = document.getElementById('updatedQty').value;
+
+    if (!updatedQty || updatedQty === '') {
+        alert('Please enter an updated quantity');
+        return;
+    }
+
+    try {
+        const response = await fetch('/dashboard/update-cycle-count', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                itemId: currentItemId,
+                newQuantity: parseInt(updatedQty),
+                date: new Date().toISOString()
+            })
+        });
+
+        if (response.ok) {
+            alert('Cycle count updated successfully!');
+            closeCycleCountModal();
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Failed to update cycle count: ' + (error.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error updating cycle count:', error);
+        alert('Error updating cycle count');
+    }
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('cycleCountModal');
+    if (event.target == modal) {
+        closeCycleCountModal();
+    }
+}
+
+// Initialize display and restore saved sizes on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateCycleCountDisplay();
+
+    // Restore saved table sizes from localStorage
+    const tableWrappers = ['ordersTableWrapper', 'inventoryTableWrapper', 'cycleCountTableWrapper'];
+    tableWrappers.forEach(wrapperId => {
+        const savedSize = localStorage.getItem(wrapperId + '-size');
+        if (savedSize) {
+            const wrapper = document.getElementById(wrapperId);
+            const select = wrapper.querySelector('select[id$="TableSize"]');
+            if (select && wrapper) {
+                select.value = savedSize;
+                wrapper.classList.add('table-size-' + savedSize);
+            }
+        } else {
+            // Apply default medium size
+            const wrapper = document.getElementById(wrapperId);
+            if (wrapper) {
+                wrapper.classList.add('table-size-medium');
+            }
+        }
+    });
+});
+</script>

@@ -1,13 +1,365 @@
-.ordersTable {
-    display: flex;
-    border: 2px solid;
-    align-items: end;
-    width: 25%;
-    margin-left: auto;
-    margin-right: 0;
-    border-collapse: collapse;
+/* Dashboard container with grid layout */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
 }
 
-td {
+/* Table wrapper styling */
+.table-wrapper {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+}
+
+/* Cycle count wrapper spans full width in second row */
+.cycle-count-wrapper {
+    grid-column: 1 / 2;
+}
+
+/* Table header with controls */
+.table-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+/* Center table titles */
+.table-title {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.table-header-controls .table-title {
+    margin-bottom: 0;
+    flex-grow: 1;
+}
+
+/* Display limit control styling */
+.display-limit-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.display-limit-control label {
+    font-weight: bold;
+    color: #333;
+}
+
+.display-limit-control select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.display-limit-control select:hover {
+    border-color: rgb(52, 125, 39);
+}
+
+/* Table size controls styling */
+.table-size-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.table-size-controls .table-title {
+    margin-bottom: 0;
+    flex-grow: 1;
+}
+
+.size-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.size-control label {
+    font-weight: bold;
+    color: #333;
+}
+
+.size-control select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.size-control select:hover {
+    border-color: rgb(52, 125, 39);
+}
+
+/* Controls group for cycle count table */
+.controls-group {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Table wrapper size variants */
+.table-size-small {
+    max-height: 250px;
+    font-size: 12px;
+}
+
+.table-size-small .ordersTable th,
+.table-size-small .ordersTable td,
+.table-size-small .inventoryTable th,
+.table-size-small .inventoryTable td {
+    padding: 6px;
+    font-size: 12px;
+}
+
+.table-size-small .scrollable-table-container {
+    max-height: 200px;
+}
+
+.table-size-medium {
+    max-height: 400px;
+    font-size: 14px;
+}
+
+.table-size-medium .scrollable-table-container {
+    max-height: 400px;
+}
+
+.table-size-large {
+    max-height: 600px;
+    font-size: 16px;
+}
+
+.table-size-large .ordersTable th,
+.table-size-large .ordersTable td,
+.table-size-large .inventoryTable th,
+.table-size-large .inventoryTable td,
+.table-size-large .cycleCountTable th,
+.table-size-large .cycleCountTable td {
+    padding: 14px;
+    font-size: 15px;
+}
+
+.table-size-large .scrollable-table-container {
+    max-height: 600px;
+}
+
+/* Scrollable table container */
+.scrollable-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+/* Common table styling */
+.ordersTable,
+.inventoryTable,
+.cycleCountTable {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ordersTable th,
+.ordersTable td,
+.inventoryTable th,
+.inventoryTable td,
+.cycleCountTable th,
+.cycleCountTable td {
     padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.ordersTable th,
+.inventoryTable th,
+.cycleCountTable th {
+    background-color: rgb(52, 125, 39);
+    color: white;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.ordersTable tr:hover,
+.inventoryTable tr:hover,
+.cycleCountTable tr:hover {
+    background-color: #f5f5f5;
+}
+
+.ordersTable tr:last-child td,
+.inventoryTable tr:last-child td,
+.cycleCountTable tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status badge styling */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.status-overdue {
+    background-color: #ef5350;
+    color: white;
+}
+
+.status-due {
+    background-color: #ffcdd2;
+    color: #c62828;
+}
+
+.status-warning {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+/* Cycle count update button */
+.cycle-count-update-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.cycle-count-update-btn:hover {
+    background-color: #45a049;
+}
+
+/* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #333;
+    text-align: center;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+.modal-body {
+    margin-top: 20px;
+}
+
+.modal-body .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-body label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.modal-body input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.modal-body input[type="number"]:focus {
+    outline: none;
+    border-color: rgb(52, 125, 39);
+}
+
+.modal-body input[readonly] {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.btn-submit,
+.btn-cancel {
+    flex: 1;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.btn-submit {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-submit:hover {
+    background-color: #45a049;
+}
+
+.btn-cancel {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background-color: #da190b;
 }

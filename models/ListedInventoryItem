@@ -10,6 +10,11 @@ const InventorySchema = new Schema({
     currentquantity: Number,
     minimumquantity: Number,
     maximumquantity: Number,
+    lastUsedDate: { type: Date, default: null },
+    orderHistory: [{ type: Date }],
+    lastCycleCount: { type: Date, default: null },
+    cycleCountInterval: { type: Number, default: 90 },
+    orderFrequencyPeriod: { type: Number, default: 30 }
 });
 
 
