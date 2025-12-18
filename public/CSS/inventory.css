@@ -1,14 +1,14 @@
 .inventory-container {
     max-width: 100%;
     margin: 0 auto;
-    padding: 10px 20px;
+    padding: 0px 20px;
 }
 
 .table-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .button-group {
@@ -45,9 +45,14 @@
 
 #mainTable1 th,
 #mainTable1 td {
-    padding: 12px;
+    padding: 6px 8px;
     text-align: left;
     border: 1px solid #ddd;
+}
+
+#mainTable1 th {
+    font-size: 13px;
+    line-height: 1.2;
 }
 
 #mainTable1 tbody tr {
@@ -226,7 +231,7 @@ body.edit-mode .cycle-count-btn {
 
 /* Search bar styling */
 .search-bar-container {
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 #inventorySearchBar {
@@ -244,16 +249,18 @@ body.edit-mode .cycle-count-btn {
     border-color: #45a049;
 }
 
-/* Hide actions column by default, show edit column always */
+/* Actions column visible by default with edit button */
 #mainTable1 thead th.actions-cell,
 #mainTable1 tbody td.actions-cell {
-    display: none;
+    display: table-cell;
 }
 
-/* Show actions column when in edit mode */
-body.edit-mode #mainTable1 thead th.actions-cell,
-body.edit-mode #mainTable1 tbody td.actions-cell {
-    display: table-cell;
+.actions-cell {
+    white-space: nowrap;
+}
+
+.actions-cell button {
+    margin: 2px;
 }
 
 /* Edit button styling */
@@ -509,12 +516,10 @@ body.modal-open .table-wrapper {
     width: 8%;
 }
 
-/* Actions and Edit columns */
+/* Actions column */
 #mainTable1 th:nth-child(16), /* Actions */
-#mainTable1 td:nth-child(16),
-#mainTable1 th:nth-child(17), /* Edit */
-#mainTable1 td:nth-child(17) {
-    width: 8%;
+#mainTable1 td:nth-child(16) {
+    width: 10%;
     text-align: center;
 }
 
