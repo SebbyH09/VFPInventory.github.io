@@ -1,4 +1,146 @@
+/* Header container spanning full width at top */
+.header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    z-index: 1000;
+    padding: 10px 20px;
+    box-sizing: border-box;
+}
 
+/* Navigation flex container */
+.header-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Left section with navigation buttons */
+.nav-left {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Center section with title */
+.nav-center {
+    flex: 0 1 auto;
+}
+
+.header-title {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Right section with login/logout buttons */
+.nav-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: auto;
+}
+
+/* Standard header buttons */
+.header-button {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.header-button:hover {
+    background-color: #45a049;
+}
+
+/* Login button styling */
+.header-button-login {
+    padding: 8px 16px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.header-button-login:hover {
+    background-color: #0b7dda;
+}
+
+/* Logout button styling */
+.header-button-logout {
+    padding: 8px 16px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.header-button-logout:hover {
+    background-color: #da190b;
+}
+
+/* Dropdown styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+/* Remove link styling for header buttons */
+.header-nav a {
+    text-decoration: none;
+}
+
+/* Add top margin to body content to account for fixed header */
+body {
+    margin: 0;
+    padding-top: 80px;
+}
 
 /* Footer positioning at bottom of page */
 .page-footer {
