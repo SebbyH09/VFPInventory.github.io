@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchBar = document.getElementById('inventorySearchBar');
+    const searchButton = document.getElementById('searchButton');
     const table = document.getElementById('mainTable1');
 
     if (!searchBar || !table) {
@@ -15,6 +16,13 @@ document.addEventListener('DOMContentLoaded', function() {
             performSearch();
         }
     });
+
+    // Search on button click
+    if (searchButton) {
+        searchButton.addEventListener('click', function() {
+            performSearch();
+        });
+    }
 
     function performSearch() {
         const searchTerm = searchBar.value.toLowerCase().trim();
