@@ -241,6 +241,9 @@ body.edit-mode .cycle-count-btn {
 /* Search bar styling */
 .search-bar-container {
     margin-bottom: 5px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 #inventorySearchBar {
@@ -256,6 +259,26 @@ body.edit-mode .cycle-count-btn {
 #inventorySearchBar:focus {
     outline: none;
     border-color: #45a049;
+}
+
+.search-button {
+    padding: 10px 20px;
+    font-size: 14px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.search-button:hover {
+    background-color: #45a049;
+}
+
+.search-button:active {
+    background-color: #3d8b40;
 }
 
 /* Actions column visible by default with edit button */
