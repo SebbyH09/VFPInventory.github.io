@@ -52,6 +52,7 @@ const entryRouter = require('./routes/entry')
 const registrationRouter = require('./routes/registration')
 const homeRouter = require('./routes/home')
 const uploadRouter = require('./routes/upload')
+const historyRouter = require('./routes/history')
 
 
 app.use((req, res, next) => {
@@ -93,6 +94,8 @@ app.use('/login', loginRouter)
 app.use('/entry', requireAuth, entryRouter);
 
 app.use('/upload', requireAuth, uploadRouter);
+
+app.use('/history', requireAuth, historyRouter);
 
 app.use('/home', homeRouter)
 
