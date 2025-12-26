@@ -97,6 +97,84 @@
         </div>
     </div>
 
+    <!-- Add Item Modal -->
+    <div id="addModal" class="edit-modal">
+        <div class="edit-modal-content">
+            <span class="close-modal" onclick="closeAddModal()">&times;</span>
+            <h2>Add New Item</h2>
+            <div class="edit-modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="addItem">Item:</label>
+                        <input type="text" id="addItem" class="edit-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="addBrand">Brand:</label>
+                        <input type="text" id="addBrand" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="addVendor">Vendor:</label>
+                        <input type="text" id="addVendor" class="edit-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="addCatalog">Catalog #:</label>
+                        <input type="text" id="addCatalog" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="addCurrentQty">Current Quantity:</label>
+                        <input type="number" id="addCurrentQty" class="edit-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="addMinQty">Minimum Quantity:</label>
+                        <input type="number" id="addMinQty" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="addMaxQty">Max Quantity:</label>
+                        <input type="number" id="addMaxQty" class="edit-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="addLocation">Location:</label>
+                        <input type="text" id="addLocation" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="addType">Type:</label>
+                        <select id="addType" class="edit-input">
+                            <option value="">Select Type</option>
+                            <option value="Reagent">Reagent</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Consumable">Consumable</option>
+                            <option value="Tool">Tool</option>
+                            <option value="Chemical">Chemical</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="addCycleInterval">Cycle Interval (days):</label>
+                        <input type="number" id="addCycleInterval" class="edit-input" value="90">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="addOrderPeriod">Order Period (days):</label>
+                        <input type="number" id="addOrderPeriod" class="edit-input" value="30">
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-submit" onclick="submitAddModal()">Add Item</button>
+                    <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Modal -->
     <div id="editModal" class="edit-modal">
         <div class="edit-modal-content">
