@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory History</title>
+    <link rel="stylesheet" href="/inventory.css">
+    <link rel="stylesheet" href="/history.css">
+</head>
+<body>
+    <div class="inventory-container">
+        <div class="table-controls">
+            <h2>Inventory History</h2>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="history-filters">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" class="filter-input">
+                </div>
+
+                <div class="filter-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" class="filter-input">
+                </div>
+
+                <div class="filter-group">
+                    <label for="itemFilter">Item:</label>
+                    <select id="itemFilter" class="filter-input">
+                        <option value="all">All Items</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="changeTypeFilter">Change Type:</label>
+                    <select id="changeTypeFilter" class="filter-input">
+                        <option value="all">All Types</option>
+                        <option value="quantity_change">Quantity Change</option>
+                        <option value="item_used">Item Used</option>
+                        <option value="order_placed">Order Placed</option>
+                        <option value="cycle_count">Cycle Count</option>
+                        <option value="item_created">Item Created</option>
+                        <option value="item_updated">Item Updated</option>
+                        <option value="item_deleted">Item Deleted</option>
+                    </select>
+                </div>
+
+                <button id="applyFilters" class="filter-button">Apply Filters</button>
+                <button id="resetFilters" class="filter-button secondary">Reset</button>
+            </div>
+
+            <div class="filter-row">
+                <button id="showSummary" class="filter-button">Show Quantity Used Summary</button>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div id="summarySection" class="summary-section hidden">
+            <h3>Quantity Used Summary</h3>
+            <div id="summaryContent"></div>
+        </div>
+
+        <!-- History Table -->
+        <div class="table-wrapper">
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-column="changeDate">
+                            Date <span class="sort-indicator">▼</span>
+                        </th>
+                        <th class="sortable" data-column="itemName">
+                            Item <span class="sort-indicator"></span>
+                        </th>
+                        <th class="sortable" data-column="changeType">
+                            Change Type <span class="sort-indicator"></span>
+                        </th>
+                        <th>Previous Qty</th>
+                        <th>New Qty</th>
+                        <th class="sortable" data-column="quantityChange">
+                            Qty Change <span class="sort-indicator"></span>
+                        </th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr>
+                        <td colspan="7" class="loading-message">Loading history data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Data Message -->
+        <div id="noDataMessage" class="no-data-message hidden">
+            <p>No history records found for the selected filters.</p>
+            <p>History tracking will begin recording changes from this point forward.</p>
+        </div>
+    </div>
+
+    <script src="/history.js"></script>
+</body>
+</html>

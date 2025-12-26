@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const requireAuth = require('../Middleware/auth');
 const ListedInventoryItem = require('../models/ListedInventoryItem');
+const InventoryHistory = require('../models/InventoryHistory');
 
 router.get('/', async (req, res) => {
     console.log('===== ROOT ROUTE HIT =====');
@@ -126,6 +127,9 @@ router.post('/dashboard/update-cycle-count', requireAuth, async (req, res) => {
             });
         }
 
+        // Get the item before update to track quantity change
+        const oldItem = await ListedInventoryItem.findById(itemId);
+
         const updatedItem = await ListedInventoryItem.findByIdAndUpdate(
             itemId,
             {
@@ -140,6 +144,24 @@ router.post('/dashboard/update-cycle-count', requireAuth, async (req, res) => {
         if (!updatedItem) {
             return res.status(404).json({
                 message: "Item not found"
+            });
+        }
+
+        // Log cycle count and quantity change to history
+        if (oldItem) {
+            const qtyChange = newQuantity - oldItem.currentquantity;
+
+            // Log the cycle count action
+            await InventoryHistory.create({
+                itemId: updatedItem._id,
+                itemName: updatedItem.item,
+                changeType: 'cycle_count',
+                previousQuantity: oldItem.currentquantity,
+                newQuantity: newQuantity,
+                quantityChange: qtyChange,
+                changeDate: date || new Date(),
+                notes: 'Cycle count performed from dashboard',
+                userId: req.session.user?.email || 'unknown'
             });
         }
 

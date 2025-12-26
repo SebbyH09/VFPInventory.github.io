@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const inventory = require('../models/ListedInventoryItem');
+const InventoryHistory = require('../models/InventoryHistory');
 const requireAuth = require('../Middleware/auth');
 
 // GET route - render page with existing inventory
@@ -54,20 +55,51 @@ router.post("/", requireAuth, async (req, res) => {
             const savedItems = await inventory.insertMany(itemsToInsert);
             results.savedItems = savedItems;
             results.newCount = savedItems.length;
+
+            // Log creation of new items to history
+            const historyEntries = savedItems.map(item => ({
+                itemId: item._id,
+                itemName: item.item,
+                changeType: 'item_created',
+                newQuantity: item.currentquantity,
+                quantityChange: item.currentquantity,
+                notes: 'Item created',
+                userId: req.session.user?.email || 'unknown'
+            }));
+            await InventoryHistory.insertMany(historyEntries);
         }
         
         // Handle updated items
         if (updatedItems && updatedItems.length > 0) {
             for (const update of updatedItems) {
+                // Get the item before update to track changes
+                const oldItem = await inventory.findById(update.id);
+
                 const updatedItem = await inventory.findByIdAndUpdate(
                     update.id,
                     { $set: update.changes },
                     { new: true, runValidators: true }
                 );
-                
-                if (updatedItem) {
+
+                if (updatedItem && oldItem) {
                     results.updatedItemsDetails.push(updatedItem);
                     results.updatedCount++;
+
+                    // Log quantity changes to history
+                    if (update.changes.currentquantity !== undefined &&
+                        oldItem.currentquantity !== update.changes.currentquantity) {
+                        const qtyChange = update.changes.currentquantity - oldItem.currentquantity;
+                        await InventoryHistory.create({
+                            itemId: updatedItem._id,
+                            itemName: updatedItem.item,
+                            changeType: 'quantity_change',
+                            previousQuantity: oldItem.currentquantity,
+                            newQuantity: update.changes.currentquantity,
+                            quantityChange: qtyChange,
+                            notes: 'Quantity updated via edit',
+                            userId: req.session.user?.email || 'unknown'
+                        });
+                    }
                 }
             }
         }
@@ -107,6 +139,16 @@ router.delete("/:id", requireAuth, async (req, res) => {
             });
         }
 
+        // Log deletion to history
+        await InventoryHistory.create({
+            itemId: deletedItem._id,
+            itemName: deletedItem.item,
+            changeType: 'item_deleted',
+            previousQuantity: deletedItem.currentquantity,
+            notes: 'Item deleted',
+            userId: req.session.user?.email || 'unknown'
+        });
+
         res.json({
             message: "Item deleted successfully",
             deletedItem
@@ -143,6 +185,16 @@ router.post("/mark-used", requireAuth, async (req, res) => {
                 message: "Item not found"
             });
         }
+
+        // Log usage to history
+        await InventoryHistory.create({
+            itemId: updatedItem._id,
+            itemName: updatedItem.item,
+            changeType: 'item_used',
+            changeDate: date || new Date(),
+            notes: 'Item marked as used',
+            userId: req.session.user?.email || 'unknown'
+        });
 
         res.json({
             message: "Item marked as used successfully",
@@ -181,6 +233,16 @@ router.post("/record-order", requireAuth, async (req, res) => {
             });
         }
 
+        // Log order to history
+        await InventoryHistory.create({
+            itemId: updatedItem._id,
+            itemName: updatedItem.item,
+            changeType: 'order_placed',
+            changeDate: date || new Date(),
+            notes: 'Order recorded',
+            userId: req.session.user?.email || 'unknown'
+        });
+
         res.json({
             message: "Order recorded successfully",
             item: updatedItem
@@ -217,6 +279,16 @@ router.post("/cycle-count", requireAuth, async (req, res) => {
                 message: "Item not found"
             });
         }
+
+        // Log cycle count to history
+        await InventoryHistory.create({
+            itemId: updatedItem._id,
+            itemName: updatedItem.item,
+            changeType: 'cycle_count',
+            changeDate: date || new Date(),
+            notes: 'Cycle count performed',
+            userId: req.session.user?.email || 'unknown'
+        });
 
         res.json({
             message: "Cycle count recorded successfully",
