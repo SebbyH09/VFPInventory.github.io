@@ -1,82 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     const createNewRowButton = document.getElementById("newRowAdditionBtn");
     const mainTableToAddRow = document.getElementById("mainTable1");
-    
+
     if (!createNewRowButton || !mainTableToAddRow) {
         console.error('Table or button not found');
         return;
     }
-    
+
     const tbody = mainTableToAddRow.querySelector('tbody');
-    const headerCells = mainTableToAddRow.querySelectorAll('thead th');
-    const columnCount = headerCells.length;
-    
+
+    // Open the add item modal when button is clicked
     createNewRowButton.addEventListener('click', function() {
-        console.log('Adding new row...');
-
-        const newRow = tbody.insertRow(-1);
-        const rowNumber = tbody.rows.length;
-
-        for (let i = 0; i < columnCount; i++) {
-            const cell = newRow.insertCell(i);
-
-            if (i === 0) {
-                // First column: Row number (non-editable)
-                cell.innerHTML = `<span class="row-number">${rowNumber}</span>`;
-                cell.classList.add('row-number-cell');
-            } else if (i === 9) {
-                // Type column - dropdown
-                cell.innerHTML = `
-                    <select class="inventoryitem">
-                        <option value="">Select Type</option>
-                        <option value="Reagent">Reagent</option>
-                        <option value="Equipment">Equipment</option>
-                        <option value="Consumable">Consumable</option>
-                        <option value="Tool">Tool</option>
-                        <option value="Chemical">Chemical</option>
-                        <option value="Other">Other</option>
-                    </select>
-                `;
-            } else if (i === 10) {
-                // Days Since Last Use (calculated field)
-                cell.classList.add('days-since-use');
-                cell.innerHTML = '<p class="inventoryitem tracking-field">Never</p>';
-            } else if (i === 11) {
-                // Order Frequency (calculated field)
-                cell.classList.add('order-frequency');
-                cell.innerHTML = '<p class="inventoryitem tracking-field">0</p>';
-            } else if (i === 12) {
-                // Last Cycle Count (calculated field)
-                cell.classList.add('last-cycle-count');
-                cell.innerHTML = '<p class="inventoryitem tracking-field">Never</p>';
-            } else if (i === 13) {
-                // Cycle Interval (editable with default)
-                cell.innerHTML = '<input type="text" class="inventoryitem" value="90">';
-            } else if (i === 14) {
-                // Order Period (editable with default)
-                cell.innerHTML = '<input type="text" class="inventoryitem" value="30">';
-            } else if (i === 15) {
-                // Actions column (visible in edit mode)
-                cell.classList.add('actions-cell');
-                cell.innerHTML = `
-                    <button class="delete-btn" onclick="updateRowNumbers()">Delete</button>
-                    <button class="mark-used-btn hidden">Mark Used</button>
-                    <button class="record-order-btn hidden">Record Order</button>
-                    <button class="cycle-count-btn hidden">Cycle Count</button>
-                `;
-            } else if (i === 16) {
-                // Edit column
-                cell.classList.add('edit-cell');
-                cell.innerHTML = '<button class="row-edit-btn" onclick="openEditModal(undefined)">Edit</button>';
-            } else {
-                // Regular data columns: input fields
-                cell.innerHTML = '<input type="text" class="inventoryitem">';
-            }
-        }
-
-        console.log('Row added successfully');
+        console.log('Opening add item modal...');
+        openAddModal();
     });
-    
+
     // Global function to delete row and update row numbers
     window.updateRowNumbers = async function() {
         const row = event.target.closest('tr');
@@ -121,10 +59,97 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 
+// Open the add item modal
+function openAddModal() {
+    const modal = document.getElementById('addModal');
+    if (modal) {
+        // Clear all input fields
+        document.getElementById('addItem').value = '';
+        document.getElementById('addBrand').value = '';
+        document.getElementById('addVendor').value = '';
+        document.getElementById('addCatalog').value = '';
+        document.getElementById('addCurrentQty').value = '';
+        document.getElementById('addMinQty').value = '';
+        document.getElementById('addMaxQty').value = '';
+        document.getElementById('addLocation').value = '';
+        document.getElementById('addType').value = '';
+        document.getElementById('addCycleInterval').value = '90';
+        document.getElementById('addOrderPeriod').value = '30';
 
+        modal.style.display = 'block';
+    }
+}
 
+// Close the add item modal
+function closeAddModal() {
+    const modal = document.getElementById('addModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
 
+// Submit the add item modal
+async function submitAddModal() {
+    // Get all the values from the modal
+    const itemData = [
+        document.getElementById('addItem').value.trim(),
+        document.getElementById('addBrand').value.trim(),
+        document.getElementById('addVendor').value.trim(),
+        document.getElementById('addCatalog').value.trim(),
+        document.getElementById('addCurrentQty').value.trim(),
+        document.getElementById('addMinQty').value.trim(),
+        document.getElementById('addMaxQty').value.trim(),
+        document.getElementById('addLocation').value.trim(),
+        document.getElementById('addType').value,
+        document.getElementById('addCycleInterval').value.trim() || '90',
+        document.getElementById('addOrderPeriod').value.trim() || '30'
+    ];
 
+    // Validate required fields (first 9 fields)
+    const requiredFields = itemData.slice(0, 9);
+    if (requiredFields.some(field => field === '')) {
+        alert('Please fill in all required fields');
+        return;
+    }
 
+    // Send to server
+    try {
+        const response = await fetch("/entry", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                newItems: [itemData],
+                updatedItems: []
+            })
+        });
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`Server error: ${response.status}`);
+        }
 
+        const result = await response.json();
+        console.log("Server response:", result);
+
+        alert(result.message || "Item added successfully!");
+
+        // Close modal and reload page
+        closeAddModal();
+        window.location.reload();
+
+    } catch (error) {
+        console.error("Request failed:", error);
+        alert("Failed to add item: " + error.message);
+    }
+}
+
+// Close modal when clicking outside of it
+window.addEventListener('click', function(event) {
+    const addModal = document.getElementById('addModal');
+    if (event.target === addModal) {
+        closeAddModal();
+    }
+});
