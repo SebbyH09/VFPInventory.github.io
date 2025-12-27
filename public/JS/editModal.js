@@ -180,36 +180,6 @@ async function recordItemOrderFromModal() {
     }
 }
 
-async function performCycleCountFromModal() {
-    if (!currentEditItemId) {
-        alert('No item selected');
-        return;
-    }
-
-    const today = new Date().toISOString();
-
-    try {
-        const response = await fetch('/entry/cycle-count', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ itemId: currentEditItemId, date: today })
-        });
-
-        if (response.ok) {
-            alert('Cycle count recorded');
-            closeEditModal();
-            window.location.reload();
-        } else {
-            alert('Failed to record cycle count');
-        }
-    } catch (error) {
-        console.error('Error recording cycle count:', error);
-        alert('Error recording cycle count');
-    }
-}
-
 async function deleteItemFromModal() {
     if (!currentEditItemId) {
         alert('No item selected');
