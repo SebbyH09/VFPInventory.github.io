@@ -218,7 +218,7 @@ async function submitCycleCount() {
     }
 
     try {
-        const response = await fetch('/dashboard', {
+        const response = await fetch('/home/update-cycle-count', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
