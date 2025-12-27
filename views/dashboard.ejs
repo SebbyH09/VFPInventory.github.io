@@ -126,7 +126,7 @@
                                     <% } %>
                                 </td>
                                 <td>
-                                    <button class="cycle-count-update-btn" onclick="openCycleCountModal('<%= item._id %>', '<%= item.item %>', <%= item.currentquantity %>)">
+                                    <button class="cycle-count-update-btn" onclick="openCycleCountModal('<%= item._id %>', '<%= item.item %>', '<%= item.currentquantity %>')">
                                         Update
                                     </button>
                                 </td>
@@ -218,7 +218,7 @@ async function submitCycleCount() {
     }
 
     try {
-        const response = await fetch('/dashboard/update-cycle-count', {
+        const response = await fetch('/dashboard', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -229,6 +229,7 @@ async function submitCycleCount() {
                 date: new Date().toISOString()
             })
         });
+
 
         if (response.ok) {
             alert('Cycle count updated successfully!');

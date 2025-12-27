@@ -117,7 +117,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
 });
 
 // POST route - update cycle count and quantity
-router.post('/dashboard/update-cycle-count', requireAuth, async (req, res) => {
+router.post('/update-cycle-count', requireAuth, async (req, res) => {
     try {
         const { itemId, newQuantity, date } = req.body;
 

@@ -118,14 +118,8 @@ function addTrackingActionButtons() {
         recordOrderBtn.className = 'record-order-btn hidden';
         recordOrderBtn.onclick = function() { recordItemOrder(row); };
 
-        const cycleCountBtn = document.createElement('button');
-        cycleCountBtn.textContent = 'Cycle Count';
-        cycleCountBtn.className = 'cycle-count-btn hidden';
-        cycleCountBtn.onclick = function() { performCycleCount(row); };
-
         actionsCell.appendChild(markUsedBtn);
         actionsCell.appendChild(recordOrderBtn);
-        actionsCell.appendChild(cycleCountBtn);
     });
 }
 
@@ -183,35 +177,6 @@ async function recordItemOrder(row) {
     }
 }
 
-async function performCycleCount(row) {
-    const itemId = row.getAttribute('data-item-id');
-    const today = new Date().toISOString();
-
-    try {
-        const response = await fetch('/entry/cycle-count', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ itemId, date: today })
-        });
-
-        if (response.ok) {
-            row.setAttribute('data-last-cycle-count', today);
-            const lastCycleCountCell = row.querySelector('.last-cycle-count p');
-            if (lastCycleCountCell) {
-                lastCycleCountCell.textContent = new Date(today).toLocaleDateString();
-            }
-            checkCycleCountDue(row);
-            alert('Cycle count recorded');
-        } else {
-            alert('Failed to record cycle count');
-        }
-    } catch (error) {
-        console.error('Error recording cycle count:', error);
-        alert('Error recording cycle count');
-    }
-}
 
 function observeTableChanges() {
     const tbody = document.querySelector('#mainTable1 tbody');
