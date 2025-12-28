@@ -4,79 +4,91 @@
 </head>
 
 <div class="dashboard-container">
-    <div class="table-wrapper" id="ordersTableWrapper">
-        <div class="table-size-controls">
-            <h2 class="table-title">Recent Orders</h2>
+    <div class="card-wrapper" id="ordersCardWrapper">
+        <div class="card-header-controls">
+            <h2 class="card-title">Recent Orders</h2>
             <div class="size-control">
-                <label for="ordersTableSize">Size:</label>
-                <select id="ordersTableSize" onchange="adjustTableSize('ordersTableWrapper', this.value)">
+                <label for="ordersCardSize">Size:</label>
+                <select id="ordersCardSize" onchange="adjustCardSize('ordersCardWrapper', this.value)">
                     <option value="small">Small</option>
                     <option value="medium" selected>Medium</option>
                     <option value="large">Large</option>
                 </select>
             </div>
         </div>
-        <table class="ordersTable">
-            <tr>
-                <th>Date</th>
-                <th>Vendor</th>
-                <th>Items</th>
-                <th>Quantity</th>
-            </tr>
-            <tr>
-                <td>TEST</td>
-                <td>TEST2</td>
-                <td>TEST3</td>
-                <td>45</td>
-            </tr>
-        </table>
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-field">
+                    <span class="field-label">Date:</span>
+                    <span class="field-value">TEST</span>
+                </div>
+                <div class="card-field">
+                    <span class="field-label">Vendor:</span>
+                    <span class="field-value">TEST2</span>
+                </div>
+                <div class="card-field">
+                    <span class="field-label">Items:</span>
+                    <span class="field-value">TEST3</span>
+                </div>
+                <div class="card-field">
+                    <span class="field-label">Quantity:</span>
+                    <span class="field-value">45</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="table-wrapper" id="inventoryTableWrapper">
-        <div class="table-size-controls">
-            <h2 class="table-title">Need to Order</h2>
+    <div class="card-wrapper" id="inventoryCardWrapper">
+        <div class="card-header-controls">
+            <h2 class="card-title">Need to Order</h2>
             <div class="size-control">
-                <label for="inventoryTableSize">Size:</label>
-                <select id="inventoryTableSize" onchange="adjustTableSize('inventoryTableWrapper', this.value)">
+                <label for="inventoryCardSize">Size:</label>
+                <select id="inventoryCardSize" onchange="adjustCardSize('inventoryCardWrapper', this.value)">
                     <option value="small">Small</option>
                     <option value="medium" selected>Medium</option>
                     <option value="large">Large</option>
                 </select>
             </div>
         </div>
-        <table class="inventoryTable">
-            <tr>
-                <th>Item</th>
-                <th>Brand</th>
-                <th>Catalog</th>
-                <th>Current Quantity</th>
-                <th>Minimum Quantity</th>
-            </tr>
+        <div class="cards-grid">
             <% if (lowInventoryItems && lowInventoryItems.length > 0) { %>
                 <% lowInventoryItems.forEach(item => { %>
-                    <tr>
-                        <td><%= item.item %></td>
-                        <td><%= item.brand || 'N/A' %></td>
-                        <td><%= item.catalog || 'N/A' %></td>
-                        <td><%= item.currentquantity %></td>
-                        <td><%= item.minimumquantity %></td>
-                    </tr>
+                    <div class="card">
+                        <div class="card-field">
+                            <span class="field-label">Item:</span>
+                            <span class="field-value"><%= item.item %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Brand:</span>
+                            <span class="field-value"><%= item.brand || 'N/A' %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Catalog:</span>
+                            <span class="field-value"><%= item.catalog || 'N/A' %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Current Qty:</span>
+                            <span class="field-value quantity-low"><%= item.currentquantity %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Min Qty:</span>
+                            <span class="field-value"><%= item.minimumquantity %></span>
+                        </div>
+                    </div>
                 <% }); %>
             <% } else { %>
-                <tr>
-                    <td colspan="5" style="text-align: center;">No items need to be ordered</td>
-                </tr>
+                <div class="empty-state">No items need to be ordered</div>
             <% } %>
-        </table>
+        </div>
     </div>
 
-    <div class="table-wrapper cycle-count-wrapper" id="cycleCountTableWrapper">
-        <div class="table-header-controls">
-            <h2 class="table-title">Cycle Counts Due</h2>
+    <div class="card-wrapper cycle-count-wrapper" id="cycleCountCardWrapper">
+        <div class="card-header-controls">
+            <h2 class="card-title">Cycle Counts Due</h2>
             <div class="controls-group">
                 <div class="size-control">
-                    <label for="cycleCountTableSize">Size:</label>
-                    <select id="cycleCountTableSize" onchange="adjustTableSize('cycleCountTableWrapper', this.value)">
+                    <label for="cycleCountCardSize">Size:</label>
+                    <select id="cycleCountCardSize" onchange="adjustCardSize('cycleCountCardWrapper', this.value)">
                         <option value="small">Small</option>
                         <option value="medium" selected>Medium</option>
                         <option value="large">Large</option>
@@ -94,51 +106,52 @@
                 </div>
             </div>
         </div>
-        <div class="scrollable-table-container">
-            <table class="cycleCountTable" id="cycleCountTable">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Brand</th>
-                        <th>Last Count</th>
-                        <th>Days Since</th>
-                        <th>Interval</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (cycleCountDueItems && cycleCountDueItems.length > 0) { %>
-                        <% cycleCountDueItems.forEach((item, index) => { %>
-                            <tr class="cycle-count-row" data-index="<%= index %>" data-item-id="<%= item._id %>" data-current-qty="<%= item.currentquantity %>">
-                                <td><%= item.item %></td>
-                                <td><%= item.brand || 'N/A' %></td>
-                                <td><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></td>
-                                <td><%= item.daysSinceCount !== null ? item.daysSinceCount : 'N/A' %></td>
-                                <td><%= item.cycleCountInterval || 90 %> days</td>
-                                <td>
-                                    <% if (!item.lastCycleCount) { %>
-                                        <span class="status-badge status-overdue">Never Counted</span>
-                                    <% } else if (item.daysOverdue > 0) { %>
-                                        <span class="status-badge status-overdue">Overdue by <%= item.daysOverdue %> days</span>
-                                    <% } else { %>
-                                        <span class="status-badge status-due">Due Now</span>
-                                    <% } %>
-                                </td>
-                                <td>
-                                    <button class="cycle-count-update-btn" onclick="openCycleCountModal('<%= item._id %>', '<%= item.item %>', '<%= item.currentquantity %>')">
-                                        Update
-                                    </button>
-                                </td>
-                            </tr>
-                        <% }); %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="7" style="text-align: center;">No cycle counts due</td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
+        <div class="cards-grid" id="cycleCountCardsContainer">
+            <% if (cycleCountDueItems && cycleCountDueItems.length > 0) { %>
+                <% cycleCountDueItems.forEach((item, index) => { %>
+                    <div class="card cycle-count-card" data-index="<%= index %>" data-item-id="<%= item._id %>" data-current-qty="<%= item.currentquantity %>">
+                        <div class="card-field">
+                            <span class="field-label">Item:</span>
+                            <span class="field-value"><%= item.item %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Brand:</span>
+                            <span class="field-value"><%= item.brand || 'N/A' %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Last Count:</span>
+                            <span class="field-value"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Days Since:</span>
+                            <span class="field-value"><%= item.daysSinceCount !== null ? item.daysSinceCount : 'N/A' %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Interval:</span>
+                            <span class="field-value"><%= item.cycleCountInterval || 90 %> days</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Status:</span>
+                            <span class="field-value">
+                                <% if (!item.lastCycleCount) { %>
+                                    <span class="status-badge status-overdue">Never Counted</span>
+                                <% } else if (item.daysOverdue > 0) { %>
+                                    <span class="status-badge status-overdue">Overdue by <%= item.daysOverdue %> days</span>
+                                <% } else { %>
+                                    <span class="status-badge status-due">Due Now</span>
+                                <% } %>
+                            </span>
+                        </div>
+                        <div class="card-action">
+                            <button class="cycle-count-update-btn" onclick="openCycleCountModal('<%= item._id %>', '<%= item.item %>', '<%= item.currentquantity %>')">
+                                Update Count
+                            </button>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="empty-state">No cycle counts due</div>
+            <% } %>
         </div>
     </div>
 </div>
@@ -169,14 +182,14 @@
 <script>
 let currentItemId = null;
 
-function adjustTableSize(wrapperId, size) {
+function adjustCardSize(wrapperId, size) {
     const wrapper = document.getElementById(wrapperId);
 
     // Remove existing size classes
-    wrapper.classList.remove('table-size-small', 'table-size-medium', 'table-size-large');
+    wrapper.classList.remove('card-size-small', 'card-size-medium', 'card-size-large');
 
     // Add new size class
-    wrapper.classList.add('table-size-' + size);
+    wrapper.classList.add('card-size-' + size);
 
     // Save preference to localStorage
     localStorage.setItem(wrapperId + '-size', size);
@@ -184,14 +197,14 @@ function adjustTableSize(wrapperId, size) {
 
 function updateCycleCountDisplay() {
     const limit = document.getElementById('cycleCountLimit').value;
-    const rows = document.querySelectorAll('.cycle-count-row');
+    const cards = document.querySelectorAll('.cycle-count-card');
 
-    rows.forEach((row, index) => {
+    cards.forEach((card, index) => {
         if (limit === 'all') {
-            row.style.display = '';
+            card.style.display = '';
         } else {
             const limitNum = parseInt(limit);
-            row.style.display = index < limitNum ? '' : 'none';
+            card.style.display = index < limitNum ? '' : 'none';
         }
     });
 }
@@ -257,22 +270,22 @@ window.onclick = function(event) {
 document.addEventListener('DOMContentLoaded', function() {
     updateCycleCountDisplay();
 
-    // Restore saved table sizes from localStorage
-    const tableWrappers = ['ordersTableWrapper', 'inventoryTableWrapper', 'cycleCountTableWrapper'];
-    tableWrappers.forEach(wrapperId => {
+    // Restore saved card sizes from localStorage
+    const cardWrappers = ['ordersCardWrapper', 'inventoryCardWrapper', 'cycleCountCardWrapper'];
+    cardWrappers.forEach(wrapperId => {
         const savedSize = localStorage.getItem(wrapperId + '-size');
         if (savedSize) {
             const wrapper = document.getElementById(wrapperId);
-            const select = wrapper.querySelector('select[id$="TableSize"]');
+            const select = wrapper.querySelector('select[id$="CardSize"]');
             if (select && wrapper) {
                 select.value = savedSize;
-                wrapper.classList.add('table-size-' + savedSize);
+                wrapper.classList.add('card-size-' + savedSize);
             }
         } else {
             // Apply default medium size
             const wrapper = document.getElementById(wrapperId);
             if (wrapper) {
-                wrapper.classList.add('table-size-medium');
+                wrapper.classList.add('card-size-medium');
             }
         }
     });
