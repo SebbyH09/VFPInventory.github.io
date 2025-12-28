@@ -660,3 +660,16 @@ body.modal-open .table-wrapper {
     -ms-user-select: none;
     user-select: none;
 }
+
+/* Sortable table headers */
+#mainTable1 th.sort-asc::after {
+    content: ' ▲';
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+#mainTable1 th.sort-desc::after {
+    content: ' ▼';
+    font-size: 10px;
+    margin-left: 5px;
+}

@@ -246,8 +246,22 @@ async function submitCycleCount() {
 
         if (response.ok) {
             alert('Cycle count updated successfully!');
+
+            // Remove the card from the DOM
+            const card = document.querySelector(`.cycle-count-card[data-item-id="${currentItemId}"]`);
+            if (card) {
+                card.remove();
+
+                // Check if there are any cards left
+                const remainingCards = document.querySelectorAll('.cycle-count-card');
+                if (remainingCards.length === 0) {
+                    // Show empty state message
+                    const container = document.getElementById('cycleCountCardsContainer');
+                    container.innerHTML = '<div class="empty-state">No cycle counts due</div>';
+                }
+            }
+
             closeCycleCountModal();
-            window.location.reload();
         } else {
             const error = await response.json();
             alert('Failed to update cycle count: ' + (error.message || 'Unknown error'));
