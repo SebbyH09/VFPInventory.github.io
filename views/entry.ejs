@@ -2,14 +2,14 @@
 <html>
 <head>
     <title>Inventory Entry</title>
-    <link rel="stylesheet" href="/inventory.css">
+    <link rel="stylesheet" href="/CSS/inventory.css">
 </head>
 <body>
     <div class="inventory-container">
         <div class="table-controls">
             <h2>Inventory</h2>
             <div class="button-group">
-                <button id="newRowAdditionBtn" class="hidden">Add Item</button>
+                <button id="newRowAdditionBtn">Add Item</button>
                 <button id="submitEndOfRow" class="hidden">Submit</button>
             </div>
         </div>
@@ -105,8 +105,8 @@
             <div class="edit-modal-body">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="addItem">Item:</label>
-                        <input type="text" id="addItem" class="edit-input">
+                        <label for="addItem">Item: <span style="color: red;">*</span></label>
+                        <input type="text" id="addItem" class="edit-input" required>
                     </div>
                     <div class="form-group">
                         <label for="addBrand">Brand:</label>
@@ -267,5 +267,6 @@
     <script defer src="/editModal.js"></script>
     <script defer src="/searchBar.js"></script>
     <script defer src="/tableColumnControls.js"></script>
+    <script defer src="/tableSorting.js"></script>
 </body>
 </html>

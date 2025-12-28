@@ -105,10 +105,9 @@ async function submitAddModal() {
         document.getElementById('addOrderPeriod').value.trim() || '30'
     ];
 
-    // Validate required fields (first 9 fields)
-    const requiredFields = itemData.slice(0, 9);
-    if (requiredFields.some(field => field === '')) {
-        alert('Please fill in all required fields');
+    // Validate required field (only item name is required)
+    if (itemData[0] === '') {
+        alert('Please enter an item name');
         return;
     }
 
