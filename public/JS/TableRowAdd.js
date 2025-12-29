@@ -73,8 +73,10 @@ function openAddModal() {
         document.getElementById('addMaxQty').value = '';
         document.getElementById('addLocation').value = '';
         document.getElementById('addType').value = '';
+        document.getElementById('addCost').value = '0';
         document.getElementById('addCycleInterval').value = '90';
         document.getElementById('addOrderPeriod').value = '30';
+        document.getElementById('addUseCycleCount').checked = true;
 
         modal.style.display = 'block';
     }
@@ -101,8 +103,10 @@ async function submitAddModal() {
         document.getElementById('addMaxQty').value.trim(),
         document.getElementById('addLocation').value.trim(),
         document.getElementById('addType').value,
+        document.getElementById('addCost').value.trim() || '0',
         document.getElementById('addCycleInterval').value.trim() || '90',
-        document.getElementById('addOrderPeriod').value.trim() || '30'
+        document.getElementById('addOrderPeriod').value.trim() || '30',
+        document.getElementById('addUseCycleCount').checked
     ];
 
     // Validate required field (only item name is required)

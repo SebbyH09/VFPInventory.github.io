@@ -27,8 +27,10 @@ function openEditModal(itemId) {
     document.getElementById('editMaxQty').value = originalData.maxQuantity || 0;
     document.getElementById('editLocation').value = originalData.location || '';
     document.getElementById('editType').value = originalData.type || '';
+    document.getElementById('editCost').value = originalData.cost || 0;
     document.getElementById('editCycleInterval').value = originalData.cycleCountInterval || 90;
     document.getElementById('editOrderPeriod').value = originalData.orderFrequencyPeriod || 30;
+    document.getElementById('editUseCycleCount').checked = originalData.useCycleCount !== undefined ? originalData.useCycleCount : true;
 
     // Show the modal with blur effect
     modal.style.display = 'block';
@@ -62,8 +64,10 @@ async function submitEditModal() {
     const newMaxQty = parseInt(document.getElementById('editMaxQty').value) || 0;
     const newLocation = document.getElementById('editLocation').value.trim();
     const newType = document.getElementById('editType').value.trim();
+    const newCost = parseFloat(document.getElementById('editCost').value) || 0;
     const newCycleInterval = parseInt(document.getElementById('editCycleInterval').value) || 90;
     const newOrderPeriod = parseInt(document.getElementById('editOrderPeriod').value) || 30;
+    const newUseCycleCount = document.getElementById('editUseCycleCount').checked;
 
     // Check what changed
     if (newItem !== originalData.item) changes.item = newItem;
@@ -78,8 +82,10 @@ async function submitEditModal() {
     if (newMaxQty !== originalData.maxQuantity) changes.maximumquantity = newMaxQty;
     if (newLocation !== originalData.location) changes.location = newLocation;
     if (newType !== originalData.type) changes.type = newType;
+    if (newCost !== originalData.cost) changes.cost = newCost;
     if (newCycleInterval !== originalData.cycleCountInterval) changes.cycleCountInterval = newCycleInterval;
     if (newOrderPeriod !== originalData.orderFrequencyPeriod) changes.orderFrequencyPeriod = newOrderPeriod;
+    if (newUseCycleCount !== originalData.useCycleCount) changes.useCycleCount = newUseCycleCount;
 
     // If nothing changed, just close the modal
     if (Object.keys(changes).length === 0) {

@@ -48,8 +48,10 @@ router.post("/", requireAuth, async (req, res) => {
                 maximumquantity: parseInt(row[6]) || 0,
                 location: row[7],
                 type: row[8],
-                cycleCountInterval: parseInt(row[9]) || 90,
-                orderFrequencyPeriod: parseInt(row[10]) || 30
+                cost: parseFloat(row[9]) || 0,
+                cycleCountInterval: parseInt(row[10]) || 90,
+                orderFrequencyPeriod: parseInt(row[11]) || 30,
+                useCycleCount: row[12] !== undefined ? row[12] : true
             }));
 
             const savedItems = await inventory.insertMany(itemsToInsert);
@@ -89,6 +91,7 @@ router.post("/", requireAuth, async (req, res) => {
                     if (update.changes.currentquantity !== undefined &&
                         oldItem.currentquantity !== update.changes.currentquantity) {
                         const qtyChange = update.changes.currentquantity - oldItem.currentquantity;
+                        const costPerUnit = updatedItem.cost || oldItem.cost || 0;
                         await InventoryHistory.create({
                             itemId: updatedItem._id,
                             itemName: updatedItem.item,
@@ -96,6 +99,8 @@ router.post("/", requireAuth, async (req, res) => {
                             previousQuantity: oldItem.currentquantity,
                             newQuantity: update.changes.currentquantity,
                             quantityChange: qtyChange,
+                            costPerUnit: costPerUnit,
+                            totalCost: Math.abs(qtyChange) * costPerUnit,
                             notes: 'Quantity updated via edit',
                             userId: req.session.user?.email || 'unknown'
                         });
@@ -166,7 +171,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
 // POST route - mark item as used
 router.post("/mark-used", requireAuth, async (req, res) => {
     try {
-        const { itemId, date } = req.body;
+        const { itemId, date, quantityUsed } = req.body;
 
         if (!itemId) {
             return res.status(400).json({
@@ -186,15 +191,24 @@ router.post("/mark-used", requireAuth, async (req, res) => {
             });
         }
 
-        // Log usage to history
-        await InventoryHistory.create({
+        // Log usage to history with cost tracking
+        const historyEntry = {
             itemId: updatedItem._id,
             itemName: updatedItem.item,
             changeType: 'item_used',
             changeDate: date || new Date(),
             notes: 'Item marked as used',
             userId: req.session.user?.email || 'unknown'
-        });
+        };
+
+        // If quantity used and cost are available, track the cost
+        if (quantityUsed && updatedItem.cost) {
+            historyEntry.quantityChange = -Math.abs(quantityUsed);
+            historyEntry.costPerUnit = updatedItem.cost;
+            historyEntry.totalCost = Math.abs(quantityUsed) * updatedItem.cost;
+        }
+
+        await InventoryHistory.create(historyEntry);
 
         res.json({
             message: "Item marked as used successfully",

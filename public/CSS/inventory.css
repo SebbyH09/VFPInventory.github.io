@@ -657,3 +657,58 @@ body.modal-open .table-wrapper {
     font-size: 10px;
     margin-left: 5px;
 }
+/* Column Visibility Settings */
+.column-settings-btn {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.column-settings-btn:hover {
+    background-color: #45a049;
+}
+
+.column-visibility-menu {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 10px;
+    z-index: 1000;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 5px;
+}
+
+.column-menu-header {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 8px;
+}
+
+.column-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.column-checkbox-wrapper:hover {
+    background-color: #f0f0f0;
+}
+
+.column-checkbox-wrapper input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.column-checkbox-wrapper span {
+    flex: 1;
+}

@@ -132,7 +132,31 @@ router.get('/summary', async (req, res) => {
             }
           },
           netChange: { $sum: '$quantityChange' },
-          changeCount: { $sum: 1 }
+          changeCount: { $sum: 1 },
+          totalCostUsed: {
+            $sum: {
+              $cond: [
+                { $and: [
+                  { $lt: ['$quantityChange', 0] },
+                  { $gt: ['$totalCost', 0] }
+                ]},
+                '$totalCost',
+                0
+              ]
+            }
+          },
+          totalCostAdded: {
+            $sum: {
+              $cond: [
+                { $and: [
+                  { $gt: ['$quantityChange', 0] },
+                  { $gt: ['$totalCost', 0] }
+                ]},
+                '$totalCost',
+                0
+              ]
+            }
+          }
         }
       },
       {
