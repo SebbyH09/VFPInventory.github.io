@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 const inventory = require('../models/ListedInventoryItem');
 const requireAuth = require('../Middleware/auth');
 
@@ -39,10 +39,16 @@ router.post('/', requireAuth, upload.single('excelFile'), async (req, res) => {
         }
 
         // Parse the Excel file
-        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(req.file.buffer);
+        const worksheet = workbook.worksheets[0];
+
+        // Convert worksheet to array format (similar to xlsx's sheet_to_json with header: 1)
+        const data = [];
+        worksheet.eachRow((row, rowNumber) => {
+            // row.values is 1-indexed, so we slice from index 1
+            data.push(row.values.slice(1));
+        });
 
         // Skip the header row
         const rows = data.slice(1);
