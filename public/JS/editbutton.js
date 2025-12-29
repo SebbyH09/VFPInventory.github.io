@@ -1,10 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     const createNewRowButton = document.getElementById("newRowAdditionBtn");
-    const submitButton = document.getElementById("submitEndOfRow");
     const editButton = document.getElementById("editEndOfRow");
     const tbody = document.querySelector('#mainTable1 tbody');
     
-    if (!createNewRowButton || !submitButton || !editButton) {
+    if (!createNewRowButton || !editButton) {
         console.error('Button elements not found');
         return;
     }
@@ -13,7 +12,6 @@ document.addEventListener('DOMContentLoaded', function() {
     editButton.addEventListener('click', () => {
         editButton.classList.add('hidden');
         createNewRowButton.classList.remove('hidden');
-        submitButton.classList.remove('hidden');
         
         // Enable edit mode
         document.body.classList.add('edit-mode');
@@ -56,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // When Submit is clicked (will be triggered from submitbutton.js)
     window.hideEditButtons = function() {
         createNewRowButton.classList.add('hidden');
-        submitButton.classList.add('hidden');
         editButton.classList.remove('hidden');
         
         // Disable edit mode
