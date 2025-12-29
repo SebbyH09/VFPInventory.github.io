@@ -60,7 +60,7 @@ router.get('/', async (req, res) => {
         }
     } else {
         console.log('Rendering home page');
-        res.render('home');
+        res.render('index');
     }
 });
 
