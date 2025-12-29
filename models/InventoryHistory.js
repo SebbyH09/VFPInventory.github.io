@@ -24,6 +24,12 @@ const inventoryHistorySchema = new mongoose.Schema({
   quantityChange: {
     type: Number  // Positive for additions, negative for usage
   },
+  costPerUnit: {
+    type: Number
+  },
+  totalCost: {
+    type: Number  // Cost of the change (quantity * costPerUnit)
+  },
   changeDate: {
     type: Date,
     default: Date.now,

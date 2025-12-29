@@ -1,4 +1,4 @@
-// Table Column Controls: Resize and Swap functionality
+// Table Column Controls: Resize, Swap, and Visibility functionality
 document.addEventListener('DOMContentLoaded', function() {
     initializeColumnControls();
 });
@@ -9,6 +9,149 @@ function initializeColumnControls() {
 
     setupColumnResize();
     setupColumnSwap();
+    setupColumnVisibility();
+}
+
+// ========== COLUMN VISIBILITY FUNCTIONALITY ==========
+
+const COLUMN_VISIBILITY_KEY = 'inventoryColumnVisibility';
+
+// Default visibility for all columns
+const defaultColumnVisibility = {
+    '#': true,
+    'Item': true,
+    'Brand': true,
+    'Vendor': true,
+    'Catalog #': true,
+    'Current Quantity': true,
+    'Minimum Quantity': true,
+    'Max Quantity': true,
+    'Location': true,
+    'Type': true,
+    'Cost per Unit': true,
+    'Days Since Last Use': true,
+    'Orders (Last 30 days)': true,
+    'Last Cycle Count': true,
+    'Cycle Interval (days)': true,
+    'Order Period (days)': true,
+    'Actions': true
+};
+
+function setupColumnVisibility() {
+    createColumnVisibilityMenu();
+    loadColumnVisibility();
+}
+
+function createColumnVisibilityMenu() {
+    const searchBarContainer = document.querySelector('.search-bar-container');
+    if (!searchBarContainer) return;
+
+    // Create the settings button
+    const settingsBtn = document.createElement('button');
+    settingsBtn.id = 'columnSettingsBtn';
+    settingsBtn.textContent = 'Column Settings';
+    settingsBtn.className = 'column-settings-btn';
+
+    // Create the dropdown menu
+    const dropdown = document.createElement('div');
+    dropdown.id = 'columnVisibilityMenu';
+    dropdown.className = 'column-visibility-menu';
+    dropdown.style.display = 'none';
+
+    // Add header
+    const menuHeader = document.createElement('div');
+    menuHeader.className = 'column-menu-header';
+    menuHeader.innerHTML = '<strong>Show/Hide Columns</strong>';
+    dropdown.appendChild(menuHeader);
+
+    // Get all column headers
+    const headers = document.querySelectorAll('#mainTable1 thead th');
+    headers.forEach((header, index) => {
+        const columnName = header.textContent.trim().replace(/\n/g, ' ');
+
+        // Skip the # column (always visible)
+        if (columnName === '#') return;
+
+        const checkboxWrapper = document.createElement('label');
+        checkboxWrapper.className = 'column-checkbox-wrapper';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = true;
+        checkbox.dataset.columnIndex = index;
+        checkbox.dataset.columnName = columnName;
+
+        checkbox.addEventListener('change', function() {
+            toggleColumn(index, this.checked);
+            saveColumnVisibility();
+        });
+
+        const label = document.createElement('span');
+        label.textContent = columnName;
+
+        checkboxWrapper.appendChild(checkbox);
+        checkboxWrapper.appendChild(label);
+        dropdown.appendChild(checkboxWrapper);
+    });
+
+    // Insert button and menu
+    searchBarContainer.appendChild(settingsBtn);
+    searchBarContainer.appendChild(dropdown);
+
+    // Toggle menu on button click
+    settingsBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isVisible = dropdown.style.display === 'block';
+        dropdown.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target) && e.target !== settingsBtn) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
+
+function toggleColumn(columnIndex, visible) {
+    const table = document.querySelector('#mainTable1');
+    const rows = table.querySelectorAll('tr');
+
+    rows.forEach(row => {
+        const cell = row.children[columnIndex];
+        if (cell) {
+            cell.style.display = visible ? '' : 'none';
+        }
+    });
+}
+
+function saveColumnVisibility() {
+    const checkboxes = document.querySelectorAll('#columnVisibilityMenu input[type="checkbox"]');
+    const visibility = {};
+
+    checkboxes.forEach(checkbox => {
+        visibility[checkbox.dataset.columnName] = checkbox.checked;
+    });
+
+    localStorage.setItem(COLUMN_VISIBILITY_KEY, JSON.stringify(visibility));
+}
+
+function loadColumnVisibility() {
+    const savedVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
+    if (!savedVisibility) return;
+
+    const visibility = JSON.parse(savedVisibility);
+    const checkboxes = document.querySelectorAll('#columnVisibilityMenu input[type="checkbox"]');
+
+    checkboxes.forEach(checkbox => {
+        const columnName = checkbox.dataset.columnName;
+        const columnIndex = parseInt(checkbox.dataset.columnIndex);
+
+        if (visibility[columnName] !== undefined) {
+            checkbox.checked = visibility[columnName];
+            toggleColumn(columnIndex, visibility[columnName]);
+        }
+    });
 }
 
 // ========== COLUMN RESIZE FUNCTIONALITY ==========

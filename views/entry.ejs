@@ -26,6 +26,7 @@
                         <th>Max Quantity</th>
                         <th>Location</th>
                         <th>Type</th>
+                        <th>Cost per Unit</th>
                         <th>Days Since Last Use</th>
                         <th>Orders (Last <span class="order-period-display">30</span> days)</th>
                         <th>Last Cycle Count</th>
@@ -52,11 +53,13 @@
                                 maxQuantity: item.maximumquantity,
                                 location: item.location,
                                 type: item.type,
+                                cost: item.cost || 0,
                                 lastUsedDate: item.lastUsedDate,
                                 orderHistory: item.orderHistory || [],
                                 lastCycleCount: item.lastCycleCount,
                                 cycleCountInterval: item.cycleCountInterval || 90,
-                                orderFrequencyPeriod: item.orderFrequencyPeriod || 30
+                                orderFrequencyPeriod: item.orderFrequencyPeriod || 30,
+                                useCycleCount: item.useCycleCount !== undefined ? item.useCycleCount : true
                             }) %>'>
 
                                 <td class="row-number-cell">
@@ -71,6 +74,7 @@
                                 <td><p class="inventoryitem"><%= item.maximumquantity %></p></td>
                                 <td><p class="inventoryitem"><%= item.location || '' %></p></td>
                                 <td><p class="inventoryitem"><%= item.type || '' %></p></td>
+                                <td><p class="inventoryitem">$<%= (item.cost || 0).toFixed(2) %></p></td>
                                 <td class="days-since-use"><p class="inventoryitem tracking-field">-</p></td>
                                 <td class="order-frequency"><p class="inventoryitem tracking-field">0</p></td>
                                 <td class="last-cycle-count"><p class="inventoryitem tracking-field"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></p></td>
@@ -150,14 +154,26 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="addCycleInterval">Cycle Interval (days):</label>
-                        <input type="number" id="addCycleInterval" class="edit-input" value="90">
+                        <label for="addCost">Cost per Unit:</label>
+                        <input type="number" id="addCost" class="edit-input" step="0.01" min="0" value="0">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="addCycleInterval">Cycle Interval (days):</label>
+                        <input type="number" id="addCycleInterval" class="edit-input" value="90">
+                    </div>
+                    <div class="form-group">
                         <label for="addOrderPeriod">Order Period (days):</label>
                         <input type="number" id="addOrderPeriod" class="edit-input" value="30">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="addUseCycleCount" checked>
+                            <span>Use Cycle Count</span>
+                        </label>
                     </div>
                 </div>
                 <div class="modal-buttons">
@@ -228,14 +244,26 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="editCycleInterval">Cycle Interval (days):</label>
-                        <input type="number" id="editCycleInterval" class="edit-input">
+                        <label for="editCost">Cost per Unit:</label>
+                        <input type="number" id="editCost" class="edit-input" step="0.01" min="0">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="editCycleInterval">Cycle Interval (days):</label>
+                        <input type="number" id="editCycleInterval" class="edit-input">
+                    </div>
+                    <div class="form-group">
                         <label for="editOrderPeriod">Order Period (days):</label>
                         <input type="number" id="editOrderPeriod" class="edit-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="editUseCycleCount">
+                            <span>Use Cycle Count</span>
+                        </label>
                     </div>
                 </div>
                 <div class="modal-actions">
