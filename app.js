@@ -92,7 +92,7 @@ app.use('/upload', requireAuth, uploadRouter);
 
 app.use('/history', requireAuth, historyRouter);
 
-app.use('/home', homeRouter)
+app.use('/', homeRouter)
 
 
 
