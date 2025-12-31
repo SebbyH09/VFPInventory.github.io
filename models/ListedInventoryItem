@@ -1,25 +1,85 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
 const InventorySchema = new Schema({
-    item: { type: String, required: true },
-    brand: String,
-    vendor: String,
-    catalog: String,
-    currentquantity: Number,
-    minimumquantity: Number,
-    maximumquantity: Number,
-    location: String,
-    type: String,
-    cost: { type: Number, default: 0 },
-    lastUsedDate: { type: Date, default: null },
-    orderHistory: [{ type: Date }],
-    lastCycleCount: { type: Date, default: null },
-    cycleCountInterval: { type: Number, default: 90 },
-    orderFrequencyPeriod: { type: Number, default: 30 },
-    useCycleCount: { type: Boolean, default: true }
+    item: {
+        type: String,
+        required: [true, 'Item name is required'],
+        trim: true
+    },
+    brand: {
+        type: String,
+        trim: true
+    },
+    vendor: {
+        type: String,
+        trim: true
+    },
+    catalog: {
+        type: String,
+        trim: true
+    },
+    currentquantity: {
+        type: Number,
+        min: [0, 'Quantity cannot be negative'],
+        default: 0
+    },
+    minimumquantity: {
+        type: Number,
+        min: [0, 'Minimum quantity cannot be negative'],
+        default: 0
+    },
+    maximumquantity: {
+        type: Number,
+        min: [0, 'Maximum quantity cannot be negative'],
+        default: 0
+    },
+    location: {
+        type: String,
+        trim: true
+    },
+    type: {
+        type: String,
+        trim: true
+    },
+    cost: {
+        type: Number,
+        min: [0, 'Cost cannot be negative'],
+        default: 0
+    },
+    lastUsedDate: {
+        type: Date,
+        default: null
+    },
+    orderHistory: [{
+        type: Date
+    }],
+    lastCycleCount: {
+        type: Date,
+        default: null
+    },
+    cycleCountInterval: {
+        type: Number,
+        min: [1, 'Cycle count interval must be at least 1 day'],
+        default: 90
+    },
+    orderFrequencyPeriod: {
+        type: Number,
+        min: [1, 'Order frequency period must be at least 1 day'],
+        default: 30
+    },
+    useCycleCount: {
+        type: Boolean,
+        default: true
+    }
+}, {
+    timestamps: true
 });
 
+// Indexes for common queries
+InventorySchema.index({ item: 1 });
+InventorySchema.index({ vendor: 1 });
+InventorySchema.index({ type: 1 });
 
 module.exports = mongoose.model('ListedInventoryItem', InventorySchema);

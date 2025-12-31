@@ -3,6 +3,14 @@
 let currentSort = { column: 'changeDate', order: 'desc' };
 let historyData = [];
 
+// Helper function to escape HTML and prevent XSS
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Initialize page on load
 document.addEventListener('DOMContentLoaded', () => {
     initializePage();
@@ -91,7 +99,14 @@ async function loadHistoryData() {
         }
     } catch (error) {
         console.error('Error loading history data:', error);
-        tableBody.innerHTML = `<tr><td colspan="7" class="loading-message">Error loading data: ${error.message}</td></tr>`;
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 7;
+        td.className = 'loading-message';
+        td.textContent = 'Error loading data. Please try again later.';
+        tr.appendChild(td);
+        tableBody.innerHTML = '';
+        tableBody.appendChild(tr);
     }
 }
 
@@ -108,17 +123,17 @@ function displayHistoryData(data) {
     noDataMessage.classList.add('hidden');
 
     tableBody.innerHTML = data.map(record => {
-        const date = new Date(record.changeDate).toLocaleString();
+        const date = escapeHtml(new Date(record.changeDate).toLocaleString());
         const changeType = formatChangeType(record.changeType);
-        const prevQty = record.previousQuantity !== undefined ? record.previousQuantity : '-';
-        const newQty = record.newQuantity !== undefined ? record.newQuantity : '-';
+        const prevQty = record.previousQuantity !== undefined ? escapeHtml(record.previousQuantity) : '-';
+        const newQty = record.newQuantity !== undefined ? escapeHtml(record.newQuantity) : '-';
         const qtyChange = formatQuantityChange(record.quantityChange);
-        const notes = record.notes || '-';
+        const notes = escapeHtml(record.notes) || '-';
 
         return `
             <tr>
                 <td>${date}</td>
-                <td>${record.itemName}</td>
+                <td>${escapeHtml(record.itemName)}</td>
                 <td>${changeType}</td>
                 <td>${prevQty}</td>
                 <td>${newQty}</td>
@@ -140,8 +155,9 @@ function formatChangeType(type) {
         'item_deleted': 'Item Deleted'
     };
 
-    const displayText = typeMap[type] || type;
-    return `<span class="change-type-badge change-type-${type}">${displayText}</span>`;
+    const displayText = typeMap[type] || escapeHtml(type);
+    const safeType = escapeHtml(type);
+    return `<span class="change-type-badge change-type-${safeType}">${displayText}</span>`;
 }
 
 function formatQuantityChange(change) {
@@ -234,7 +250,11 @@ async function toggleSummary() {
         }
     } catch (error) {
         console.error('Error loading summary:', error);
-        summaryContent.innerHTML = `<p style="color: red;">Error loading summary: ${error.message}</p>`;
+        const errorMsg = document.createElement('p');
+        errorMsg.style.color = 'red';
+        errorMsg.textContent = 'Error loading summary. Please try again later.';
+        summaryContent.innerHTML = '';
+        summaryContent.appendChild(errorMsg);
     }
 }
 
@@ -243,13 +263,13 @@ function displaySummary(data, period) {
 
     if (!data || data.length === 0) {
         summaryContent.innerHTML = `
-            <p>No quantity changes found for the period ${period.start} to ${period.end}.</p>
+            <p>No quantity changes found for the period ${escapeHtml(period.start)} to ${escapeHtml(period.end)}.</p>
         `;
         return;
     }
 
     const tableHTML = `
-        <p><strong>Period:</strong> ${period.start} to ${period.end}</p>
+        <p><strong>Period:</strong> ${escapeHtml(period.start)} to ${escapeHtml(period.end)}</p>
         <table class="summary-table">
             <thead>
                 <tr>
@@ -267,11 +287,11 @@ function displaySummary(data, period) {
 
                     return `
                         <tr>
-                            <td>${item.itemName}</td>
-                            <td class="qty-used">${item.totalUsed}</td>
-                            <td class="qty-added">+${item.totalAdded}</td>
-                            <td class="net-change ${netChangeClass}">${netChangeSign}${item.netChange}</td>
-                            <td>${item.changeCount}</td>
+                            <td>${escapeHtml(item.itemName)}</td>
+                            <td class="qty-used">${escapeHtml(item.totalUsed)}</td>
+                            <td class="qty-added">+${escapeHtml(item.totalAdded)}</td>
+                            <td class="net-change ${netChangeClass}">${netChangeSign}${escapeHtml(item.netChange)}</td>
+                            <td>${escapeHtml(item.changeCount)}</td>
                         </tr>
                     `;
                 }).join('')}

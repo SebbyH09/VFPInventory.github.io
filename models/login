@@ -1,10 +1,26 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
 const LoginSchema = new Schema({
-    email: String,
-    password: String,
+    email: {
+        type: String,
+        required: [true, 'Email is required'],
+        unique: true,
+        lowercase: true,
+        trim: true,
+        match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address']
+    },
+    password: {
+        type: String,
+        required: [true, 'Password is required'],
+        minlength: [8, 'Password must be at least 8 characters long']
+    }
+}, {
+    timestamps: true
 });
+
+// Index for faster email lookups
+LoginSchema.index({ email: 1 });
 
 module.exports = mongoose.model('LoginInfo', LoginSchema);

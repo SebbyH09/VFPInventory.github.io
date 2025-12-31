@@ -11,7 +11,6 @@ router.get('/', async (req, res) => {
       error: null
     });
   } catch (error) {
-    console.error('Error loading history page:', error);
     res.status(500).render('history', {
       title: 'Inventory History',
       error: 'Failed to load history page'
@@ -75,7 +74,6 @@ router.get('/data', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching history data:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch history data'
@@ -174,7 +172,6 @@ router.get('/summary', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching summary:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch summary data'
@@ -195,7 +192,6 @@ router.get('/items', async (req, res) => {
       data: items
     });
   } catch (error) {
-    console.error('Error fetching items:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch items'

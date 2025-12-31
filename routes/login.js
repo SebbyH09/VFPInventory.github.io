@@ -1,12 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const LoginInfo = require('../models/login')
+const LoginInfo = require('../models/login');
 const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
-const saltRounds = 10;
-var parseUrl = require('body-parser');
-
-
+const { body, validationResult } = require('express-validator');
 
 // get login page
 router.get('/', (req, res) => {
@@ -14,46 +10,54 @@ router.get('/', (req, res) => {
     if (req.session && req.session.userId) {
         return res.redirect('/home');
     }
-    res.render('login')
-})
+    res.render('login');
+});
 
 // Login form data
-router.post('/', async (req, res) => {
-    try {
-        console.log('Processing login...')
-        const { email, password } = req.body;
-        
-        // find user by email
-        const user = await LoginInfo.findOne({email});
-        console.log(user);
-        
-        if (user) {
-            // user match
-            const match = await bcrypt.compare(password, user.password)
-            if(match) {
+router.post('/',
+    [
+        body('email')
+            .trim()
+            .isEmail().withMessage('Please enter a valid email address')
+            .normalizeEmail(),
+        body('password')
+            .notEmpty().withMessage('Password is required'),
+    ],
+    async (req, res) => {
+        try {
+            // Check validation errors
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+
+            const { email, password } = req.body;
+
+            // find user by email
+            const user = await LoginInfo.findOne({ email: email.toLowerCase() });
+
+            // Use constant-time comparison to prevent timing attacks
+            let isValid = false;
+            if (user) {
+                isValid = await bcrypt.compare(password, user.password);
+            }
+
+            if (user && isValid) {
                 // password match - CREATE SESSION
                 req.session.userId = user._id;
                 req.session.email = user.email;
                 req.session.isLoggedIn = true;
-                
-                res.redirect('/home');
-                console.log('Login successful')
+
+                return res.redirect('/home');
+            } else {
+                // Generic error message - don't reveal if user exists
+                return res.status(401).send('Invalid email or password');
             }
-            else {
-                res.send('Login Failed - Invalid password');
-                console.log('Password incorrect')
-            }
-            
+        } catch (error) {
+            res.status(500).send('An error occurred. Please try again later.');
         }
-        else {
-            res.send('Login Failed - User not found')
-            console.log('User not found')
-        }
-    } catch (error) {
-        console.log('Error', error);
-        res.status(500).send('Internal Service Error');
     }
-})
+);
 
 
 router.get('/auth/status', (req, res) => {

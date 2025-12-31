@@ -15,10 +15,10 @@ router.get('/', requireAuth, async (req, res) => {
             user: req.session.user
         });
     } catch (error) {
-        console.error('Error fetching inventory:', error);
-        res.render('entry', { 
+        res.render('entry', {
             inventoryItems: [],
-            user: req.session.user
+            user: req.session.user,
+            error: 'Failed to load inventory data'
         });
     }
 });
@@ -26,7 +26,6 @@ router.get('/', requireAuth, async (req, res) => {
 // POST route - save new inventory
 router.post("/", requireAuth, async (req, res) => {
     try {
-        console.log('Entry route hit!');
         const { newItems, updatedItems } = req.body;
         
         const results = {
@@ -115,10 +114,8 @@ router.post("/", requireAuth, async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error saving inventory:', error);
         res.status(500).json({
-            message: "Error saving data",
-            error: error.message
+            message: "Error saving data. Please try again later."
         });
     }
 });
@@ -160,10 +157,8 @@ router.delete("/:id", requireAuth, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error deleting inventory item:', error);
         res.status(500).json({
-            message: "Error deleting item",
-            error: error.message
+            message: "Error deleting item. Please try again later."
         });
     }
 });
@@ -216,10 +211,8 @@ router.post("/mark-used", requireAuth, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error marking item as used:', error);
         res.status(500).json({
-            message: "Error marking item as used",
-            error: error.message
+            message: "Error marking item as used. Please try again later."
         });
     }
 });
@@ -263,10 +256,8 @@ router.post("/record-order", requireAuth, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error recording order:', error);
         res.status(500).json({
-            message: "Error recording order",
-            error: error.message
+            message: "Error recording order. Please try again later."
         });
     }
 });
