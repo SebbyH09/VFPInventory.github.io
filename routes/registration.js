@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 // const app = express();
 const LoginInfo = require('../models/login');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const saltRounds = 10;
 
