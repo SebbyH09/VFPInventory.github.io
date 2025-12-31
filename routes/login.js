@@ -12,7 +12,7 @@ var parseUrl = require('body-parser');
 router.get('/', (req, res) => {
     // Check if already logged in
     if (req.session && req.session.userId) {
-        return res.redirect('/');
+        return res.redirect('/home');
     }
     res.render('login')
 })
