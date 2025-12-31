@@ -5,18 +5,11 @@ const ListedInventoryItem = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
 
 router.get('/', async (req, res) => {
-    console.log('===== ROOT ROUTE HIT =====');
-    console.log('Is logged in:', req.session.isLoggedIn);
-
     if (req.session.isLoggedIn) {
-        console.log('User is logged in, fetching inventory...');
-
         try {
             const lowInventoryItems = await ListedInventoryItem.find({
                 $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
             }).sort({ item: 1 });
-
-            console.log('Low inventory items found:', lowInventoryItems.length);
 
             // Fetch items that need cycle counts
             const allItems = await ListedInventoryItem.find({});
@@ -43,36 +36,29 @@ router.get('/', async (req, res) => {
                 return b.daysSinceCount - a.daysSinceCount;
             });
 
-            console.log('Cycle count due items found:', cycleCountDueItems.length);
-
             res.render('dashboard', {
                 user: req.session.user,
                 lowInventoryItems: lowInventoryItems,
                 cycleCountDueItems: cycleCountDueItems
             });
         } catch (error) {
-            console.error('Error fetching inventory items:', error);
             res.render('dashboard', {
                 user: req.session.user,
                 lowInventoryItems: [],
-                cycleCountDueItems: []
+                cycleCountDueItems: [],
+                error: 'Failed to load dashboard data'
             });
         }
     } else {
-        console.log('Rendering home page');
         res.render('home');
     }
 });
 
 router.get('/dashboard', requireAuth, async (req, res) => {
-    console.log('===== DASHBOARD ROUTE HIT =====');
-
     try {
         const lowInventoryItems = await ListedInventoryItem.find({
             $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
         }).sort({ item: 1 });
-
-        console.log('Low inventory items found:', lowInventoryItems.length);
 
         // Fetch items that need cycle counts
         const allItems = await ListedInventoryItem.find({});
@@ -99,19 +85,17 @@ router.get('/dashboard', requireAuth, async (req, res) => {
             return b.daysSinceCount - a.daysSinceCount;
         });
 
-        console.log('Cycle count due items found:', cycleCountDueItems.length);
-
         res.render('dashboard', {
             user: req.session.user,
             lowInventoryItems: lowInventoryItems,
             cycleCountDueItems: cycleCountDueItems
         });
     } catch (error) {
-        console.error('Error fetching inventory items:', error);
         res.render('dashboard', {
             user: req.session.user,
             lowInventoryItems: [],
-            cycleCountDueItems: []
+            cycleCountDueItems: [],
+            error: 'Failed to load dashboard data'
         });
     }
 });
@@ -171,10 +155,8 @@ router.post('/update-cycle-count', requireAuth, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error updating cycle count:', error);
         res.status(500).json({
-            message: "Error updating cycle count",
-            error: error.message
+            message: "Error updating cycle count. Please try again later."
         });
     }
 });

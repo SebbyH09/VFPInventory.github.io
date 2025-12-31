@@ -1,44 +1,71 @@
-const express = require('express')
-const router = express.Router()
-// const app = express();
+const express = require('express');
+const router = express.Router();
 const LoginInfo = require('../models/login');
 const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
+const { body, validationResult } = require('express-validator');
 const saltRounds = 10;
 
-// app.use(express.urlencoded({ extended: true}));
-
-
 router.get('/', (req, res) => {
-    res.render('registration')
-    }
-)
+    res.render('registration');
+});
 
-router.post('/', async (req, res) => {
-    console.log(req.body);
-    try {
+router.post('/',
+    // Input validation middleware
+    [
+        body('email')
+            .trim()
+            .isEmail().withMessage('Please enter a valid email address')
+            .normalizeEmail(),
+        body('password')
+            .isLength({ min: 8 }).withMessage('Password must be at least 8 characters long')
+            .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
+            .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
+            .matches(/[0-9]/).withMessage('Password must contain at least one number'),
+    ],
+    async (req, res) => {
+        try {
+            // Check validation errors
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
 
-        const {email, password} = req.body;
+            const { email, password } = req.body;
 
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+            // Check if user already exists
+            const existingUser = await LoginInfo.findOne({ email: email.toLowerCase() });
+            if (existingUser) {
+                return res.status(400).send('An account with this email already exists');
+            }
 
-        const newUser = new LoginInfo ({
-            email: email,
-            password: hashedPassword
-        });
+            // Hash password
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        await newUser.save();
+            // Create new user
+            const newUser = new LoginInfo({
+                email: email.toLowerCase(),
+                password: hashedPassword
+            });
 
-        res.send('User Successfully Registered');
+            await newUser.save();
 
-    }catch (error) {
+            res.send('User Successfully Registered');
 
-        console.error(error);
-    }
+        } catch (error) {
+            // Handle duplicate key error (in case of race condition)
+            if (error.code === 11000) {
+                return res.status(400).send('An account with this email already exists');
+            }
 
+            // Handle validation errors
+            if (error.name === 'ValidationError') {
+                return res.status(400).send(error.message);
+            }
 
+            // Generic error for production
+            res.status(500).send('Registration failed. Please try again later.');
+        }
     }
 );
 
-
-module.exports = router
+module.exports = router;

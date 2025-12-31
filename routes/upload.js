@@ -118,12 +118,11 @@ router.post('/', requireAuth, upload.single('excelFile'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error processing file:', error);
         res.render('upload', {
             user: req.session.user,
             message: {
                 type: 'error',
-                text: 'Error processing file: ' + error.message
+                text: 'Error processing file. Please check the file format and try again.'
             }
         });
     }

@@ -32,19 +32,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Check if this is the Type column (column 9)
                     if (i === 9) {
-                        cell.innerHTML = `
-                            <select class="inventoryitem">
-                                <option value="">Select Type</option>
-                                <option value="Reagent" ${value === 'Reagent' ? 'selected' : ''}>Reagent</option>
-                                <option value="Equipment" ${value === 'Equipment' ? 'selected' : ''}>Equipment</option>
-                                <option value="Consumable" ${value === 'Consumable' ? 'selected' : ''}>Consumable</option>
-                                <option value="Tool" ${value === 'Tool' ? 'selected' : ''}>Tool</option>
-                                <option value="Chemical" ${value === 'Chemical' ? 'selected' : ''}>Chemical</option>
-                                <option value="Other" ${value === 'Other' ? 'selected' : ''}>Other</option>
-                            </select>
-                        `;
+                        const select = document.createElement('select');
+                        select.className = 'inventoryitem';
+
+                        const types = ['', 'Reagent', 'Equipment', 'Consumable', 'Tool', 'Chemical', 'Other'];
+                        types.forEach(type => {
+                            const option = document.createElement('option');
+                            option.value = type;
+                            option.textContent = type || 'Select Type';
+                            if (type === value) {
+                                option.selected = true;
+                            }
+                            select.appendChild(option);
+                        });
+
+                        cell.textContent = '';
+                        cell.appendChild(select);
                     } else {
-                        cell.innerHTML = `<input type="text" class="inventoryitem" value="${value}">`;
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'inventoryitem';
+                        input.value = value;
+
+                        cell.textContent = '';
+                        cell.appendChild(input);
                     }
                 }
             }
