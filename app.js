@@ -97,11 +97,22 @@ app.use('/', homeRouter)
 
 
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const MONGODB_URL = isDevelopment 
+  ? process.env.DATABASE_URL_DEV || 'mongodb://127.0.0.1/Inventory'
+  : process.env.DATABASE_URL;
+
+mongoose.connect(MONGODB_URL, {})
+  .then(() => {
+    console.log(`Connected to MongoDB (${isDevelopment ? 'Development' : 'Production'})`);
+    console.log(`Database: ${MONGODB_URL.split('@')[1] || 'localhost'}`);
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 
-
-mongoose.connect(process.env.MONGODB_URL, {
-})
 const db = mongoose.connection
 db.on('error', error => console.error(error))
 db.once('open', () => console.log('Connected to Mongoose'))

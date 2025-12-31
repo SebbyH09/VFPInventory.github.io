@@ -12,7 +12,7 @@ var parseUrl = require('body-parser');
 router.get('/', (req, res) => {
     // Check if already logged in
     if (req.session && req.session.userId) {
-        return res.redirect('/home');
+        return res.redirect('/');
     }
     res.render('login')
 })
@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
                 req.session.email = user.email;
                 req.session.isLoggedIn = true;
                 
-                res.redirect('/home');
+                res.redirect('/');
                 console.log('Login successful')
             }
             else {
@@ -55,17 +55,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-// Logout route
-// router.post('/logout', (req, res) => {
-//     req.session.destroy((err) => {
-//         if (err) {
-//             return res.status(500).send('Could not log out');
-//         }
-//         res.redirect('/login');
-//     });
-// });
 
-// Auth status check (for frontend)
 router.get('/auth/status', (req, res) => {
     res.json({ 
         isLoggedIn: !!(req.session && req.session.isLoggedIn),
