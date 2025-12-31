@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
                 req.session.email = user.email;
                 req.session.isLoggedIn = true;
                 
-                res.redirect('/');
+                res.redirect('/home');
                 console.log('Login successful')
             }
             else {
