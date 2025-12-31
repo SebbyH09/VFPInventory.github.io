@@ -24,7 +24,7 @@
   },
   "description": "",
   "devDependencies": {
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.6.1",
     "nodemon": "^3.1.11"
   }
 }
