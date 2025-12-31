@@ -100,7 +100,7 @@ app.use('/home', homeRouter)
 
 
 
-mongoose.connect(process.env.MONGODB.URL, {
+mongoose.connect(process.env.MONGODB_URL, {
 })
 const db = mongoose.connection
 db.on('error', error => console.error(error))
