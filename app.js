@@ -1,10 +1,4 @@
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config()
-}
-
-
-
-
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const session = require('express-session');
@@ -17,19 +11,20 @@ const path = require('path')
 const requireAuth = require('./Middleware/auth');
 
 
+app.set('trust proxy', 1);
 
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 // 24 hours
+  }
+};
 
-app.use(session({
-    secret: 'testMode', // Change to a secure random string
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-        secure: false, // set to true if using HTTPS
-        maxAge: 1000 * 60 * 60 * 24 // 24 hours
-    }
-}));
-
-
+app.use(session(sessionConfig));
 
 
 app.post('/logout', (req, res) => {
