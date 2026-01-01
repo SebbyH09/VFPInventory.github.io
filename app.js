@@ -69,11 +69,9 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // CSRF Protection
-const {
-  generateToken,
-  doubleCsrfProtection,
-} = doubleCsrf({
+const csrfConfig = doubleCsrf({
   getSecret: () => process.env.SESSION_SECRET,
+  getSessionIdentifier: (req) => req.session.id,
   cookieName: '__Host-psifi.x-csrf-token',
   cookieOptions: {
     sameSite: 'strict',
@@ -84,6 +82,12 @@ const {
   size: 64,
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
 });
+
+const {
+  generateCsrfToken: generateToken,
+  doubleCsrfProtection,
+} = csrfConfig;
+
 
 // Make CSRF token available to all routes
 app.use((req, res, next) => {
