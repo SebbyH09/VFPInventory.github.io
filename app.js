@@ -19,6 +19,7 @@ const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const MongoStore = require('connect-mongo');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
@@ -54,6 +55,10 @@ const sessionConfig = {
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URL,
+    touchafter: 24 * 3600
+  }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
@@ -61,12 +66,15 @@ const sessionConfig = {
     maxAge: 1000 * 60 * 60 * 8 // 8 hours (reduced from 24)
   }
 };
-
 app.use(session(sessionConfig));
+
+
 
 // Request size limits to prevent DoS
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+
 
 // CSRF Protection
 const csrfConfig = doubleCsrf({
@@ -88,7 +96,6 @@ const {
   doubleCsrfProtection,
 } = csrfConfig;
 
-
 // Make CSRF token available to all routes
 app.use((req, res, next) => {
   res.locals.csrfToken = generateToken(req, res);
@@ -97,6 +104,8 @@ app.use((req, res, next) => {
 
 // Apply CSRF protection to state-changing routes
 app.use(doubleCsrfProtection);
+
+
 
 // Global rate limiter
 const globalLimiter = rateLimit({
