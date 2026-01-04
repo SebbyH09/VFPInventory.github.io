@@ -56,8 +56,8 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URL,
-    touchafter: 24 * 3600
+    mongoUrl: process.env.DATABASE_URL,
+    touchAfter: 24 * 3600
   }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
@@ -66,6 +66,7 @@ const sessionConfig = {
     maxAge: 1000 * 60 * 60 * 8 // 8 hours (reduced from 24)
   }
 };
+
 app.use(session(sessionConfig));
 
 
