@@ -490,58 +490,6 @@ body.modal-open .table-wrapper {
     cursor: pointer;
 }
 
-/* Responsive column sizing */
-#mainTable1 th,
-#mainTable1 td {
-    white-space: normal;
-    word-wrap: break-word;
-    word-break: break-word;
-    overflow-wrap: break-word;
-}
-
-/* Specific column widths for better responsiveness */
-#mainTable1 th:nth-child(1), /* # */
-#mainTable1 td:nth-child(1) {
-    width: 3%;
-    max-width: 50px;
-}
-
-#mainTable1 th:nth-child(2), /* Item */
-#mainTable1 td:nth-child(2),
-#mainTable1 th:nth-child(3), /* Brand */
-#mainTable1 td:nth-child(3),
-#mainTable1 th:nth-child(4), /* Vendor */
-#mainTable1 td:nth-child(4) {
-    width: 12%;
-}
-
-#mainTable1 th:nth-child(5), /* Catalog # */
-#mainTable1 td:nth-child(5) {
-    width: 8%;
-}
-
-#mainTable1 th:nth-child(6), /* Current Qty */
-#mainTable1 td:nth-child(6),
-#mainTable1 th:nth-child(7), /* Min Qty */
-#mainTable1 td:nth-child(7),
-#mainTable1 th:nth-child(8), /* Max Qty */
-#mainTable1 td:nth-child(8) {
-    width: 6%;
-}
-
-#mainTable1 th:nth-child(9), /* Location */
-#mainTable1 td:nth-child(9),
-#mainTable1 th:nth-child(10), /* Type */
-#mainTable1 td:nth-child(10) {
-    width: 8%;
-}
-
-/* Actions column */
-#mainTable1 th:nth-child(16), /* Actions */
-#mainTable1 td:nth-child(16) {
-    width: 10%;
-    text-align: center;
-}
 
 /* Media queries for smaller screens */
 @media screen and (max-width: 1400px) {
@@ -577,73 +525,11 @@ body.modal-open .table-wrapper {
 
 }
 
-/* Column resize handle styling */
-.column-resize-handle {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 5px;
-    cursor: col-resize;
-    z-index: 1;
-    background-color: transparent;
-}
-
-.column-resize-handle:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-    border-right: 2px solid rgba(255, 255, 255, 0.6);
-}
-
-.column-resize-handle:active {
-    background-color: rgba(255, 255, 255, 0.5);
-}
-
-/* Column drag and drop styling */
-#mainTable1 th.dragging {
-    opacity: 0.5;
-    background-color: #357a38;
-}
-
-#mainTable1 th.drag-over {
-    background-color: #66bb6a;
-    border-left: 3px solid #fff;
-    border-right: 3px solid #fff;
-}
-
 .column-highlight {
     background-color: rgba(76, 175, 80, 0.15) !important;
     outline: 1px dashed #4CAF50;
 }
 
-/* Ensure draggable headers have proper cursor */
-#mainTable1 thead th[draggable="true"] {
-    cursor: move;
-}
-
-/* Add a subtle indicator that columns are draggable */
-#mainTable1 thead th[draggable="true"]::before {
-    content: '⋮⋮';
-    position: absolute;
-    left: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.4);
-    letter-spacing: -2px;
-}
-
-/* Ensure resize handle is positioned correctly */
-#mainTable1 thead th {
-    position: relative;
-}
-
-/* Prevent text selection during drag */
-#mainTable1 thead th[draggable="true"] {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
 
 /* Sortable table headers */
 #mainTable1 th.sort-asc::after {
