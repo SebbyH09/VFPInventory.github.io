@@ -1,6 +1,7 @@
 
 <head>
     <link rel="stylesheet" href="/dashboardstyle.css">
+    <script defer src="/dashboard.js"></script>
 </head>
 
 <div class="dashboard-container">
@@ -9,7 +10,7 @@
             <h2 class="card-title">Recent Orders</h2>
             <div class="size-control">
                 <label for="ordersCardSize">Size:</label>
-                <select id="ordersCardSize" onchange="adjustCardSize('ordersCardWrapper', this.value)">
+                <select id="ordersCardSize">
                     <option value="small">Small</option>
                     <option value="medium" selected>Medium</option>
                     <option value="large">Large</option>
@@ -43,7 +44,7 @@
             <h2 class="card-title">Need to Order</h2>
             <div class="size-control">
                 <label for="inventoryCardSize">Size:</label>
-                <select id="inventoryCardSize" onchange="adjustCardSize('inventoryCardWrapper', this.value)">
+                <select id="inventoryCardSize">
                     <option value="small">Small</option>
                     <option value="medium" selected>Medium</option>
                     <option value="large">Large</option>
@@ -88,7 +89,7 @@
             <div class="controls-group">
                 <div class="size-control">
                     <label for="cycleCountCardSize">Size:</label>
-                    <select id="cycleCountCardSize" onchange="adjustCardSize('cycleCountCardWrapper', this.value)">
+                    <select id="cycleCountCardSize">
                         <option value="small">Small</option>
                         <option value="medium" selected>Medium</option>
                         <option value="large">Large</option>
@@ -96,7 +97,7 @@
                 </div>
                 <div class="display-limit-control">
                     <label for="cycleCountLimit">Show:</label>
-                    <select id="cycleCountLimit" onchange="updateCycleCountDisplay()">
+                    <select id="cycleCountLimit">
                         <option value="5">5 items</option>
                         <option value="10" selected>10 items</option>
                         <option value="15">15 items</option>
@@ -143,7 +144,7 @@
                             </span>
                         </div>
                         <div class="card-action">
-                            <button class="cycle-count-update-btn" onclick="openCycleCountModal('<%= item._id %>', '<%= item.item %>', '<%= item.currentquantity %>')">
+                            <button class="cycle-count-update-btn">
                                 Update Count
                             </button>
                         </div>
@@ -159,7 +160,7 @@
 <!-- Cycle Count Update Modal -->
 <div id="cycleCountModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeCycleCountModal()">&times;</span>
+        <span class="close">&times;</span>
         <h2>Update Cycle Count</h2>
         <div class="modal-body">
             <p><strong>Item:</strong> <span id="modalItemName"></span></p>
@@ -172,136 +173,9 @@
                 <input type="number" id="updatedQty" placeholder="Enter counted quantity" required>
             </div>
             <div class="modal-buttons">
-                <button class="btn-submit" onclick="submitCycleCount()">Submit</button>
-                <button class="btn-cancel" onclick="closeCycleCountModal()">Cancel</button>
+                <button class="btn-submit">Submit</button>
+                <button class="btn-cancel">Cancel</button>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-let currentItemId = null;
-
-function adjustCardSize(wrapperId, size) {
-    const wrapper = document.getElementById(wrapperId);
-
-    // Remove existing size classes
-    wrapper.classList.remove('card-size-small', 'card-size-medium', 'card-size-large');
-
-    // Add new size class
-    wrapper.classList.add('card-size-' + size);
-
-    // Save preference to localStorage
-    localStorage.setItem(wrapperId + '-size', size);
-}
-
-function updateCycleCountDisplay() {
-    const limit = document.getElementById('cycleCountLimit').value;
-    const cards = document.querySelectorAll('.cycle-count-card');
-
-    cards.forEach((card, index) => {
-        if (limit === 'all') {
-            card.style.display = '';
-        } else {
-            const limitNum = parseInt(limit);
-            card.style.display = index < limitNum ? '' : 'none';
-        }
-    });
-}
-
-function openCycleCountModal(itemId, itemName, currentQty) {
-    currentItemId = itemId;
-    document.getElementById('modalItemName').textContent = itemName;
-    document.getElementById('currentQty').value = currentQty;
-    document.getElementById('updatedQty').value = '';
-    document.getElementById('cycleCountModal').style.display = 'block';
-}
-
-function closeCycleCountModal() {
-    document.getElementById('cycleCountModal').style.display = 'none';
-    currentItemId = null;
-}
-
-async function submitCycleCount() {
-    const updatedQty = document.getElementById('updatedQty').value;
-
-    if (!updatedQty || updatedQty === '') {
-        alert('Please enter an updated quantity');
-        return;
-    }
-
-    try {
-        const response = await fetch('/update-cycle-count', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                itemId: currentItemId,
-                newQuantity: parseInt(updatedQty),
-                date: new Date().toISOString()
-            })
-        });
-
-
-        if (response.ok) {
-            alert('Cycle count updated successfully!');
-
-            // Remove the card from the DOM
-            const card = document.querySelector(`.cycle-count-card[data-item-id="${currentItemId}"]`);
-            if (card) {
-                card.remove();
-
-                // Check if there are any cards left
-                const remainingCards = document.querySelectorAll('.cycle-count-card');
-                if (remainingCards.length === 0) {
-                    // Show empty state message
-                    const container = document.getElementById('cycleCountCardsContainer');
-                    container.innerHTML = '<div class="empty-state">No cycle counts due</div>';
-                }
-            }
-
-            closeCycleCountModal();
-        } else {
-            const error = await response.json();
-            alert('Failed to update cycle count: ' + (error.message || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error updating cycle count:', error);
-        alert('Error updating cycle count');
-    }
-}
-
-// Close modal when clicking outside of it
-window.onclick = function(event) {
-    const modal = document.getElementById('cycleCountModal');
-    if (event.target == modal) {
-        closeCycleCountModal();
-    }
-}
-
-// Initialize display and restore saved sizes on page load
-document.addEventListener('DOMContentLoaded', function() {
-    updateCycleCountDisplay();
-
-    // Restore saved card sizes from localStorage
-    const cardWrappers = ['ordersCardWrapper', 'inventoryCardWrapper', 'cycleCountCardWrapper'];
-    cardWrappers.forEach(wrapperId => {
-        const savedSize = localStorage.getItem(wrapperId + '-size');
-        if (savedSize) {
-            const wrapper = document.getElementById(wrapperId);
-            const select = wrapper.querySelector('select[id$="CardSize"]');
-            if (select && wrapper) {
-                select.value = savedSize;
-                wrapper.classList.add('card-size-' + savedSize);
-            }
-        } else {
-            // Apply default medium size
-            const wrapper = document.getElementById(wrapperId);
-            if (wrapper) {
-                wrapper.classList.add('card-size-medium');
-            }
-        }
-    });
-});
-</script>

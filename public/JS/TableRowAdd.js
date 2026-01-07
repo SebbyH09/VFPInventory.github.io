@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Global function to delete row and update row numbers
-    window.updateRowNumbers = async function() {
+    window.updateRowNumbers = async function(event) {
         const row = event.target.closest('tr');
         const itemId = row.dataset.itemId;
 
@@ -57,6 +57,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     };
+
+    // Handle delete button clicks using event delegation
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('delete-btn')) {
+            window.updateRowNumbers(event);
+        }
+    });
 });
 
 // Open the add item modal
@@ -149,10 +156,31 @@ async function submitAddModal() {
     }
 }
 
-// Close modal when clicking outside of it
-window.addEventListener('click', function(event) {
-    const addModal = document.getElementById('addModal');
-    if (event.target === addModal) {
-        closeAddModal();
+// Initialize add modal event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Close button
+    const addModalClose = document.querySelector('#addModal .close-modal');
+    if (addModalClose) {
+        addModalClose.addEventListener('click', closeAddModal);
     }
+
+    // Submit button
+    const addSubmitBtn = document.querySelector('#addModal .btn-submit');
+    if (addSubmitBtn) {
+        addSubmitBtn.addEventListener('click', submitAddModal);
+    }
+
+    // Cancel button
+    const addCancelBtn = document.querySelector('#addModal .btn-cancel');
+    if (addCancelBtn) {
+        addCancelBtn.addEventListener('click', closeAddModal);
+    }
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', function(event) {
+        const addModal = document.getElementById('addModal');
+        if (event.target === addModal) {
+            closeAddModal();
+        }
+    });
 });
