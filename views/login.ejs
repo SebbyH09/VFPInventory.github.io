@@ -8,8 +8,7 @@
         <h1 class="header1">Login</h1>
 
         <form action="/login" method="POST">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
+            
             <input type="email" name="email" placeholder="email" autocomplete="off" class="email" required>
             <input type="password" name="password" placeholder="password" autocomplete="off" class="password" required>
             <button class="submit" type="submit">Submit</button>

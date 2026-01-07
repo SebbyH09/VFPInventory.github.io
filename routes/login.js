@@ -8,7 +8,7 @@ const { body, validationResult } = require('express-validator');
 router.get('/', (req, res) => {
     // Check if already logged in
     if (req.session && req.session.userId) {
-        return res.redirect('/home');
+        return res.redirect('/');
     }
     res.render('login');
 });
@@ -48,7 +48,7 @@ router.post('/',
                 req.session.email = user.email;
                 req.session.isLoggedIn = true;
 
-                return res.redirect('/home');
+                return res.redirect('/');
             } else {
                 // Generic error message - don't reveal if user exists
                 return res.status(401).send('Invalid email or password');
