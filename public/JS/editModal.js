@@ -221,10 +221,60 @@ async function deleteItemFromModal() {
     }
 }
 
-// Close modal when clicking outside of it
-window.onclick = function(event) {
-    const modal = document.getElementById('editModal');
-    if (event.target == modal) {
-        closeEditModal();
+// Initialize event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Close modal button
+    const editModalClose = document.querySelector('#editModal .close-modal');
+    if (editModalClose) {
+        editModalClose.addEventListener('click', closeEditModal);
     }
-}
+
+    // Submit button
+    const editSubmitBtn = document.querySelector('#editModal .btn-submit');
+    if (editSubmitBtn) {
+        editSubmitBtn.addEventListener('click', submitEditModal);
+    }
+
+    // Cancel button
+    const editCancelBtn = document.querySelector('#editModal .btn-cancel');
+    if (editCancelBtn) {
+        editCancelBtn.addEventListener('click', closeEditModal);
+    }
+
+    // Mark as used button
+    const markUsedBtn = document.querySelector('.mark-used-btn-modal');
+    if (markUsedBtn) {
+        markUsedBtn.addEventListener('click', markItemAsUsedFromModal);
+    }
+
+    // Record order button
+    const recordOrderBtn = document.querySelector('.record-order-btn-modal');
+    if (recordOrderBtn) {
+        recordOrderBtn.addEventListener('click', recordItemOrderFromModal);
+    }
+
+    // Delete button
+    const deleteBtn = document.querySelector('.delete-btn-modal');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', deleteItemFromModal);
+    }
+
+    // Row edit buttons (dynamically added, use event delegation)
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('row-edit-btn')) {
+            const row = event.target.closest('tr');
+            const itemId = row.getAttribute('data-item-id');
+            if (itemId) {
+                openEditModal(itemId);
+            }
+        }
+    });
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target == modal) {
+            closeEditModal();
+        }
+    };
+});

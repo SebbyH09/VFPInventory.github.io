@@ -81,8 +81,8 @@
                                 <td><p class="inventoryitem"><%= item.cycleCountInterval || 90 %></p></td>
                                 <td><p class="inventoryitem"><%= item.orderFrequencyPeriod || 30 %></p></td>
                                 <td class="actions-cell">
-                                    <button class="delete-btn hidden" onclick="updateRowNumbers()">Delete</button>
-                                    <button class="row-edit-btn" onclick="openEditModal('<%= item._id %>')">Edit</button>
+                                    <button class="delete-btn hidden">Delete</button>
+                                    <button class="row-edit-btn">Edit</button>
                                 </td>
                             </tr>
                         <% }); %>
@@ -97,7 +97,7 @@
     <!-- Add Item Modal -->
     <div id="addModal" class="edit-modal">
         <div class="edit-modal-content">
-            <span class="close-modal" onclick="closeAddModal()">&times;</span>
+            <span class="close-modal">&times;</span>
             <h2>Add New Item</h2>
             <div class="edit-modal-body">
                 <div class="form-row">
@@ -177,8 +177,8 @@
                     </div>
                 </div>
                 <div class="modal-buttons">
-                    <button class="btn-submit" onclick="submitAddModal()">Add Item</button>
-                    <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+                    <button class="btn-submit">Add Item</button>
+                    <button class="btn-cancel">Cancel</button>
                 </div>
             </div>
         </div>
@@ -187,7 +187,7 @@
     <!-- Edit Modal -->
     <div id="editModal" class="edit-modal">
         <div class="edit-modal-content">
-            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <span class="close-modal">&times;</span>
             <h2>Edit Item</h2>
             <div class="edit-modal-body">
                 <div class="form-row">
@@ -267,13 +267,13 @@
                     </div>
                 </div>
                 <div class="modal-actions">
-                    <button class="mark-used-btn-modal" onclick="markItemAsUsedFromModal()">Mark Used</button>
-                    <button class="record-order-btn-modal" onclick="recordItemOrderFromModal()">Record Order</button>
-                    <button class="delete-btn-modal" onclick="deleteItemFromModal()">Delete</button>
+                    <button class="mark-used-btn-modal">Mark Used</button>
+                    <button class="record-order-btn-modal">Record Order</button>
+                    <button class="delete-btn-modal">Delete</button>
                 </div>
                 <div class="modal-buttons">
-                    <button class="btn-submit" onclick="submitEditModal()">Save Changes</button>
-                    <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                    <button class="btn-submit">Save Changes</button>
+                    <button class="btn-cancel">Cancel</button>
                 </div>
             </div>
         </div>
