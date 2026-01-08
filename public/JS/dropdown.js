@@ -2,7 +2,12 @@ function toggleDropdown() {
     const content = document.getElementById("dropdown-content");
     content.style.display = (content.style.display === "block") ? "none" : "block";
   }
-  
+
+  function toggleInventoryDropdown() {
+    const content = document.getElementById("inventory-dropdown-content");
+    content.style.display = (content.style.display === "block") ? "none" : "block";
+  }
+
   // Optional: close dropdown when clicking outside
   window.onclick = function(event) {
     if (!event.target.matches('.dropbtn')) {
