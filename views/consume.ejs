@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consume Inventory</title>
+    <link rel="stylesheet" href="/consume.css">
+</head>
+<body>
+    <div class="consume-container">
+        <h2>Consume Inventory</h2>
+
+        <div class="consume-layout">
+            <!-- Left Side: Inventory List -->
+            <div class="left-panel">
+                <div class="search-section">
+                    <input type="text" id="consumeSearchBar" placeholder="Search inventory...">
+                    <div class="search-buttons">
+                        <button id="searchButton" class="search-btn">Enter</button>
+                        <button id="clearButton" class="clear-btn">Clear</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="inventoryTable">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Brand</th>
+                                <th>Current Quantity</th>
+                                <th>Select</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (inventoryItems && inventoryItems.length > 0) { %>
+                                <% inventoryItems.forEach((item) => { %>
+                                    <tr data-item-id="<%= item._id %>"
+                                        data-item-name="<%= item.item %>"
+                                        data-item-brand="<%= item.brand %>"
+                                        data-item-quantity="<%= item.currentquantity %>">
+                                        <td><%= item.item %></td>
+                                        <td><%= item.brand %></td>
+                                        <td><%= item.currentquantity %></td>
+                                        <td>
+                                            <input type="checkbox" class="item-checkbox" data-item-id="<%= item._id %>">
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="4" style="text-align: center;">No inventory items available</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <button id="addItemsBtn" class="add-items-btn">Add Items</button>
+            </div>
+
+            <!-- Right Side: Selected Items -->
+            <div class="right-panel">
+                <div class="consume-header">
+                    <button id="consumeBtn" class="consume-btn">Consume</button>
+                </div>
+
+                <div id="selectedItemsContainer" class="selected-items-container">
+                    <p class="empty-message">No items selected. Check items from the left and click "Add Items".</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="/consume.js"></script>
+</body>
+</html>
