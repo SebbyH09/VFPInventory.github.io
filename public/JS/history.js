@@ -147,6 +147,7 @@ function displayHistoryData(data) {
 function formatChangeType(type) {
     const typeMap = {
         'quantity_change': 'Quantity Change',
+        'quantity_consumed': 'Quantity Consumed',
         'item_used': 'Item Used',
         'order_placed': 'Order Placed',
         'cycle_count': 'Cycle Count',
