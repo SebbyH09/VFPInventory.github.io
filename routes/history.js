@@ -103,7 +103,7 @@ router.get('/summary', async (req, res) => {
       {
         $match: {
           changeDate: { $gte: start, $lt: end },
-          changeType: { $in: ['quantity_change', 'item_used'] },
+          changeType: { $in: ['quantity_change', 'quantity_consumed', 'item_used'] },
           quantityChange: { $exists: true }
         }
       },
