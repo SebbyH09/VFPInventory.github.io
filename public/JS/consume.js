@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSearchFunctionality();
     setupAddItemsButton();
     setupConsumeButton();
-});
+    });
 
 let selectedItems = new Map();
 
@@ -135,11 +135,11 @@ function createItemCard(item) {
     const card = document.createElement('div');
     card.className = 'item-card';
     card.setAttribute('data-item-id', item.id);
-
+    
     card.innerHTML = `
         <div class="item-card-header">
             <div class="item-card-title">${item.name}</div>
-            <button class="remove-item-btn" onclick="removeItem('${item.id}')">Remove</button>
+            <button class="remove-item-btn" data-item-id="${item.id}">Remove</button>
         </div>
         <div class="item-card-body">
             <div class="item-detail">
@@ -159,14 +159,26 @@ function createItemCard(item) {
                     value="${item.consumeQuantity}"
                     min="1"
                     max="${item.currentQuantity}"
-                    onchange="updateConsumeQuantity('${item.id}', this.value)"
-                >
+                    >
             </div>
         </div>
     `;
 
+    const removeBtn = card.querySelector('.remove-item-btn');
+    removeBtn.addEventListener('click', () => {
+        const itemId = removeBtn.dataset.itemId;
+        removeItem(itemId);
+    });
+
+    const quantityInput = card.querySelector('.consume-quantity-input');
+    quantityInput.addEventListener('change', (e) => {
+        const itemId = e.target.dataset.itemId;
+        const value = e.target.value;
+        updateConsumeQuantity(itemId, value);
+    })
     return card;
 }
+
 
 function removeItem(itemId) {
     selectedItems.delete(itemId);
