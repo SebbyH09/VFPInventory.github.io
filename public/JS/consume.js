@@ -154,7 +154,7 @@ function createItemCard(item) {
                 <label for="consume-${item.id}">Quantity to Consume:</label>
                 <input
                     type="number"
-                    id="consume-${item.id}"
+                    data-item-id="${item.id}"
                     class="consume-quantity-input"
                     value="${item.consumeQuantity}"
                     min="1"
@@ -172,6 +172,13 @@ function createItemCard(item) {
 
     const quantityInput = card.querySelector('.consume-quantity-input');
     quantityInput.addEventListener('change', (e) => {
+        console.log('Full ID:', e.target.id);
+        console.log('Type of ID:', typeof e.target.id);
+        console.log('event target', e.target);
+        console.log('Dataset:', e.target.dataset);
+        console.log('Checking itemId:', e.target.dataset.itemId);
+        console.log('Checking with getAttribute:', e.target.getAttribute('data-item-id'));
+    
         const itemId = e.target.dataset.itemId;
         const value = e.target.value;
         updateConsumeQuantity(itemId, value);
@@ -186,11 +193,16 @@ function removeItem(itemId) {
 }
 
 function updateConsumeQuantity(itemId, value) {
+    console.log('Looking for itemId:', itemId);
+    console.log('Map keys:', Array.from(selectedItems.keys()));
     const item = selectedItems.get(itemId);
+    console.log('Found item?', item);
     if (item) {
         const quantity = parseInt(value);
+        console.log('Updating item:', itemId, 'from', item.consumeQuantity, 'to', quantity); // ← Add this
         if (quantity > 0 && quantity <= item.currentQuantity) {
             item.consumeQuantity = quantity;
+            console.log('Updated! selectedItems now has:', selectedItems.get(itemId)); // ← And this
         } else {
             alert(`Please enter a quantity between 1 and ${item.currentQuantity}`);
             document.getElementById(`consume-${itemId}`).value = item.consumeQuantity;
@@ -220,6 +232,8 @@ async function consumeItems() {
         itemId: item.id,
         quantityConsumed: item.consumeQuantity
     }));
+
+    console.log('About to send to server:', consumedItems);
 
     try {
         const response = await fetch('/consume', {
