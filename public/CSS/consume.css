@@ -276,6 +276,209 @@
 
     .left-panel,
     .right-panel {
-        height: 500px;
+        min-height: 400px;
+        max-height: 500px;
+    }
+}
+
+/* Tablet optimizations */
+@media (max-width: 768px) {
+    .consume-container {
+        padding: 15px;
+    }
+
+    .consume-container h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .consume-layout {
+        gap: 15px;
+    }
+
+    .left-panel,
+    .right-panel {
+        padding: 12px;
+        min-height: 350px;
+        max-height: 450px;
+    }
+
+    #inventoryTable th,
+    #inventoryTable td {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    /* Larger touch targets */
+    .item-checkbox {
+        width: 22px;
+        height: 22px;
+    }
+
+    .search-btn,
+    .clear-btn,
+    .add-items-btn,
+    .consume-btn {
+        padding: 12px 20px;
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    .remove-item-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-height: 36px;
+    }
+}
+
+/* Mobile phone optimizations */
+@media (max-width: 480px) {
+    .consume-container {
+        padding: 10px;
+    }
+
+    .consume-container h2 {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .consume-layout {
+        gap: 12px;
+    }
+
+    .left-panel,
+    .right-panel {
+        padding: 10px;
+        min-height: 300px;
+        max-height: 400px;
+    }
+
+    #consumeSearchBar {
+        width: 95%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .search-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .search-btn,
+    .clear-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+
+    /* Table adjustments for mobile */
+    #inventoryTable {
+        font-size: 12px;
+    }
+
+    #inventoryTable th,
+    #inventoryTable td {
+        padding: 6px 4px;
+        font-size: 12px;
+    }
+
+    #inventoryTable th:first-child,
+    #inventoryTable td:first-child {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #inventoryTable th:nth-child(2),
+    #inventoryTable td:nth-child(2) {
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Even larger touch targets for checkboxes */
+    .item-checkbox {
+        width: 24px;
+        height: 24px;
+    }
+
+    .add-items-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 18px;
+        min-height: 48px;
+        margin-top: 12px;
+    }
+
+    .consume-btn {
+        padding: 14px;
+        font-size: 18px;
+        min-height: 48px;
+    }
+
+    /* Item card adjustments */
+    .item-card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .item-card-title {
+        font-size: 15px;
+    }
+
+    .item-detail {
+        font-size: 13px;
+    }
+
+    .consume-quantity-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .consume-quantity-input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    .remove-item-btn {
+        padding: 10px 14px;
+        font-size: 14px;
+        min-height: 40px;
+    }
+
+    .empty-message {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+    .consume-container {
+        padding: 8px;
+    }
+
+    .consume-container h2 {
+        font-size: 18px;
+    }
+
+    #inventoryTable th,
+    #inventoryTable td {
+        padding: 4px 2px;
+        font-size: 11px;
+    }
+
+    .item-card-title {
+        font-size: 14px;
+    }
+
+    .item-detail {
+        font-size: 12px;
     }
 }
