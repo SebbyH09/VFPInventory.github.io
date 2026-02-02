@@ -12,9 +12,12 @@ router.get('/', async (req, res) => {
             }).sort({ item: 1 });
 
             // Fetch items that need cycle counts
-            const allItems = await ListedInventoryItem.find({});
             const today = new Date();
-            const cycleCountDueItems = allItems.filter(item => {
+            const defaultLimit = 10; // ← ADD THIS
+            
+            const allItems = await ListedInventoryItem.find({});
+            
+            const dueItems = allItems.filter(item => { // ← RENAMED from cycleCountDueItems to dueItems
                 const interval = item.cycleCountInterval || 90;
                 if (!item.lastCycleCount) {
                     return true; // Never counted
@@ -35,13 +38,19 @@ router.get('/', async (req, res) => {
                 if (!b.daysSinceCount) return 1;
                 return b.daysSinceCount - a.daysSinceCount;
             });
+            
+            // Only send the first 10 items ← ADD THIS
+            const cycleCountDueItems = dueItems.slice(0, defaultLimit);
+            console.log('Sending to template:', cycleCountDueItems.length, 'items'); // Optional debug log
 
             res.render('dashboard', {
                 user: req.session.user,
                 lowInventoryItems: lowInventoryItems,
-                cycleCountDueItems: cycleCountDueItems
+                cycleCountDueItems: cycleCountDueItems,
+                totalCycleCountsDue: dueItems.length  // Optional: show total count
             });
         } catch (error) {
+            console.error('Dashboard error:', error);
             res.render('dashboard', {
                 user: req.session.user,
                 lowInventoryItems: [],
@@ -51,52 +60,6 @@ router.get('/', async (req, res) => {
         }
     } else {
         res.render('home');
-    }
-});
-
-router.get('/dashboard', requireAuth, async (req, res) => {
-    try {
-        const lowInventoryItems = await ListedInventoryItem.find({
-            $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
-        }).sort({ item: 1 });
-
-        // Fetch items that need cycle counts
-        const allItems = await ListedInventoryItem.find({});
-        const today = new Date();
-        const cycleCountDueItems = allItems.filter(item => {
-            const interval = item.cycleCountInterval || 90;
-            if (!item.lastCycleCount) {
-                return true; // Never counted
-            }
-            const daysSinceCount = Math.floor((today - new Date(item.lastCycleCount)) / (1000 * 60 * 60 * 24));
-            return daysSinceCount >= interval;
-        }).map(item => {
-            const daysSinceCount = item.lastCycleCount
-                ? Math.floor((today - new Date(item.lastCycleCount)) / (1000 * 60 * 60 * 24))
-                : null;
-            return {
-                ...item.toObject(),
-                daysSinceCount,
-                daysOverdue: daysSinceCount ? daysSinceCount - (item.cycleCountInterval || 90) : null
-            };
-        }).sort((a, b) => {
-            if (!a.daysSinceCount) return -1;
-            if (!b.daysSinceCount) return 1;
-            return b.daysSinceCount - a.daysSinceCount;
-        });
-
-        res.render('dashboard', {
-            user: req.session.user,
-            lowInventoryItems: lowInventoryItems,
-            cycleCountDueItems: cycleCountDueItems
-        });
-    } catch (error) {
-        res.render('dashboard', {
-            user: req.session.user,
-            lowInventoryItems: [],
-            cycleCountDueItems: [],
-            error: 'Failed to load dashboard data'
-        });
     }
 });
 
@@ -157,6 +120,51 @@ router.post('/update-cycle-count', requireAuth, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "Error updating cycle count. Please try again later."
+        });
+    }
+});
+
+router.get('/cycle-counts-next', requireAuth, async (req, res) => {
+    try {
+        const { limit = 1, skip = 0 } = req.query;
+        const today = new Date();
+        
+        // Get all items sorted by last cycle count date (oldest first)
+        const allItems = await ListedInventoryItem.find({})
+            .sort({ lastCycleCount: 1 })
+            .lean();
+        
+        // Calculate days and filter for items that are due
+        const dueItems = allItems.map(item => {
+            const interval = item.cycleCountInterval || 90;
+            const daysSinceCount = item.lastCycleCount 
+                ? Math.floor((today - new Date(item.lastCycleCount)) / (1000 * 60 * 60 * 24))
+                : null;
+            const daysOverdue = daysSinceCount !== null ? Math.max(0, daysSinceCount - interval) : 0;
+            
+            return {
+                ...item,
+                daysSinceCount,
+                daysOverdue
+            };
+        }).filter(item => {
+            // Only include items that are due for cycle count
+            return !item.lastCycleCount || item.daysSinceCount >= (item.cycleCountInterval || 90);
+        });
+        
+        // Apply skip and limit
+        const paginatedItems = dueItems.slice(parseInt(skip), parseInt(skip) + parseInt(limit));
+        
+        res.json({
+            success: true,
+            items: paginatedItems,
+            total: dueItems.length
+        });
+    } catch (error) {
+        console.error('Error fetching next cycle count items:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch next items'
         });
     }
 });
