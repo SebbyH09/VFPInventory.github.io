@@ -7,7 +7,6 @@
     width: 100%;
 }
 
-/* Card wrapper styling */
 .card-wrapper {
     background-color: #ffffff;
     border-radius: 10px;
@@ -15,12 +14,10 @@
     padding: 10px;
 }
 
-/* Cycle count wrapper spans full width in second row */
 .cycle-count-wrapper {
     grid-column: 1 / 3;
 }
 
-/* Card header with controls */
 .card-header-controls {
     display: flex;
     justify-content: space-between;
@@ -30,7 +27,6 @@
     border-bottom: 2px solid #e0e0e0;
 }
 
-/* Card titles */
 .card-title {
     text-align: left;
     margin: 0;
@@ -39,43 +35,21 @@
     font-weight: bold;
 }
 
-/* Card size controls styling */
-.size-control {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.size-control label {
-    font-weight: bold;
-    color: #333;
-}
-
-.size-control select {
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: white;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.size-control select:hover {
-    border-color: rgb(52, 125, 39);
-}
-
-/* Display limit control styling */
+/* Shared select control styling */
+.size-control,
 .display-limit-control {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
+.size-control label,
 .display-limit-control label {
     font-weight: bold;
     color: #333;
 }
 
+.size-control select,
 .display-limit-control select {
     padding: 5px 10px;
     border: 1px solid #ddd;
@@ -85,11 +59,11 @@
     font-size: 14px;
 }
 
+.size-control select:hover,
 .display-limit-control select:hover {
     border-color: rgb(52, 125, 39);
 }
 
-/* Controls group for cycle count wrapper */
 .controls-group {
     display: flex;
     gap: 15px;
@@ -106,7 +80,6 @@
     padding: 10px;
 }
 
-/* Individual card styling */
 .card {
     background: linear-gradient(145deg, #ffffff, #f5f5f5);
     border: 1px solid #e0e0e0;
@@ -125,7 +98,6 @@
     border-color: rgb(52, 125, 39);
 }
 
-/* Card field layout */
 .card-field {
     display: flex;
     justify-content: space-between;
@@ -150,13 +122,11 @@
     text-align: right;
 }
 
-/* Quantity low highlight */
 .quantity-low {
     color: #ef5350;
     font-weight: bold;
 }
 
-/* Card action area */
 .card-action {
     margin-top: 10px;
     padding-top: 10px;
@@ -165,7 +135,6 @@
     justify-content: center;
 }
 
-/* Empty state styling */
 .empty-state {
     grid-column: 1 / -1;
     text-align: center;
@@ -221,7 +190,7 @@
     font-size: 1.05em;
 }
 
-/* Status badge styling */
+/* Status badges */
 .status-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -246,7 +215,6 @@
     color: #e65100;
 }
 
-/* Cycle count update button */
 .cycle-count-update-btn {
     background-color: #4CAF50;
     color: white;
@@ -264,7 +232,7 @@
     background-color: #45a049;
 }
 
-/* Modal styling */
+/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -283,7 +251,8 @@
     padding: 20px;
     border: 1px solid #888;
     border-radius: 8px;
-    width: 400px;
+    width: 90%;
+    max-width: 400px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -378,7 +347,7 @@
     background-color: #da190b;
 }
 
-/* Responsive design */
+/* ===== Responsive ===== */
 @media (max-width: 1200px) {
     .dashboard-container {
         grid-template-columns: 1fr;
@@ -424,6 +393,51 @@
 
     .card-title {
         font-size: 1.3em;
+    }
+
+    .modal-content {
+        margin: 5% auto;
+        padding: 15px;
+    }
+
+    .btn-submit,
+    .btn-cancel {
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .cycle-count-update-btn {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 5px;
+        gap: 10px;
+    }
+
+    .card-wrapper {
+        padding: 10px;
+    }
+
+    .card-title {
+        font-size: 1.1em;
+    }
+
+    .card {
+        padding: 10px;
+    }
+
+    .card-field {
+        padding: 5px 0;
+        font-size: 0.9em;
+    }
+
+    .empty-state {
+        padding: 20px;
+        font-size: 1em;
     }
 }
 

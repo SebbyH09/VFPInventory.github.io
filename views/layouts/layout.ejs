@@ -9,72 +9,73 @@
 <body>
     <header class="header-container">
         <div class="header-nav">
-            <div class="nav-left">
-                <a href="/">
-                  <button class="header-button">Home</button>
-                </a>
-
-                <div class="dropdown">
-                  <button class="header-button dropbtn" id="inventory-dropdown-btn">Inventory</button>
-                  <div class="dropdown-content" id="inventory-dropdown-content">
-                    <a href="/entry">View Inventory</a>
-                    <a href="/consume">Consume</a>
-                  </div>
-                </div>
-
-                <a href="/upload">
-                  <button class="header-button">Upload Inventory</button>
-                </a>
-
-                <a href="/history">
-                  <button class="header-button">History</button>
-                </a>
-            </div>
-
-            <div class="nav-center">
+            <div class="nav-brand">
                 <h1 class="header-title">VFP Inventory</h1>
+                <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
 
-            <div class="nav-right">
-                <div class="dropdown">
-                  <button class="header-button dropbtn" id="order-dropdown-btn">Order</button>
-                  <div class="dropdown-content" id="dropdown-content">
-                    <a href="/orders/new">New Order</a>
-                    <a href="/orders/open">Open Orders</a>
-                    <a href="/orders/receive">Receive</a>
-                  </div>
+            <nav class="nav-menu" id="nav-menu">
+                <div class="nav-left">
+                    <a href="/">
+                      <button class="header-button">Home</button>
+                    </a>
+
+                    <div class="dropdown">
+                      <button class="header-button dropbtn" id="inventory-dropdown-btn">Inventory</button>
+                      <div class="dropdown-content" id="inventory-dropdown-content">
+                        <a href="/entry">View Inventory</a>
+                        <a href="/consume">Consume</a>
+                      </div>
+                    </div>
+
+                    <a href="/upload">
+                      <button class="header-button">Upload Inventory</button>
+                    </a>
+
+                    <a href="/history">
+                      <button class="header-button">History</button>
+                    </a>
                 </div>
 
-                <button class="header-button">Location</button>
+                <div class="nav-right">
+                    <div class="dropdown">
+                      <button class="header-button dropbtn" id="order-dropdown-btn">Order</button>
+                      <div class="dropdown-content" id="dropdown-content">
+                        <a href="/orders/new">New Order</a>
+                        <a href="/orders/open">Open Orders</a>
+                        <a href="/orders/receive">Receive</a>
+                      </div>
+                    </div>
 
-                <a href="/registration">
-                  <button class="header-button">Registration</button>
-                </a>
+                    <button class="header-button">Location</button>
 
-                <% if (!isLoggedIn) { %>
-                  <a href="/login">
-                    <button class="header-button-login">Log In</button>
-                  </a>
-                <% } %>
+                    <a href="/registration">
+                      <button class="header-button">Registration</button>
+                    </a>
 
-                <% if (isLoggedIn) { %>
-                  <form action="/logout" method="POST" style="display: inline;">
-                    <button type="submit" class="header-button-logout">Log Out</button>
-                  </form>
-                <% } %>
-            </div>
+                    <% if (!isLoggedIn) { %>
+                      <a href="/login">
+                        <button class="header-button-login">Log In</button>
+                      </a>
+                    <% } %>
+
+                    <% if (isLoggedIn) { %>
+                      <form action="/logout" method="POST" style="display: inline;">
+                        <button type="submit" class="header-button-logout">Log Out</button>
+                      </form>
+                    <% } %>
+                </div>
+            </nav>
         </div>
     </header>
 
-          
-
-    <!-- <br> -->
     <main>
-
     <%- body %>
-
-    </main>  
-    <br>
+    </main>
 
     <footer class="page-footer">
         <h5>Some copyright or Company logo stuff!!</h5>

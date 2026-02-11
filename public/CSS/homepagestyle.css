@@ -1,10 +1,26 @@
 .homepageBackground {
     width: 100%;
     height: auto;
+    display: block;
 }
 
 .titleWording {
-    position: center;
-    margin-bottom: 0%;
-    margin-top: 0%;
+    text-align: center;
+    margin: 0;
+    padding: 15px 10px;
+    font-size: 28px;
+}
+
+@media (max-width: 768px) {
+    .titleWording {
+        font-size: 22px;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .titleWording {
+        font-size: 18px;
+        padding: 8px;
+    }
 }

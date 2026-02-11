@@ -1,7 +1,7 @@
 .inventory-container {
     max-width: 100%;
     margin: 0 auto;
-    padding: 0px 20px;
+    padding: 0 20px;
 }
 
 .table-controls {
@@ -19,16 +19,19 @@
 .table-wrapper {
     max-height: 750px;
     overflow-y: auto;
+    overflow-x: auto;
     border: 1px solid #ddd;
     width: 100%;
     display: flex;
     flex-direction: column;
     flex: 1;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Table styling */
 #mainTable1 {
     width: auto;
+    min-width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
 }
@@ -43,20 +46,20 @@
 
 #mainTable1 th,
 #mainTable1 td {
-    padding: 4px 6px;  /* Reduced from 6px 8px */
+    padding: 4px 6px;
     text-align: left;
     border: 1px solid #ddd;
-    font-size: 12px;  /* Smaller font */
+    font-size: 12px;
 }
 
 #mainTable1 th {
-    font-size: 12px;  /* Reduced from 13px */
-    line-height: 1.1;  /* Tighter line height */
+    font-size: 12px;
+    line-height: 1.1;
     font-weight: 600;
 }
 
 #mainTable1 tbody tr {
-    border-bottom: 1px solid #e0e0e0;  /* Reduced from 4px white */
+    border-bottom: 1px solid #e0e0e0;
 }
 
 #mainTable1 tbody tr:hover {
@@ -64,21 +67,20 @@
 }
 
 #mainTable1 tbody tr:nth-child(odd) {
-    background-color: #fafafa;  /* Lighter alternating color */
+    background-color: #fafafa;
 }
 
 #mainTable1 tbody tr:nth-child(even) {
     background-color: #f0f0f0;
 }
 
-/* Reduce spacing inside cells */
 #mainTable1 .inventoryitem {
     margin: 0;
     padding: 0;
     line-height: 1.3;
 }
 
-/* Button styling - exclude navigation buttons to prevent style conflicts */
+/* Button styling */
 .inventory-container button,
 .table-controls button {
     padding: 8px 16px;
@@ -98,7 +100,6 @@
     color: white;
 }
 
-/* Hover effect for inventory buttons only */
 .inventory-container button:hover,
 .table-controls button:hover {
     opacity: 0.8;
@@ -112,14 +113,13 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    display: none; /* Hide by default */
+    display: none;
 }
 
 .delete-btn:hover {
     background-color: #d32f2f;
 }
 
-/* Show delete buttons when in edit mode */
 body.edit-mode .delete-btn {
     display: inline-block;
 }
@@ -151,19 +151,10 @@ body.edit-mode .delete-btn {
     color: white;
 }
 
-.mark-used-btn:hover {
-    background-color: #1976D2;
-}
+.mark-used-btn:hover { background-color: #1976D2; }
+.record-order-btn:hover { background-color: #F57C00; }
+.cycle-count-btn:hover { background-color: #7B1FA2; }
 
-.record-order-btn:hover {
-    background-color: #F57C00;
-}
-
-.cycle-count-btn:hover {
-    background-color: #7B1FA2;
-}
-
-/* Show tracking action buttons when in edit mode */
 body.edit-mode .mark-used-btn,
 body.edit-mode .record-order-btn,
 body.edit-mode .cycle-count-btn {
@@ -214,27 +205,26 @@ body.edit-mode .cycle-count-btn {
     color: #e65100;
 }
 
-/* Conditional formatting for Current Quantity column */
 .qty-zero {
-    background-color: #ef5350 !important; /* Darker red for zero quantity */
+    background-color: #ef5350 !important;
 }
 
 .qty-low {
-    background-color: #ffcdd2 !important; /* Light red for below minimum */
+    background-color: #ffcdd2 !important;
 }
 
-/* Ensure the conditional formatting shows even on hover */
 .qty-zero:hover,
 .qty-low:hover {
     opacity: 0.9;
 }
 
-/* Search bar styling */
+/* Search bar */
 .search-bar-container {
     margin-bottom: 5px;
     display: flex;
     gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 #inventorySearchBar {
@@ -264,15 +254,10 @@ body.edit-mode .cycle-count-btn {
     white-space: nowrap;
 }
 
-.search-button:hover {
-    background-color: #45a049;
-}
+.search-button:hover { background-color: #45a049; }
+.search-button:active { background-color: #3d8b40; }
 
-.search-button:active {
-    background-color: #3d8b40;
-}
-
-/* Actions column visible by default with edit button */
+/* Actions column */
 #mainTable1 thead th.actions-cell,
 #mainTable1 tbody td.actions-cell {
     display: table-cell;
@@ -286,12 +271,11 @@ body.edit-mode .cycle-count-btn {
     margin: 2px;
 }
 
-/* Edit button styling */
 .row-edit-btn {
     background-color: #2196F3;
     color: white;
-    padding: 4px 10px;  
-    font-size: 12px;  
+    padding: 4px 10px;
+    font-size: 12px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -301,7 +285,7 @@ body.edit-mode .cycle-count-btn {
     background-color: #0b7dda;
 }
 
-/* Edit Modal Styling */
+/* Edit Modal */
 .edit-modal {
     display: none;
     position: fixed;
@@ -390,6 +374,7 @@ body.edit-mode .cycle-count-btn {
     padding: 15px;
     background-color: #f5f5f5;
     border-radius: 4px;
+    flex-wrap: wrap;
 }
 
 .mark-used-btn-modal,
@@ -404,37 +389,15 @@ body.edit-mode .cycle-count-btn {
     color: white;
 }
 
-.mark-used-btn-modal {
-    background-color: #2196F3;
-}
+.mark-used-btn-modal { background-color: #2196F3; }
+.record-order-btn-modal { background-color: #FF9800; }
+.cycle-count-btn-modal { background-color: #9C27B0; }
+.delete-btn-modal { background-color: #f44336; }
 
-.record-order-btn-modal {
-    background-color: #FF9800;
-}
-
-.cycle-count-btn-modal {
-    background-color: #9C27B0;
-}
-
-.delete-btn-modal {
-    background-color: #f44336;
-}
-
-.mark-used-btn-modal:hover {
-    background-color: #1976D2;
-}
-
-.record-order-btn-modal:hover {
-    background-color: #F57C00;
-}
-
-.cycle-count-btn-modal:hover {
-    background-color: #7B1FA2;
-}
-
-.delete-btn-modal:hover {
-    background-color: #d32f2f;
-}
+.mark-used-btn-modal:hover { background-color: #1976D2; }
+.record-order-btn-modal:hover { background-color: #F57C00; }
+.cycle-count-btn-modal:hover { background-color: #7B1FA2; }
+.delete-btn-modal:hover { background-color: #d32f2f; }
 
 .modal-buttons {
     display: flex;
@@ -463,15 +426,9 @@ body.edit-mode .cycle-count-btn {
     cursor: pointer;
 }
 
-.btn-submit:hover {
-    background-color: #45a049;
-}
+.btn-submit:hover { background-color: #45a049; }
+.btn-cancel:hover { background-color: #616161; }
 
-.btn-cancel:hover {
-    background-color: #616161;
-}
-
-/* Blur background when modal is open */
 body.modal-open .inventory-container,
 body.modal-open .table-controls,
 body.modal-open .search-bar-container,
@@ -480,7 +437,6 @@ body.modal-open .table-wrapper {
     pointer-events: none;
 }
 
-/* Make input fields fit within cells */
 #mainTable1 input.inventoryitem,
 #mainTable1 select.inventoryitem {
     width: 100%;
@@ -493,46 +449,10 @@ body.modal-open .table-wrapper {
     cursor: pointer;
 }
 
-
-/* Media queries for smaller screens */
-@media screen and (max-width: 1400px) {
-    #mainTable1 th,
-    #mainTable1 td {
-        padding: 8px;
-        font-size: 13px;
-    }
-}
-
-@media screen and (max-width: 1200px) {
-    #mainTable1 th,
-    #mainTable1 td {
-        padding: 6px;
-        font-size: 12px;
-    }
-}
-
-@media screen and (max-width: 768px) {
-    .inventory-container {
-        padding: 5px 10px;
-    }
-
-    #mainTable1 th,
-    #mainTable1 td {
-        padding: 4px;
-        font-size: 11px;
-    }
-
-    .table-controls h2 {
-        font-size: 18px;
-    }
-
-}
-
 .column-highlight {
     background-color: rgba(76, 175, 80, 0.15) !important;
     outline: 1px dashed #4CAF50;
 }
-
 
 /* Sortable table headers */
 #mainTable1 th.sort-asc::after {
@@ -546,6 +466,7 @@ body.modal-open .table-wrapper {
     font-size: 10px;
     margin-left: 5px;
 }
+
 /* Column Visibility Settings */
 .column-settings-btn {
     padding: 8px 16px;
@@ -567,7 +488,7 @@ body.modal-open .table-wrapper {
     background-color: white;
     border: 1px solid #ddd;
     border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 10px;
     z-index: 1000;
     max-height: 400px;
@@ -600,4 +521,121 @@ body.modal-open .table-wrapper {
 
 .column-checkbox-wrapper span {
     flex: 1;
+}
+
+/* ===== Responsive ===== */
+@media screen and (max-width: 1200px) {
+    #mainTable1 th,
+    #mainTable1 td {
+        padding: 4px;
+        font-size: 11px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .inventory-container {
+        padding: 5px 10px;
+    }
+
+    .search-bar-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #inventorySearchBar {
+        max-width: 100%;
+    }
+
+    .table-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .table-controls h2 {
+        font-size: 18px;
+    }
+
+    #mainTable1 {
+        table-layout: auto;
+    }
+
+    #mainTable1 th,
+    #mainTable1 td {
+        padding: 3px 4px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    /* Modal full-width on mobile */
+    .edit-modal-content {
+        width: 95%;
+        margin: 2% auto;
+        padding: 15px;
+        max-height: 90vh;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .mark-used-btn-modal,
+    .record-order-btn-modal,
+    .cycle-count-btn-modal,
+    .delete-btn-modal {
+        flex: 1;
+        min-width: calc(50% - 8px);
+        min-height: 44px;
+        font-size: 14px;
+    }
+
+    .modal-buttons {
+        flex-direction: column;
+    }
+
+    .btn-submit,
+    .btn-cancel {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .column-visibility-menu {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 320px;
+        max-height: 70vh;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .inventory-container {
+        padding: 5px;
+    }
+
+    #mainTable1 th,
+    #mainTable1 td {
+        padding: 2px 3px;
+        font-size: 10px;
+    }
+
+    .edit-modal-content {
+        width: 98%;
+        margin: 1% auto;
+        padding: 12px;
+    }
+
+    .edit-modal-content h2 {
+        font-size: 18px;
+    }
 }

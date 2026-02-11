@@ -1,44 +1,98 @@
-/* Header container spanning full width at top */
+/* ===== Base Reset ===== */
+body {
+    margin: 0;
+    padding-top: 70px;
+    padding-bottom: 50px;
+}
+
+main {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* ===== Header ===== */
 .header-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     background-image: url('/Laboratory-Design.jpg');
-    /* background-color: #42a52c; */
+    background-size: cover;
     border-bottom: 2px solid #42a52c;
     z-index: 1000;
     padding: 10px 20px;
     box-sizing: border-box;
 }
 
-/* Navigation flex container */
 .header-nav {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 20px;
 }
 
-/* Left section with navigation buttons */
-.nav-left {
+/* Brand section: title + hamburger */
+.nav-brand {
     display: flex;
-    gap: 10px;
     align-items: center;
-}
-
-/* Center section with title */
-.nav-center {
-    flex: 0 1 auto;
+    gap: 15px;
+    flex-shrink: 0;
 }
 
 .header-title {
     margin: 0;
     font-size: 24px;
     color: #333;
+    white-space: nowrap;
 }
 
-/* Right section with login/logout buttons */
+/* Hamburger button - hidden on desktop */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    z-index: 1001;
+}
+
+.hamburger span {
+    display: block;
+    width: 24px;
+    height: 3px;
+    background-color: #333;
+    border-radius: 2px;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.hamburger.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Navigation menu container */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.nav-left {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 .nav-right {
     display: flex;
     gap: 10px;
@@ -46,7 +100,7 @@
     margin-left: auto;
 }
 
-/* Standard header buttons */
+/* ===== Buttons ===== */
 .header-button {
     padding: 8px 16px;
     background-color: #004669;
@@ -62,7 +116,6 @@
     background-color: #45a049;
 }
 
-/* Login button styling */
 .header-button-login {
     padding: 8px 16px;
     background-color: #2196F3;
@@ -78,7 +131,6 @@
     background-color: #0b7dda;
 }
 
-/* Logout button styling */
 .header-button-logout {
     padding: 8px 16px;
     background-color: #f44336cb;
@@ -94,7 +146,7 @@
     background-color: #da190b;
 }
 
-/* Dropdown styles */
+/* ===== Dropdowns ===== */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -113,7 +165,7 @@
     position: absolute;
     background-color: #f9f9f9;
     min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     z-index: 1;
 }
 
@@ -132,19 +184,11 @@
     display: block;
 }
 
-/* Remove link styling for header buttons */
 .header-nav a {
     text-decoration: none;
 }
 
-/* Add top margin to body content to account for fixed header */
-body {
-    margin: 0;
-    padding-top: 80px;
-    padding-bottom: 20px;
-}
-
-/* Footer positioning at bottom of page */
+/* ===== Footer ===== */
 .page-footer {
     position: fixed;
     bottom: 0;
@@ -154,6 +198,7 @@ body {
     text-align: center;
     padding: 10px 0;
     border-top: 1px solid #ddd;
+    z-index: 999;
 }
 
 .page-footer h5 {
@@ -161,8 +206,105 @@ body {
     color: #333;
 }
 
-main {
-  flex: 1; /* Takes up available space */
-  overflow-y: auto; /* Allows scrolling if content is long */
+/* ===== Mobile (768px and below) ===== */
+@media (max-width: 768px) {
+    body {
+        padding-top: 60px;
+    }
+
+    .header-container {
+        padding: 8px 15px;
+    }
+
+    .header-title {
+        font-size: 18px;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 10px 0;
+        gap: 0;
+        z-index: 1000;
+    }
+
+    .nav-menu.open {
+        display: flex;
+    }
+
+    .nav-left,
+    .nav-right {
+        flex-direction: column;
+        width: 100%;
+        gap: 0;
+        margin-left: 0;
+    }
+
+    .nav-left a,
+    .nav-right a,
+    .nav-right form {
+        display: block;
+        width: 100%;
+    }
+
+    .header-button,
+    .header-button-login,
+    .header-button-logout,
+    .dropbtn {
+        width: 100%;
+        text-align: left;
+        border-radius: 0;
+        padding: 14px 20px;
+        font-size: 15px;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+
+    .dropdown {
+        display: block;
+        width: 100%;
+    }
+
+    .dropdown-content {
+        position: static;
+        box-shadow: none;
+        background-color: #f0f0f0;
+        min-width: 100%;
+    }
+
+    .dropdown-content a {
+        padding: 12px 30px;
+        font-size: 14px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .page-footer {
+        padding: 8px 0;
+    }
+
+    .page-footer h5 {
+        font-size: 12px;
+    }
 }
 
+@media (max-width: 480px) {
+    .header-title {
+        font-size: 16px;
+    }
+
+    .header-container {
+        padding: 8px 10px;
+    }
+}

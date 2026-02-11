@@ -263,8 +263,12 @@
     margin: 10px 0;
 }
 
-/* Responsive adjustments */
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
+    .history-filters {
+        padding: 15px;
+    }
+
     .filter-row {
         flex-direction: column;
         align-items: stretch;
@@ -276,9 +280,73 @@
 
     .filter-input {
         width: 100%;
+        box-sizing: border-box;
+        min-height: 44px;
     }
 
     .filter-button {
         width: 100%;
+        min-height: 44px;
+    }
+
+    #historyTable th {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    #historyTable td {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .summary-table th,
+    .summary-table td {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .summary-section {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .history-filters {
+        padding: 10px;
+    }
+
+    #historyTable th {
+        padding: 6px;
+        font-size: 11px;
+    }
+
+    #historyTable td {
+        padding: 6px;
+        font-size: 11px;
+    }
+
+    .change-type-badge {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+
+    .filter-button {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .filter-input {
+        font-size: 16px;
+    }
+
+    .summary-table th,
+    .summary-table td {
+        padding: 6px;
+        font-size: 11px;
+    }
+
+    .loading-message,
+    .no-data-message {
+        padding: 20px;
     }
 }
