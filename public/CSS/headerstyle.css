@@ -141,6 +141,7 @@
 body {
     margin: 0;
     padding-top: 80px;
+    padding-bottom: 20px;
 }
 
 /* Footer positioning at bottom of page */
@@ -158,5 +159,10 @@ body {
 .page-footer h5 {
     margin: 0;
     color: #333;
+}
+
+main {
+  flex: 1; /* Takes up available space */
+  overflow-y: auto; /* Allows scrolling if content is long */
 }
 
