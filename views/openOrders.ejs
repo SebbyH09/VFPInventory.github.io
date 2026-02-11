@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Open Orders</title>
+    <link rel="stylesheet" href="/orders.css">
+</head>
+<body>
+    <div class="order-container">
+        <h2>Open Orders</h2>
+
+        <div class="orders-controls">
+            <div class="filter-section">
+                <input type="text" id="orderFilterInput" placeholder="Filter by order #, item, or user...">
+                <select id="statusFilter">
+                    <option value="all">All Statuses</option>
+                    <option value="open">Open</option>
+                    <option value="partial">Partially Received</option>
+                </select>
+            </div>
+            <div class="sort-section">
+                <label>Sort by:</label>
+                <select id="sortField">
+                    <option value="createdAt">Date Created</option>
+                    <option value="orderNumber">Order Number</option>
+                    <option value="status">Status</option>
+                    <option value="itemCount">Item Count</option>
+                </select>
+                <button id="sortDirectionBtn" class="sort-direction-btn" data-direction="desc" title="Toggle sort direction">&#9660;</button>
+            </div>
+        </div>
+
+        <div class="orders-list" id="ordersList">
+            <% if (orders && orders.length > 0) { %>
+                <% orders.forEach((order) => { %>
+                    <div class="order-card" data-order-id="<%= order._id %>"
+                         data-order-number="<%= order.orderNumber %>"
+                         data-status="<%= order.status %>"
+                         data-created="<%= order.createdAt.toISOString() %>"
+                         data-created-by="<%= order.createdBy %>"
+                         data-item-count="<%= order.items.length %>">
+                        <div class="order-card-header">
+                            <div class="order-info">
+                                <span class="order-number"><%= order.orderNumber %></span>
+                                <span class="order-status status-<%= order.status %>"><%= order.status === 'partial' ? 'Partially Received' : 'Open' %></span>
+                            </div>
+                            <div class="order-meta">
+                                <span class="order-date"><%= order.createdAt.toLocaleDateString() %></span>
+                                <span class="order-user">by <%= order.createdBy %></span>
+                            </div>
+                        </div>
+                        <% if (order.notes) { %>
+                            <div class="order-notes">Notes: <%= order.notes %></div>
+                        <% } %>
+                        <div class="order-items-summary">
+                            <table class="order-items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Brand</th>
+                                        <th>Ordered</th>
+                                        <th>Received</th>
+                                        <th>Remaining</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% order.items.forEach((item) => { %>
+                                        <tr class="<%= item.quantityReceived >= item.quantityOrdered ? 'item-received' : item.quantityReceived > 0 ? 'item-partial' : '' %>">
+                                            <td><%= item.itemName %></td>
+                                            <td><%= item.brand || '' %></td>
+                                            <td><%= item.quantityOrdered %></td>
+                                            <td><%= item.quantityReceived %></td>
+                                            <td><%= item.quantityOrdered - item.quantityReceived %></td>
+                                            <td>
+                                                <% if (item.quantityReceived >= item.quantityOrdered) { %>
+                                                    <span class="item-status-badge received">Received</span>
+                                                <% } else if (item.quantityReceived > 0) { %>
+                                                    <span class="item-status-badge partial">Partial</span>
+                                                <% } else { %>
+                                                    <span class="item-status-badge pending">Pending</span>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="no-orders">
+                    <p>No open orders found.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <script defer src="/openOrders.js"></script>
+</body>
+</html>
