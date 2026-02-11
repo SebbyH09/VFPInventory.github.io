@@ -1,82 +1,124 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-.header1{
+.header1 {
     text-align: center;
-    font-size: 60px;
+    font-size: 28px;
     text-transform: capitalize;
-    margin-bottom: 50px;
+    margin-bottom: 20px;
 }
 
 .header2 {
     text-align: center;
-    font-size: 45px;
+    font-size: 24px;
     text-transform: capitalize;
-    margin-bottom: 50px;
-}
-
-input,
-.submit {
-    width: 90%;
-    height: 35px;
-    display: block;
-    margin: 20px auto;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.795);
-    text-transform: capitalize;
-    border: none;
-}
-
-input::placeholder{
-    color: rgb(5, 5, 5);
-    text-align: center;
+    margin-bottom: 20px;
 }
 
 .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: calc(100vh - 150px); /* adjust based on how tall your header/nav is */
+    min-height: calc(100vh - 150px);
+    padding: 20px;
 }
 
-.loginform{
+.loginform {
     background-color: rgba(84, 255, 113, 0.863);
-    width: 200px;
-    height: 500px;
-    border-radius: 5%;
-    align-items: center;
-    display: block;
-    justify-content: center;
+    width: 100%;
+    max-width: 360px;
+    border-radius: 12px;
+    padding: 30px 20px;
 }
 
-.submit{
+.loginform input,
+.loginform .submit {
+    width: 100%;
+    height: 44px;
     display: block;
-    height: 45px;
-    width: 50%;
+    margin: 15px auto;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.795);
+    border: none;
+    font-size: 16px;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+
+.loginform input::placeholder {
+    color: rgb(5, 5, 5);
+    text-align: center;
+}
+
+.loginform .submit {
+    height: 48px;
+    width: 60%;
     background-color: rgba(36, 201, 85, 0.493);
-    border-radius: 10%;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 0;
 }
 
-/* Registration form container - centered on page */
 .registration-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: calc(100vh - 150px);
+    min-height: calc(100vh - 150px);
+    padding: 20px;
 }
 
 .registrationForm {
     background-color: rgba(84, 255, 113, 0.863);
-    width: 200px;
-    min-height: 400px;
-    border-radius: 5%;
-    align-items: center;
+    width: 100%;
+    max-width: 360px;
+    border-radius: 12px;
+    padding: 30px 20px;
+}
+
+.registrationForm input,
+.registrationForm .submit {
+    width: 100%;
+    height: 44px;
     display: block;
-    justify-content: center;
-    padding: 20px;
+    margin: 15px auto;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.795);
+    border: none;
+    font-size: 16px;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+
+.registrationForm input::placeholder {
+    color: rgb(5, 5, 5);
+    text-align: center;
+}
+
+.registrationForm .submit {
+    height: 48px;
+    width: 60%;
+    background-color: rgba(36, 201, 85, 0.493);
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 0;
+}
+
+@media (max-width: 480px) {
+    .header1 {
+        font-size: 22px;
+        margin-bottom: 15px;
+    }
+
+    .header2 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .loginform,
+    .registrationForm {
+        padding: 20px 15px;
+    }
 }

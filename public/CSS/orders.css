@@ -50,12 +50,13 @@
 }
 
 #orderSearchBar {
-    width: 97.5%;
+    width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
     margin-bottom: 10px;
+    box-sizing: border-box;
 }
 
 .search-buttons {
@@ -175,11 +176,12 @@
 }
 
 .notes-section input {
-    width: 97%;
+    width: 100%;
     padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    box-sizing: border-box;
 }
 
 .submit-order-btn {
@@ -709,6 +711,17 @@
         padding: 15px;
     }
 
+    .order-container h2 {
+        font-size: 22px;
+    }
+
+    .left-panel,
+    .right-panel {
+        padding: 12px;
+        min-height: 350px;
+        max-height: 450px;
+    }
+
     .filter-section {
         flex-direction: column;
     }
@@ -726,11 +739,52 @@
     .order-items-table td {
         padding: 6px;
     }
+
+    #inventoryTable th,
+    #inventoryTable td {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    .item-checkbox {
+        width: 22px;
+        height: 22px;
+    }
+
+    .search-btn,
+    .clear-btn,
+    .add-to-cart-btn,
+    .submit-order-btn,
+    .receive-btn {
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .remove-cart-item-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-height: 36px;
+    }
+
+    .sort-section {
+        flex-wrap: wrap;
+    }
 }
 
 @media (max-width: 480px) {
     .order-container {
         padding: 10px;
+    }
+
+    .order-container h2 {
+        font-size: 20px;
+    }
+
+    .left-panel,
+    .right-panel {
+        padding: 10px;
+        min-height: 300px;
+        max-height: 400px;
     }
 
     .cart-header {
@@ -739,13 +793,67 @@
     }
 
     .submit-order-btn,
-    .receive-btn {
+    .receive-btn,
+    .add-to-cart-btn {
         width: 100%;
+        min-height: 48px;
     }
 
     .receive-header {
         flex-direction: column;
         gap: 10px;
         align-items: stretch;
+    }
+
+    .search-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .search-btn,
+    .clear-btn {
+        width: 100%;
+        min-height: 48px;
+    }
+
+    #orderSearchBar {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    #inventoryTable th,
+    #inventoryTable td {
+        padding: 6px 4px;
+        font-size: 12px;
+    }
+
+    .item-checkbox {
+        width: 24px;
+        height: 24px;
+    }
+
+    .cart-item-card,
+    .receive-item-card {
+        padding: 12px;
+    }
+
+    .cart-quantity-section,
+    .receive-quantity-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .cart-quantity-input,
+    .receive-quantity-input {
+        max-width: 100%;
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+        padding: 10px;
+    }
+
+    .order-select-card {
+        padding: 14px;
     }
 }
