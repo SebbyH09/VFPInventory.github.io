@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New Order</title>
+    <link rel="stylesheet" href="/orders.css">
+</head>
+<body>
+    <div class="order-container">
+        <h2>New Order</h2>
+
+        <div class="order-layout">
+            <!-- Left Side: Inventory List -->
+            <div class="left-panel">
+                <div class="search-section">
+                    <input type="text" id="orderSearchBar" placeholder="Search inventory...">
+                    <div class="search-buttons">
+                        <button id="searchButton" class="search-btn">Search</button>
+                        <button id="clearButton" class="clear-btn">Clear</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="inventoryTable">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Brand</th>
+                                <th>Current Qty</th>
+                                <th>Min Qty</th>
+                                <th>Cost</th>
+                                <th>Select</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (inventoryItems && inventoryItems.length > 0) { %>
+                                <% inventoryItems.forEach((item) => { %>
+                                    <tr data-item-id="<%= item._id %>"
+                                        data-item-name="<%= item.item %>"
+                                        data-item-brand="<%= item.brand || '' %>"
+                                        data-item-quantity="<%= item.currentquantity %>"
+                                        data-item-min="<%= item.minimumquantity %>"
+                                        data-item-cost="<%= (item.cost || 0).toFixed(2) %>">
+                                        <td><%= item.item %></td>
+                                        <td><%= item.brand || '' %></td>
+                                        <td><%= item.currentquantity %></td>
+                                        <td><%= item.minimumquantity %></td>
+                                        <td>$<%= (item.cost || 0).toFixed(2) %></td>
+                                        <td>
+                                            <input type="checkbox" class="item-checkbox" data-item-id="<%= item._id %>">
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="6" style="text-align: center;">No inventory items available</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <button id="addToCartBtn" class="add-to-cart-btn">Add to Order</button>
+            </div>
+
+            <!-- Right Side: Cart -->
+            <div class="right-panel">
+                <div class="cart-header">
+                    <h3>Order Cart</h3>
+                    <button id="submitOrderBtn" class="submit-order-btn">Submit Order</button>
+                </div>
+
+                <div class="notes-section">
+                    <input type="text" id="orderNotes" placeholder="Order notes (optional)...">
+                </div>
+
+                <div id="cartContainer" class="cart-container">
+                    <p class="empty-message">No items in cart. Select items from the left and click "Add to Order".</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="/newOrder.js"></script>
+</body>
+</html>

@@ -101,6 +101,7 @@ const homeRouter = require('./routes/home')
 const uploadRouter = require('./routes/upload')
 const historyRouter = require('./routes/history')
 const consumeRouter = require('./routes/consume')
+const ordersRouter = require('./routes/orders')
 
 
 app.use((req, res, next) => {
@@ -153,6 +154,7 @@ app.use('/entry', requireAuth, entryRouter);
 app.use('/upload', requireAuth, uploadRouter);
 app.use('/history', requireAuth, historyRouter);
 app.use('/consume', requireAuth, consumeRouter);
+app.use('/orders', requireAuth, ordersRouter);
 app.use('/', homeRouter);
 
 

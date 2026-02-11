@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Receive Order</title>
+    <link rel="stylesheet" href="/orders.css">
+</head>
+<body>
+    <div class="order-container">
+        <h2>Receive Items</h2>
+
+        <div class="receive-layout">
+            <!-- Left: Order Selection -->
+            <div class="left-panel">
+                <h3>Select an Order</h3>
+                <div class="order-select-list" id="orderSelectList">
+                    <% if (orders && orders.length > 0) { %>
+                        <% orders.forEach((order) => { %>
+                            <div class="order-select-card" data-order-id="<%= order._id %>">
+                                <div class="order-select-header">
+                                    <span class="order-number"><%= order.orderNumber %></span>
+                                    <span class="order-status status-<%= order.status %>"><%= order.status === 'partial' ? 'Partial' : 'Open' %></span>
+                                </div>
+                                <div class="order-select-meta">
+                                    <span><%= order.createdAt.toLocaleDateString() %></span>
+                                    <span><%= order.items.length %> item(s)</span>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p class="empty-message">No open orders to receive.</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Right: Receive Items -->
+            <div class="right-panel">
+                <div class="receive-header">
+                    <h3 id="receiveOrderTitle">Select an order to receive</h3>
+                    <button id="receiveBtn" class="receive-btn" disabled>Receive Selected</button>
+                </div>
+
+                <div id="receiveItemsContainer" class="receive-items-container">
+                    <p class="empty-message">Click an order on the left to view its items.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="/receiveOrder.js"></script>
+</body>
+</html>
