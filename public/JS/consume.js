@@ -15,6 +15,17 @@ function initializeConsumeTable() {
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', handleCheckboxChange);
     });
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('click', function(event) {
+            if (event.target.classList.contains('item-checkbox')) return;
+            const checkbox = row.querySelector('.item-checkbox');
+            if (!checkbox) return;
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+        });
+    });
 }
 
 function handleCheckboxChange(event) {
