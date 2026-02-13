@@ -206,6 +206,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // Set up event listeners for order item toggle buttons
+    const orderToggleButtons = document.querySelectorAll('.order-items-btn');
+    orderToggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const card = this.closest('.order-card');
+            const detail = card.querySelector('.order-items-detail');
+            const isVisible = detail.style.display !== 'none';
+            detail.style.display = isVisible ? 'none' : 'block';
+            this.innerHTML = isVisible ? 'View Items &#9660;' : 'Hide Items &#9650;';
+        });
+    });
+
     updateCycleCountDisplay();
 
     // Restore saved card sizes from localStorage

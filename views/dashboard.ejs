@@ -18,24 +18,69 @@
             </div>
         </div>
         <div class="cards-grid">
-            <div class="card">
-                <div class="card-field">
-                    <span class="field-label">Date:</span>
-                    <span class="field-value">TEST</span>
-                </div>
-                <div class="card-field">
-                    <span class="field-label">Vendor:</span>
-                    <span class="field-value">TEST2</span>
-                </div>
-                <div class="card-field">
-                    <span class="field-label">Items:</span>
-                    <span class="field-value">TEST3</span>
-                </div>
-                <div class="card-field">
-                    <span class="field-label">Quantity:</span>
-                    <span class="field-value">45</span>
-                </div>
-            </div>
+            <% if (recentOrders && recentOrders.length > 0) { %>
+                <% recentOrders.forEach(order => { %>
+                    <div class="card order-card" data-order-id="<%= order._id %>">
+                        <div class="card-field">
+                            <span class="field-label">Order #:</span>
+                            <span class="field-value"><%= order.orderNumber %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Date:</span>
+                            <span class="field-value"><%= new Date(order.createdAt).toLocaleDateString() %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Status:</span>
+                            <span class="field-value">
+                                <% if (order.status === 'open') { %>
+                                    <span class="status-badge status-open">Open</span>
+                                <% } else if (order.status === 'partial') { %>
+                                    <span class="status-badge status-partial">Partial</span>
+                                <% } else { %>
+                                    <span class="status-badge status-received">Received</span>
+                                <% } %>
+                            </span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Items:</span>
+                            <span class="field-value"><%= order.items.length %></span>
+                        </div>
+                        <div class="card-field">
+                            <span class="field-label">Created By:</span>
+                            <span class="field-value"><%= order.createdBy %></span>
+                        </div>
+                        <div class="order-items-toggle">
+                            <button class="order-items-btn">View Items &#9660;</button>
+                        </div>
+                        <div class="order-items-detail" style="display: none;">
+                            <table class="order-items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Brand</th>
+                                        <th>Ordered</th>
+                                        <th>Received</th>
+                                        <th>Cost</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% order.items.forEach(item => { %>
+                                        <tr>
+                                            <td><%= item.itemName %></td>
+                                            <td><%= item.brand || 'N/A' %></td>
+                                            <td><%= item.quantityOrdered %></td>
+                                            <td><%= item.quantityReceived %></td>
+                                            <td>$<%= item.cost ? item.cost.toFixed(2) : '0.00' %></td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="empty-state">No orders in the past 14 days</div>
+            <% } %>
         </div>
     </div>
 
