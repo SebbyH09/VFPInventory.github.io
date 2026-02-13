@@ -62,8 +62,17 @@
     border-bottom: 1px solid #e0e0e0;
 }
 
+#mainTable1 tbody tr {
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
 #mainTable1 tbody tr:hover {
-    background-color: #e8f5e9;
+    background-color: #c8e6c9 !important;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    z-index: 1;
+    position: relative;
 }
 
 #mainTable1 tbody tr:nth-child(odd) {
@@ -257,6 +266,61 @@ body.edit-mode .cycle-count-btn {
 .search-button:hover { background-color: #45a049; }
 .search-button:active { background-color: #3d8b40; }
 
+/* Filter bar */
+.filter-bar {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+}
+
+.filter-select {
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.clear-filters-btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    background-color: #757575;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.clear-filters-btn:hover {
+    background-color: #616161;
+}
+
 /* Actions column */
 #mainTable1 thead th.actions-cell,
 #mainTable1 tbody td.actions-cell {
@@ -429,6 +493,47 @@ body.edit-mode .cycle-count-btn {
 .btn-submit:hover { background-color: #45a049; }
 .btn-cancel:hover { background-color: #616161; }
 
+/* View Modal (read-only) */
+.view-modal-content {
+    max-width: 650px;
+}
+
+.view-modal-body {
+    margin-top: 15px;
+}
+
+.view-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+.view-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f9f9f9;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 10px 12px;
+}
+
+.view-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.view-value {
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+    word-break: break-word;
+}
+
 body.modal-open .inventory-container,
 body.modal-open .table-controls,
 body.modal-open .search-bar-container,
@@ -565,6 +670,25 @@ body.modal-open .table-wrapper {
         padding: 3px 4px;
         font-size: 11px;
         white-space: nowrap;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .filter-group {
+        justify-content: space-between;
+    }
+
+    .filter-select {
+        flex: 1;
+    }
+
+    .view-row {
+        flex-direction: column;
+        gap: 8px;
     }
 
     /* Modal full-width on mobile */
