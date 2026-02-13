@@ -3,6 +3,7 @@ const router = express.Router();
 const requireAuth = require('../Middleware/auth');
 const ListedInventoryItem = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
+const Order = require('../models/Order');
 
 router.get('/', async (req, res) => {
     if (req.session.isLoggedIn) {
@@ -10,6 +11,13 @@ router.get('/', async (req, res) => {
             const lowInventoryItems = await ListedInventoryItem.find({
                 $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
             }).sort({ item: 1 });
+
+            // Fetch orders from the past 14 days
+            const fourteenDaysAgo = new Date();
+            fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+            const recentOrders = await Order.find({
+                createdAt: { $gte: fourteenDaysAgo }
+            }).sort({ createdAt: -1 }).lean();
 
             // Fetch items that need cycle counts
             const today = new Date();
@@ -47,7 +55,8 @@ router.get('/', async (req, res) => {
                 user: req.session.user,
                 lowInventoryItems: lowInventoryItems,
                 cycleCountDueItems: cycleCountDueItems,
-                totalCycleCountsDue: dueItems.length  // Optional: show total count
+                totalCycleCountsDue: dueItems.length,
+                recentOrders: recentOrders
             });
         } catch (error) {
             console.error('Dashboard error:', error);
@@ -55,6 +64,7 @@ router.get('/', async (req, res) => {
                 user: req.session.user,
                 lowInventoryItems: [],
                 cycleCountDueItems: [],
+                recentOrders: [],
                 error: 'Failed to load dashboard data'
             });
         }

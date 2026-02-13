@@ -441,6 +441,80 @@
     }
 }
 
+/* Recent Orders card styles */
+.status-open {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-partial {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.status-received {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.order-items-toggle {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid #e0e0e0;
+    display: flex;
+    justify-content: center;
+}
+
+.order-items-btn {
+    background-color: #1976d2;
+    color: white;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    width: 100%;
+}
+
+.order-items-btn:hover {
+    background-color: #1565c0;
+}
+
+.order-items-detail {
+    margin-top: 10px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 10px;
+}
+
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+}
+
+.order-items-table th,
+.order-items-table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-items-table th {
+    font-weight: bold;
+    color: #555;
+    background-color: #fafafa;
+}
+
+.order-items-table td {
+    color: #333;
+}
+
+.order-items-table tr:last-child td {
+    border-bottom: none;
+}
+
 /* Scrollbar styling */
 .cards-grid::-webkit-scrollbar {
     width: 8px;
