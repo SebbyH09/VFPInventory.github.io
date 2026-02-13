@@ -12,6 +12,37 @@
             <button id="newRowAdditionBtn">Add Item</button>
         </div>
 
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="filterType">Type:</label>
+                <select id="filterType" class="filter-select">
+                    <option value="">All</option>
+                    <option value="Reagent">Reagent</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Consumable">Consumable</option>
+                    <option value="Tool">Tool</option>
+                    <option value="Chemical">Chemical</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterLocation">Location:</label>
+                <select id="filterLocation" class="filter-select">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterStock">Stock Status:</label>
+                <select id="filterStock" class="filter-select">
+                    <option value="">All</option>
+                    <option value="out">Out of Stock</option>
+                    <option value="low">Low Stock</option>
+                    <option value="ok">In Stock</option>
+                </select>
+            </div>
+            <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
+        </div>
+
         <div class="table-wrapper">
             <table id="mainTable1">
                 <thead>
@@ -30,8 +61,6 @@
                         <th>Days Since Last Use</th>
                         <th>Orders (Last <span class="order-period-display">30</span> days)</th>
                         <th>Last Cycle Count</th>
-                        <th>Cycle Interval (days)</th>
-                        <th>Order Period (days)</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -78,8 +107,6 @@
                                 <td class="days-since-use"><p class="inventoryitem tracking-field">-</p></td>
                                 <td class="order-frequency"><p class="inventoryitem tracking-field">0</p></td>
                                 <td class="last-cycle-count"><p class="inventoryitem tracking-field"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></p></td>
-                                <td><p class="inventoryitem"><%= item.cycleCountInterval || 90 %></p></td>
-                                <td><p class="inventoryitem"><%= item.orderFrequencyPeriod || 30 %></p></td>
                                 <td class="actions-cell">
                                     <button class="delete-btn hidden">Delete</button>
                                     <button class="row-edit-btn">Edit</button>
@@ -163,12 +190,6 @@
                         <label for="addCycleInterval">Cycle Interval (days):</label>
                         <input type="number" id="addCycleInterval" class="edit-input" value="90">
                     </div>
-                    <div class="form-group">
-                        <label for="addOrderPeriod">Order Period (days):</label>
-                        <input type="number" id="addOrderPeriod" class="edit-input" value="30">
-                    </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label style="display: flex; align-items: center; gap: 8px;">
                             <input type="checkbox" id="addUseCycleCount" checked>
@@ -254,12 +275,6 @@
                         <input type="number" id="editCycleInterval" class="edit-input">
                     </div>
                     <div class="form-group">
-                        <label for="editOrderPeriod">Order Period (days):</label>
-                        <input type="number" id="editOrderPeriod" class="edit-input">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
                         <label style="display: flex; align-items: center; gap: 8px;">
                             <input type="checkbox" id="editUseCycleCount">
                             <span>Use Cycle Count</span>
@@ -274,6 +289,86 @@
                 <div class="modal-buttons">
                     <button class="btn-submit">Save Changes</button>
                     <button class="btn-cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Item Modal (read-only) -->
+    <div id="viewModal" class="edit-modal">
+        <div class="edit-modal-content view-modal-content">
+            <span class="close-modal" id="viewModalClose">&times;</span>
+            <h2>Item Details</h2>
+            <div class="view-modal-body">
+                <div class="view-row">
+                    <div class="view-field">
+                        <span class="view-label">Item</span>
+                        <span class="view-value" id="viewItem"></span>
+                    </div>
+                    <div class="view-field">
+                        <span class="view-label">Brand</span>
+                        <span class="view-value" id="viewBrand"></span>
+                    </div>
+                </div>
+                <div class="view-row">
+                    <div class="view-field">
+                        <span class="view-label">Vendor</span>
+                        <span class="view-value" id="viewVendor"></span>
+                    </div>
+                    <div class="view-field">
+                        <span class="view-label">Catalog #</span>
+                        <span class="view-value" id="viewCatalog"></span>
+                    </div>
+                </div>
+                <div class="view-row">
+                    <div class="view-field">
+                        <span class="view-label">Current Quantity</span>
+                        <span class="view-value" id="viewCurrentQty"></span>
+                    </div>
+                    <div class="view-field">
+                        <span class="view-label">Minimum Quantity</span>
+                        <span class="view-value" id="viewMinQty"></span>
+                    </div>
+                </div>
+                <div class="view-row">
+                    <div class="view-field">
+                        <span class="view-label">Max Quantity</span>
+                        <span class="view-value" id="viewMaxQty"></span>
+                    </div>
+                    <div class="view-field">
+                        <span class="view-label">Location</span>
+                        <span class="view-value" id="viewLocation"></span>
+                    </div>
+                </div>
+                <div class="view-row">
+                    <div class="view-field">
+                        <span class="view-label">Type</span>
+                        <span class="view-value" id="viewType"></span>
+                    </div>
+                    <div class="view-field">
+                        <span class="view-label">Cost per Unit</span>
+                        <span class="view-value" id="viewCost"></span>
+                    </div>
+                </div>
+                <div class="view-row">
+                    <div class="view-field">
+                        <span class="view-label">Days Since Last Use</span>
+                        <span class="view-value" id="viewDaysSinceUse"></span>
+                    </div>
+                    <div class="view-field">
+                        <span class="view-label">Orders (Last 30 days)</span>
+                        <span class="view-value" id="viewOrderFrequency"></span>
+                    </div>
+                </div>
+                <div class="view-row">
+                    <div class="view-field">
+                        <span class="view-label">Last Cycle Count</span>
+                        <span class="view-value" id="viewLastCycleCount"></span>
+                    </div>
+                    <div class="view-field">
+                        <span class="view-label">Cycle Interval (days)</span>
+                        <span class="view-value" id="viewCycleInterval"></span>
+                    </div>
                 </div>
             </div>
         </div>

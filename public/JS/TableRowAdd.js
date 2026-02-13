@@ -82,7 +82,6 @@ function openAddModal() {
         document.getElementById('addType').value = '';
         document.getElementById('addCost').value = '0';
         document.getElementById('addCycleInterval').value = '90';
-        document.getElementById('addOrderPeriod').value = '30';
         document.getElementById('addUseCycleCount').checked = true;
 
         modal.style.display = 'block';
@@ -112,7 +111,7 @@ async function submitAddModal() {
         document.getElementById('addType').value,
         document.getElementById('addCost').value.trim() || '0',
         document.getElementById('addCycleInterval').value.trim() || '90',
-        document.getElementById('addOrderPeriod').value.trim() || '30',
+        '30',
         document.getElementById('addUseCycleCount').checked
     ];
 

@@ -48,13 +48,13 @@ document.addEventListener('DOMContentLoaded', function() {
             let aValue, bValue;
 
             // Special handling for different column types
-            if (columnIndex === 10) { // Days Since Last Use
+            if (columnIndex === 11) { // Days Since Last Use
                 aValue = getDaysSinceUse(a);
                 bValue = getDaysSinceUse(b);
-            } else if (columnIndex === 11) { // Orders (Last X days)
+            } else if (columnIndex === 12) { // Orders (Last X days)
                 aValue = getOrderCount(a);
                 bValue = getOrderCount(b);
-            } else if (columnIndex === 12) { // Last Cycle Count
+            } else if (columnIndex === 13) { // Last Cycle Count
                 aValue = getLastCycleCount(a);
                 bValue = getLastCycleCount(b);
             } else {

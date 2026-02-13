@@ -29,7 +29,6 @@ function openEditModal(itemId) {
     document.getElementById('editType').value = originalData.type || '';
     document.getElementById('editCost').value = originalData.cost || 0;
     document.getElementById('editCycleInterval').value = originalData.cycleCountInterval || 90;
-    document.getElementById('editOrderPeriod').value = originalData.orderFrequencyPeriod || 30;
     document.getElementById('editUseCycleCount').checked = originalData.useCycleCount !== undefined ? originalData.useCycleCount : true;
 
     // Show the modal with blur effect
@@ -66,7 +65,6 @@ async function submitEditModal() {
     const newType = document.getElementById('editType').value.trim();
     const newCost = parseFloat(document.getElementById('editCost').value) || 0;
     const newCycleInterval = parseInt(document.getElementById('editCycleInterval').value) || 90;
-    const newOrderPeriod = parseInt(document.getElementById('editOrderPeriod').value) || 30;
     const newUseCycleCount = document.getElementById('editUseCycleCount').checked;
 
     // Check what changed
@@ -84,7 +82,6 @@ async function submitEditModal() {
     if (newType !== originalData.type) changes.type = newType;
     if (newCost !== originalData.cost) changes.cost = newCost;
     if (newCycleInterval !== originalData.cycleCountInterval) changes.cycleCountInterval = newCycleInterval;
-    if (newOrderPeriod !== originalData.orderFrequencyPeriod) changes.orderFrequencyPeriod = newOrderPeriod;
     if (newUseCycleCount !== originalData.useCycleCount) changes.useCycleCount = newUseCycleCount;
 
     // If nothing changed, just close the modal
@@ -270,11 +267,81 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Close modal when clicking outside of it
+    // Row click opens read-only view modal (but not if clicking a button or link)
+    const mainTable = document.getElementById('mainTable1');
+    if (mainTable) {
+        mainTable.querySelector('tbody').addEventListener('click', function(event) {
+            // Ignore clicks on buttons, links, or inputs
+            if (event.target.closest('button') || event.target.closest('a') || event.target.closest('input')) {
+                return;
+            }
+            const row = event.target.closest('tr');
+            if (row && row.getAttribute('data-item-id')) {
+                openViewModal(row);
+            }
+        });
+    }
+
+    // View modal close button
+    const viewModalClose = document.getElementById('viewModalClose');
+    if (viewModalClose) {
+        viewModalClose.addEventListener('click', closeViewModal);
+    }
+
+    // Close modals when clicking outside of them
     window.onclick = function(event) {
-        const modal = document.getElementById('editModal');
-        if (event.target == modal) {
+        const editModal = document.getElementById('editModal');
+        const viewModal = document.getElementById('viewModal');
+        if (event.target == editModal) {
             closeEditModal();
+        }
+        if (event.target == viewModal) {
+            closeViewModal();
         }
     };
 });
+
+function openViewModal(row) {
+    const originalData = JSON.parse(row.getAttribute('data-original'));
+    const viewModal = document.getElementById('viewModal');
+
+    document.getElementById('viewItem').textContent = originalData.item || '-';
+    document.getElementById('viewBrand').textContent = originalData.brand || '-';
+    document.getElementById('viewVendor').textContent = originalData.vendor || '-';
+    document.getElementById('viewCatalog').textContent = originalData.catalogNumber || '-';
+    document.getElementById('viewCurrentQty').textContent = originalData.currentQuantity != null ? originalData.currentQuantity : '-';
+    document.getElementById('viewMinQty').textContent = originalData.minimumQuantity != null ? originalData.minimumQuantity : '-';
+    document.getElementById('viewMaxQty').textContent = originalData.maxQuantity != null ? originalData.maxQuantity : '-';
+    document.getElementById('viewLocation').textContent = originalData.location || '-';
+    document.getElementById('viewType').textContent = originalData.type || '-';
+    document.getElementById('viewCost').textContent = '$' + (originalData.cost || 0).toFixed(2);
+
+    // Days since last use
+    const lastUsed = row.getAttribute('data-last-used');
+    if (lastUsed) {
+        const diffDays = Math.floor(Math.abs(new Date() - new Date(lastUsed)) / (1000 * 60 * 60 * 24));
+        document.getElementById('viewDaysSinceUse').textContent = diffDays;
+    } else {
+        document.getElementById('viewDaysSinceUse').textContent = 'Never';
+    }
+
+    // Order frequency
+    const orderFreqCell = row.querySelector('.order-frequency p');
+    document.getElementById('viewOrderFrequency').textContent = orderFreqCell ? orderFreqCell.textContent : '0';
+
+    // Last cycle count
+    const lastCycleCountCell = row.querySelector('.last-cycle-count p');
+    document.getElementById('viewLastCycleCount').textContent = lastCycleCountCell ? lastCycleCountCell.textContent : 'Never';
+
+    // Cycle interval (hidden from table, shown here)
+    document.getElementById('viewCycleInterval').textContent = originalData.cycleCountInterval || 90;
+
+    viewModal.style.display = 'block';
+    document.body.classList.add('modal-open');
+}
+
+function closeViewModal() {
+    const viewModal = document.getElementById('viewModal');
+    viewModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+}
