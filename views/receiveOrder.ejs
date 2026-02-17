@@ -8,9 +8,15 @@
     <div class="order-container">
         <h2>Receive Items</h2>
 
+        <!-- Mobile Tab Bar -->
+        <div class="mobile-tabs">
+            <button class="mobile-tab active" data-tab="orders">Orders</button>
+            <button class="mobile-tab" data-tab="receive">Receive Items</button>
+        </div>
+
         <div class="receive-layout">
             <!-- Left: Order Selection -->
-            <div class="left-panel">
+            <div class="left-panel" data-panel="orders">
                 <h3>Select an Order</h3>
                 <div class="order-select-list" id="orderSelectList">
                     <% if (orders && orders.length > 0) { %>
@@ -33,7 +39,7 @@
             </div>
 
             <!-- Right: Receive Items -->
-            <div class="right-panel">
+            <div class="right-panel" data-panel="receive">
                 <div class="receive-header">
                     <h3 id="receiveOrderTitle">Select an order to receive</h3>
                     <button id="receiveBtn" class="receive-btn" disabled>Receive Selected</button>

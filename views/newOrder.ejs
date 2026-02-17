@@ -8,9 +8,15 @@
     <div class="order-container">
         <h2>New Order</h2>
 
+        <!-- Mobile Tab Bar -->
+        <div class="mobile-tabs">
+            <button class="mobile-tab active" data-tab="inventory">Inventory</button>
+            <button class="mobile-tab" data-tab="cart">Cart</button>
+        </div>
+
         <div class="order-layout">
             <!-- Left Side: Inventory List -->
-            <div class="left-panel">
+            <div class="left-panel" data-panel="inventory">
                 <div class="search-section">
                     <input type="text" id="orderSearchBar" placeholder="Search inventory...">
                     <div class="search-buttons">
@@ -63,7 +69,7 @@
             </div>
 
             <!-- Right Side: Cart -->
-            <div class="right-panel">
+            <div class="right-panel" data-panel="cart">
                 <div class="cart-header">
                     <h3>Order Cart</h3>
                     <button id="submitOrderBtn" class="submit-order-btn">Submit Order</button>

@@ -9,6 +9,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const cartContainer = document.getElementById('cartContainer');
     const orderNotes = document.getElementById('orderNotes');
 
+    // Mobile tabs
+    (function setupMobileTabs() {
+        const tabs = document.querySelectorAll('.mobile-tab');
+        const panels = document.querySelectorAll('.order-layout > [data-panel]');
+        if (!tabs.length) return;
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const target = this.dataset.tab;
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                panels.forEach(panel => {
+                    if (panel.dataset.panel === target) {
+                        panel.classList.remove('mobile-hidden');
+                    } else {
+                        panel.classList.add('mobile-hidden');
+                    }
+                });
+            });
+        });
+    })();
+
     // Search functionality
     function filterTable() {
         const query = searchBar.value.toLowerCase().trim();
@@ -52,6 +74,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         renderCart();
+
+        // Auto-switch to cart tab on mobile
+        const cartTab = document.querySelector('.mobile-tab[data-tab="cart"]');
+        if (cartTab && window.innerWidth <= 768) {
+            cartTab.click();
+        }
     });
 
     function renderCart() {
