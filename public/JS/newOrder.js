@@ -58,6 +58,17 @@ document.addEventListener('DOMContentLoaded', function () {
         filterTable();
     });
 
+    // Make table rows clickable (toggle checkbox on row click)
+    const tableRows = document.querySelectorAll('#inventoryTable tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('click', function(event) {
+            if (event.target.classList.contains('item-checkbox')) return;
+            const checkbox = row.querySelector('.item-checkbox');
+            if (!checkbox) return;
+            checkbox.checked = !checkbox.checked;
+        });
+    });
+
     // Add checked items to cart
     addToCartBtn.addEventListener('click', function () {
         const checkboxes = document.querySelectorAll('.item-checkbox:checked');
