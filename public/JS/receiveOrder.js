@@ -7,6 +7,28 @@ document.addEventListener('DOMContentLoaded', function () {
     let selectedOrderId = null;
     let selectedOrderData = null;
 
+    // Mobile tabs
+    (function setupMobileTabs() {
+        const tabs = document.querySelectorAll('.mobile-tab');
+        const panels = document.querySelectorAll('.receive-layout > [data-panel]');
+        if (!tabs.length) return;
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const target = this.dataset.tab;
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                panels.forEach(panel => {
+                    if (panel.dataset.panel === target) {
+                        panel.classList.remove('mobile-hidden');
+                    } else {
+                        panel.classList.add('mobile-hidden');
+                    }
+                });
+            });
+        });
+    })();
+
     // Click on order to select it
     orderSelectList.addEventListener('click', async function (e) {
         const card = e.target.closest('.order-select-card');
@@ -24,6 +46,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!response.ok) throw new Error('Failed to fetch');
             selectedOrderData = await response.json();
             renderReceiveItems();
+
+            // Auto-switch to receive tab on mobile
+            const receiveTab = document.querySelector('.mobile-tab[data-tab="receive"]');
+            if (receiveTab && window.innerWidth <= 768) {
+                receiveTab.click();
+            }
         } catch (error) {
             receiveItemsContainer.innerHTML = '<p class="empty-message">Error loading order details.</p>';
             receiveBtn.disabled = true;

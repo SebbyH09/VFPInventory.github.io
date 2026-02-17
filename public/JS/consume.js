@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSearchFunctionality();
     setupAddItemsButton();
     setupConsumeButton();
+    setupMobileTabs();
     });
 
 let selectedItems = new Map();
@@ -125,6 +126,12 @@ function addSelectedItems() {
     });
 
     renderSelectedItems();
+
+    // Auto-switch to selected items tab on mobile
+    const selectedTab = document.querySelector('.mobile-tab[data-tab="selected"]');
+    if (selectedTab && window.innerWidth <= 768) {
+        selectedTab.click();
+    }
 }
 
 function renderSelectedItems() {
@@ -226,6 +233,27 @@ function setupConsumeButton() {
     if (!consumeBtn) return;
 
     consumeBtn.addEventListener('click', consumeItems);
+}
+
+function setupMobileTabs() {
+    const tabs = document.querySelectorAll('.mobile-tab');
+    const panels = document.querySelectorAll('.consume-layout > [data-panel]');
+    if (!tabs.length) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            panels.forEach(panel => {
+                if (panel.dataset.panel === target) {
+                    panel.classList.remove('mobile-hidden');
+                } else {
+                    panel.classList.add('mobile-hidden');
+                }
+            });
+        });
+    });
 }
 
 async function consumeItems() {
