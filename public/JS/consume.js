@@ -254,6 +254,12 @@ function setupMobileTabs() {
             });
         });
     });
+
+    // Initialize panel visibility for the active tab on page load
+    const activeTab = document.querySelector('.mobile-tab.active');
+    if (activeTab) {
+        activeTab.click();
+    }
 }
 
 async function consumeItems() {
