@@ -96,6 +96,30 @@ function closeCycleCountModal() {
     currentItemId = null;
 }
 
+function openOrderItemsModal(orderNumber, items) {
+    document.getElementById('orderItemsModalNumber').textContent = orderNumber;
+    const tbody = document.getElementById('orderItemsModalBody');
+    tbody.innerHTML = '';
+
+    items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${escapeHtml(item.itemName)}</td>
+            <td>${escapeHtml(item.brand || 'N/A')}</td>
+            <td>${item.quantityOrdered}</td>
+            <td>${item.quantityReceived}</td>
+            <td>$${item.cost ? item.cost.toFixed(2) : '0.00'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('orderItemsModal').style.display = 'block';
+}
+
+function closeOrderItemsModal() {
+    document.getElementById('orderItemsModal').style.display = 'none';
+}
+
 async function submitCycleCount() {
     const updatedQty = document.getElementById('updatedQty').value;
 
@@ -170,10 +194,16 @@ document.addEventListener('DOMContentLoaded', function() {
         cycleCountLimit.addEventListener('change', updateCycleCountDisplay);
     }
 
-    // Set up event listeners for modal buttons
-    const closeButtons = document.querySelectorAll('.close');
+    // Set up event listeners for cycle count modal buttons
+    const closeButtons = document.querySelectorAll('#cycleCountModal .close');
     closeButtons.forEach(button => {
         button.addEventListener('click', closeCycleCountModal);
+    });
+
+    // Set up event listeners for order items modal close button
+    const orderModalCloseButtons = document.querySelectorAll('.order-modal-close');
+    orderModalCloseButtons.forEach(button => {
+        button.addEventListener('click', closeOrderItemsModal);
     });
 
     const submitButton = document.querySelector('.btn-submit');
@@ -198,23 +228,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Close modal when clicking outside of it
+    // Close modals when clicking outside of them
     window.onclick = function(event) {
-        const modal = document.getElementById('cycleCountModal');
-        if (event.target == modal) {
+        const cycleModal = document.getElementById('cycleCountModal');
+        if (event.target == cycleModal) {
             closeCycleCountModal();
+        }
+        const orderModal = document.getElementById('orderItemsModal');
+        if (event.target == orderModal) {
+            closeOrderItemsModal();
         }
     };
 
-    // Set up event listeners for order item toggle buttons
-    const orderToggleButtons = document.querySelectorAll('.order-items-btn');
-    orderToggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const card = this.closest('.order-card');
-            const detail = card.querySelector('.order-items-detail');
-            const isVisible = detail.style.display !== 'none';
-            detail.style.display = isVisible ? 'none' : 'block';
-            this.innerHTML = isVisible ? 'View Items &#9660;' : 'Hide Items &#9650;';
+    // Set up clickable order cards to open items modal
+    const orderCards = document.querySelectorAll('.order-card.clickable-card');
+    orderCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const orderNumber = this.getAttribute('data-order-number');
+            const itemsJson = decodeURIComponent(this.getAttribute('data-order-items'));
+            const items = JSON.parse(itemsJson);
+            openOrderItemsModal(orderNumber, items);
         });
     });
 

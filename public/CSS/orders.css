@@ -123,6 +123,10 @@
     font-size: 14px;
 }
 
+#inventoryTable tbody tr {
+    cursor: pointer;
+}
+
 #inventoryTable tbody tr:hover {
     background-color: #e8f5e9;
 }

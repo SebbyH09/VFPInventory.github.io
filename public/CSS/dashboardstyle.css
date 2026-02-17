@@ -75,7 +75,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 15px;
-    max-height: 600px;
+    max-height: 50vh;
     overflow-y: auto;
     padding: 10px;
 }
@@ -148,7 +148,7 @@
 .card-size-small .cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 10px;
-    max-height: 300px;
+    max-height: 30vh;
 }
 
 .card-size-small .card {
@@ -168,13 +168,13 @@
 .card-size-medium .cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 15px;
-    max-height: 500px;
+    max-height: 50vh;
 }
 
 .card-size-large .cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 20px;
-    max-height: 700px;
+    max-height: 70vh;
 }
 
 .card-size-large .card {
@@ -441,6 +441,11 @@
     }
 }
 
+/* Clickable order cards */
+.clickable-card {
+    cursor: pointer;
+}
+
 /* Recent Orders card styles */
 .status-open {
     background-color: #e3f2fd;
@@ -457,36 +462,6 @@
     color: #2e7d32;
 }
 
-.order-items-toggle {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 2px solid #e0e0e0;
-    display: flex;
-    justify-content: center;
-}
-
-.order-items-btn {
-    background-color: #1976d2;
-    color: white;
-    padding: 8px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    transition: background-color 0.3s;
-    width: 100%;
-}
-
-.order-items-btn:hover {
-    background-color: #1565c0;
-}
-
-.order-items-detail {
-    margin-top: 10px;
-    border-top: 1px solid #e0e0e0;
-    padding-top: 10px;
-}
 
 .order-items-table {
     width: 100%;

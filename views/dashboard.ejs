@@ -20,7 +20,9 @@
         <div class="cards-grid">
             <% if (recentOrders && recentOrders.length > 0) { %>
                 <% recentOrders.forEach(order => { %>
-                    <div class="card order-card" data-order-id="<%= order._id %>">
+                    <div class="card order-card clickable-card" data-order-id="<%= order._id %>"
+                         data-order-number="<%= order.orderNumber %>"
+                         data-order-items="<%= encodeURIComponent(JSON.stringify(order.items)) %>">
                         <div class="card-field">
                             <span class="field-label">Order #:</span>
                             <span class="field-value"><%= order.orderNumber %></span>
@@ -48,33 +50,6 @@
                         <div class="card-field">
                             <span class="field-label">Created By:</span>
                             <span class="field-value"><%= order.createdBy %></span>
-                        </div>
-                        <div class="order-items-toggle">
-                            <button class="order-items-btn">View Items &#9660;</button>
-                        </div>
-                        <div class="order-items-detail" style="display: none;">
-                            <table class="order-items-table">
-                                <thead>
-                                    <tr>
-                                        <th>Item</th>
-                                        <th>Brand</th>
-                                        <th>Ordered</th>
-                                        <th>Received</th>
-                                        <th>Cost</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% order.items.forEach(item => { %>
-                                        <tr>
-                                            <td><%= item.itemName %></td>
-                                            <td><%= item.brand || 'N/A' %></td>
-                                            <td><%= item.quantityOrdered %></td>
-                                            <td><%= item.quantityReceived %></td>
-                                            <td>$<%= item.cost ? item.cost.toFixed(2) : '0.00' %></td>
-                                        </tr>
-                                    <% }); %>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 <% }); %>
@@ -198,6 +173,29 @@
             <% } else { %>
                 <div class="empty-state">No cycle counts due</div>
             <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- Order Items Modal -->
+<div id="orderItemsModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close order-modal-close">&times;</span>
+        <h2>Order <span id="orderItemsModalNumber"></span></h2>
+        <div class="modal-body">
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Brand</th>
+                        <th>Ordered</th>
+                        <th>Received</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody id="orderItemsModalBody">
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
