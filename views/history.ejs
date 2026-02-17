@@ -52,6 +52,7 @@
 
             <div class="filter-row">
                 <button id="showSummary" class="filter-button">Show Quantity Used Summary</button>
+                <button id="generateReport" class="filter-button report-btn">Generate Report</button>
             </div>
         </div>
 
@@ -59,6 +60,34 @@
         <div id="summarySection" class="summary-section hidden">
             <h3>Quantity Used Summary</h3>
             <div id="summaryContent"></div>
+        </div>
+
+        <!-- Report Section -->
+        <div id="reportSection" class="report-section hidden">
+            <div class="report-header">
+                <h3>Inventory Report</h3>
+                <button id="closeReport" class="filter-button secondary report-close-btn">Close Report</button>
+            </div>
+            <div id="reportPeriod" class="report-period"></div>
+
+            <!-- Summary Cards -->
+            <div id="reportCards" class="report-cards"></div>
+
+            <!-- Report Tabs -->
+            <div class="report-tabs">
+                <button class="report-tab active" data-tab="spendTab">Spend by Item</button>
+                <button class="report-tab" data-tab="topConsumedTab">Top Consumed</button>
+                <button class="report-tab" data-tab="activityTypeTab">Activity Breakdown</button>
+                <button class="report-tab" data-tab="userActivityTab">User Activity</button>
+                <button class="report-tab" data-tab="dailyTrendTab">Daily Trend</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="spendTab" class="report-tab-content active"></div>
+            <div id="topConsumedTab" class="report-tab-content"></div>
+            <div id="activityTypeTab" class="report-tab-content"></div>
+            <div id="userActivityTab" class="report-tab-content"></div>
+            <div id="dailyTrendTab" class="report-tab-content"></div>
         </div>
 
         <!-- History Table -->
