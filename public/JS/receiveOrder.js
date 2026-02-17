@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             });
         });
+
+        // Initialize panel visibility for the active tab on page load
+        const activeTab = document.querySelector('.mobile-tab.active');
+        if (activeTab) {
+            activeTab.click();
+        }
     })();
 
     // Click on order to select it
