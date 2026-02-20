@@ -387,13 +387,14 @@
 
     .consume-layout {
         gap: 12px;
+        height: calc(100vh - 220px);
     }
 
     .left-panel,
     .right-panel {
         padding: 10px;
-        min-height: 300px;
-        max-height: 400px;
+        min-height: 0;
+        max-height: none;
     }
 
     #consumeSearchBar {

@@ -819,6 +819,11 @@
 }
 
 @media (max-width: 480px) {
+    .order-layout,
+    .receive-layout {
+        height: calc(100vh - 220px);
+    }
+
     .order-container {
         padding: 10px;
     }
@@ -830,8 +835,8 @@
     .left-panel,
     .right-panel {
         padding: 10px;
-        min-height: 300px;
-        max-height: 400px;
+        min-height: 0;
+        max-height: none;
     }
 
     .cart-header {
