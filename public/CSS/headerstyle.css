@@ -2,7 +2,6 @@
 body {
     margin: 0;
     padding-top: 70px;
-    padding-bottom: 50px;
 }
 
 main {
@@ -188,24 +187,6 @@ main {
     text-decoration: none;
 }
 
-/* ===== Footer ===== */
-.page-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #f1f1f1;
-    text-align: center;
-    padding: 10px 0;
-    border-top: 1px solid #ddd;
-    z-index: 999;
-}
-
-.page-footer h5 {
-    margin: 0;
-    color: #333;
-}
-
 /* ===== Mobile (768px and below) ===== */
 @media (max-width: 768px) {
     body {
@@ -290,13 +271,6 @@ main {
         align-items: center;
     }
 
-    .page-footer {
-        padding: 8px 0;
-    }
-
-    .page-footer h5 {
-        font-size: 12px;
-    }
 }
 
 @media (max-width: 480px) {
