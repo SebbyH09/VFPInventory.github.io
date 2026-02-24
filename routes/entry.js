@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const inventory = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
+const Order = require('../models/Order');
 const requireAuth = require('../Middleware/auth');
 
 // GET route - render page with existing inventory
@@ -9,14 +10,32 @@ router.get('/', requireAuth, async (req, res) => {
     try {
         // Fetch all inventory items from database
         const inventoryItems = await inventory.find({}).sort({ createdAt: -1 });
-        
-        res.render('entry', { 
+
+        // Fetch open/partial orders and build a map of itemId -> open order count
+        const openOrders = await Order.find({ status: { $in: ['open', 'partial'] } });
+        const orderCountMap = {};
+        openOrders.forEach(order => {
+            order.items.forEach(orderItem => {
+                const itemIdStr = orderItem.itemId.toString();
+                if (!orderCountMap[itemIdStr]) {
+                    orderCountMap[itemIdStr] = 0;
+                }
+                const remaining = orderItem.quantityOrdered - orderItem.quantityReceived;
+                if (remaining > 0) {
+                    orderCountMap[itemIdStr] += remaining;
+                }
+            });
+        });
+
+        res.render('entry', {
             inventoryItems: inventoryItems,
+            orderCountMap: orderCountMap,
             user: req.session.user
         });
     } catch (error) {
         res.render('entry', {
             inventoryItems: [],
+            orderCountMap: {},
             user: req.session.user,
             error: 'Failed to load inventory data'
         });
@@ -37,21 +56,27 @@ router.post("/", requireAuth, async (req, res) => {
         
         // Handle new items
         if (newItems && newItems.length > 0) {
-            const itemsToInsert = newItems.map(row => ({
-                item: row[0],
-                brand: row[1],
-                vendor: row[2],
-                catalog: row[3],
-                currentquantity: parseInt(row[4]) || 0,
-                minimumquantity: parseInt(row[5]) || 0,
-                maximumquantity: parseInt(row[6]) || 0,
-                location: row[7],
-                type: row[8],
-                cost: parseFloat(row[9]) || 0,
-                cycleCountInterval: parseInt(row[10]) || 90,
-                orderFrequencyPeriod: parseInt(row[11]) || 30,
-                useCycleCount: row[12] !== undefined ? row[12] : true
-            }));
+            const itemsToInsert = newItems.map(row => {
+                const itemData = {
+                    item: row[0],
+                    brand: row[1],
+                    vendor: row[2],
+                    catalog: row[3],
+                    currentquantity: parseInt(row[4]) || 0,
+                    minimumquantity: parseInt(row[5]) || 0,
+                    maximumquantity: parseInt(row[6]) || 0,
+                    location: row[7],
+                    type: row[8],
+                    cost: parseFloat(row[9]) || 0,
+                    cycleCountInterval: parseInt(row[10]) || 90,
+                    orderFrequencyPeriod: parseInt(row[11]) || 30,
+                    useCycleCount: row[12] !== undefined ? row[12] : true
+                };
+                if (row[13] && Array.isArray(row[13])) {
+                    itemData.alternateItems = row[13];
+                }
+                return itemData;
+            });
 
             const savedItems = await inventory.insertMany(itemsToInsert);
             results.savedItems = savedItems;
@@ -159,105 +184,6 @@ router.delete("/:id", requireAuth, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "Error deleting item. Please try again later."
-        });
-    }
-});
-
-// POST route - mark item as used
-router.post("/mark-used", requireAuth, async (req, res) => {
-    try {
-        const { itemId, date, quantityUsed } = req.body;
-
-        if (!itemId) {
-            return res.status(400).json({
-                message: "Item ID is required"
-            });
-        }
-
-        const updatedItem = await inventory.findByIdAndUpdate(
-            itemId,
-            { $set: { lastUsedDate: date || new Date() } },
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedItem) {
-            return res.status(404).json({
-                message: "Item not found"
-            });
-        }
-
-        // Log usage to history with cost tracking
-        const historyEntry = {
-            itemId: updatedItem._id,
-            itemName: updatedItem.item,
-            changeType: 'item_used',
-            changeDate: date || new Date(),
-            notes: 'Item marked as used',
-            userId: req.session.user?.email || 'unknown'
-        };
-
-        // If quantity used and cost are available, track the cost
-        if (quantityUsed && updatedItem.cost) {
-            historyEntry.quantityChange = -Math.abs(quantityUsed);
-            historyEntry.costPerUnit = updatedItem.cost;
-            historyEntry.totalCost = Math.abs(quantityUsed) * updatedItem.cost;
-        }
-
-        await InventoryHistory.create(historyEntry);
-
-        res.json({
-            message: "Item marked as used successfully",
-            item: updatedItem
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            message: "Error marking item as used. Please try again later."
-        });
-    }
-});
-
-// POST route - record an order
-router.post("/record-order", requireAuth, async (req, res) => {
-    try {
-        const { itemId, date } = req.body;
-
-        if (!itemId) {
-            return res.status(400).json({
-                message: "Item ID is required"
-            });
-        }
-
-        const updatedItem = await inventory.findByIdAndUpdate(
-            itemId,
-            { $push: { orderHistory: date || new Date() } },
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedItem) {
-            return res.status(404).json({
-                message: "Item not found"
-            });
-        }
-
-        // Log order to history
-        await InventoryHistory.create({
-            itemId: updatedItem._id,
-            itemName: updatedItem.item,
-            changeType: 'order_placed',
-            changeDate: date || new Date(),
-            notes: 'Order recorded',
-            userId: req.session.user?.email || 'unknown'
-        });
-
-        res.json({
-            message: "Order recorded successfully",
-            item: updatedItem
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            message: "Error recording order. Please try again later."
         });
     }
 });

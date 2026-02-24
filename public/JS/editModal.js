@@ -31,6 +31,24 @@ function openEditModal(itemId) {
     document.getElementById('editCycleInterval').value = originalData.cycleCountInterval || 90;
     document.getElementById('editUseCycleCount').checked = originalData.useCycleCount !== undefined ? originalData.useCycleCount : true;
 
+    // Populate alternate items
+    const altCheckbox = document.getElementById('editAlternateItems');
+    const altSection = document.getElementById('editAlternateItemsSection');
+    const altContainer = document.getElementById('editAlternateItemsContainer');
+    altContainer.innerHTML = '';
+
+    const alternates = originalData.alternateItems || [];
+    if (alternates.length > 0) {
+        altCheckbox.checked = true;
+        altSection.style.display = 'block';
+        alternates.forEach(function(alt) {
+            createAlternateItemRow('edit', alt);
+        });
+    } else {
+        altCheckbox.checked = false;
+        altSection.style.display = 'none';
+    }
+
     // Show the modal with blur effect
     modal.style.display = 'block';
     document.body.classList.add('modal-open');
@@ -84,6 +102,13 @@ async function submitEditModal() {
     if (newCycleInterval !== originalData.cycleCountInterval) changes.cycleCountInterval = newCycleInterval;
     if (newUseCycleCount !== originalData.useCycleCount) changes.useCycleCount = newUseCycleCount;
 
+    // Always send alternate items (compare as JSON to detect changes)
+    const newAlternateItems = collectAlternateItems('edit');
+    const oldAlternateItems = originalData.alternateItems || [];
+    if (JSON.stringify(newAlternateItems) !== JSON.stringify(oldAlternateItems)) {
+        changes.alternateItems = newAlternateItems;
+    }
+
     // If nothing changed, just close the modal
     if (Object.keys(changes).length === 0) {
         closeEditModal();
@@ -120,66 +145,6 @@ async function submitEditModal() {
     } catch (error) {
         console.error('Error updating item:', error);
         alert('Failed to update item: ' + error.message);
-    }
-}
-
-async function markItemAsUsedFromModal() {
-    if (!currentEditItemId) {
-        alert('No item selected');
-        return;
-    }
-
-    const today = new Date().toISOString();
-
-    try {
-        const response = await fetch('/entry/mark-used', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ itemId: currentEditItemId, date: today })
-        });
-
-        if (response.ok) {
-            alert('Item marked as used');
-            closeEditModal();
-            window.location.reload();
-        } else {
-            alert('Failed to mark item as used');
-        }
-    } catch (error) {
-        console.error('Error marking item as used:', error);
-        alert('Error marking item as used');
-    }
-}
-
-async function recordItemOrderFromModal() {
-    if (!currentEditItemId) {
-        alert('No item selected');
-        return;
-    }
-
-    const today = new Date().toISOString();
-
-    try {
-        const response = await fetch('/entry/record-order', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ itemId: currentEditItemId, date: today })
-        });
-
-        if (response.ok) {
-            alert('Order recorded');
-            closeEditModal();
-            window.location.reload();
-        } else {
-            alert('Failed to record order');
-        }
-    } catch (error) {
-        console.error('Error recording order:', error);
-        alert('Error recording order');
     }
 }
 
@@ -238,18 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
         editCancelBtn.addEventListener('click', closeEditModal);
     }
 
-    // Mark as used button
-    const markUsedBtn = document.querySelector('.mark-used-btn-modal');
-    if (markUsedBtn) {
-        markUsedBtn.addEventListener('click', markItemAsUsedFromModal);
-    }
-
-    // Record order button
-    const recordOrderBtn = document.querySelector('.record-order-btn-modal');
-    if (recordOrderBtn) {
-        recordOrderBtn.addEventListener('click', recordItemOrderFromModal);
-    }
-
     // Delete button
     const deleteBtn = document.querySelector('.delete-btn-modal');
     if (deleteBtn) {
@@ -299,6 +252,9 @@ document.addEventListener('DOMContentLoaded', function() {
             closeViewModal();
         }
     };
+
+    // Alternate items toggle for edit modal
+    setupAlternateItemsToggle('edit');
 });
 
 function openViewModal(row) {
@@ -325,9 +281,9 @@ function openViewModal(row) {
         document.getElementById('viewDaysSinceUse').textContent = 'Never';
     }
 
-    // Order frequency
-    const orderFreqCell = row.querySelector('.order-frequency p');
-    document.getElementById('viewOrderFrequency').textContent = orderFreqCell ? orderFreqCell.textContent : '0';
+    // Open orders
+    const openOrders = row.getAttribute('data-open-orders') || '0';
+    document.getElementById('viewOrderFrequency').textContent = openOrders;
 
     // Last cycle count
     const lastCycleCountCell = row.querySelector('.last-cycle-count p');
@@ -335,6 +291,29 @@ function openViewModal(row) {
 
     // Cycle interval (hidden from table, shown here)
     document.getElementById('viewCycleInterval').textContent = originalData.cycleCountInterval || 90;
+
+    // Alternate items
+    const altSection = document.getElementById('viewAlternateItemsSection');
+    const altContainer = document.getElementById('viewAlternateItemsContainer');
+    altContainer.innerHTML = '';
+    const alternates = originalData.alternateItems || [];
+    if (alternates.length > 0) {
+        altSection.style.display = 'block';
+        alternates.forEach(function(alt, idx) {
+            var card = document.createElement('div');
+            card.className = 'view-alternate-item';
+            card.innerHTML =
+                '<span class="alt-item-number">#' + (idx + 1) + '</span>' +
+                '<div class="view-row">' +
+                    '<div class="view-field"><span class="view-label">Brand</span><span class="view-value">' + (alt.brand || '-') + '</span></div>' +
+                    '<div class="view-field"><span class="view-label">Vendor</span><span class="view-value">' + (alt.vendor || '-') + '</span></div>' +
+                    '<div class="view-field"><span class="view-label">Catalog #</span><span class="view-value">' + (alt.catalogNumber || '-') + '</span></div>' +
+                '</div>';
+            altContainer.appendChild(card);
+        });
+    } else {
+        altSection.style.display = 'none';
+    }
 
     viewModal.style.display = 'block';
     document.body.classList.add('modal-open');
