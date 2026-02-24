@@ -84,6 +84,11 @@ function openAddModal() {
         document.getElementById('addCycleInterval').value = '90';
         document.getElementById('addUseCycleCount').checked = true;
 
+        // Reset alternate items
+        document.getElementById('addAlternateItems').checked = false;
+        document.getElementById('addAlternateItemsSection').style.display = 'none';
+        document.getElementById('addAlternateItemsContainer').innerHTML = '';
+
         modal.style.display = 'block';
     }
 }
@@ -98,6 +103,9 @@ function closeAddModal() {
 
 // Submit the add item modal
 async function submitAddModal() {
+    // Collect alternate items if enabled
+    const alternateItems = collectAlternateItems('add');
+
     // Get all the values from the modal
     const itemData = [
         document.getElementById('addItem').value.trim(),
@@ -112,7 +120,8 @@ async function submitAddModal() {
         document.getElementById('addCost').value.trim() || '0',
         document.getElementById('addCycleInterval').value.trim() || '90',
         '30',
-        document.getElementById('addUseCycleCount').checked
+        document.getElementById('addUseCycleCount').checked,
+        alternateItems
     ];
 
     // Validate required field (only item name is required)
@@ -155,6 +164,87 @@ async function submitAddModal() {
     }
 }
 
+// Alternate items helpers (shared between add and edit modals)
+var ALTERNATE_ITEMS_MAX = 5;
+
+function createAlternateItemRow(prefix, data) {
+    const container = document.getElementById(prefix + 'AlternateItemsContainer');
+    const currentCount = container.querySelectorAll('.alternate-item-row').length;
+
+    if (currentCount >= ALTERNATE_ITEMS_MAX) {
+        return;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'alternate-item-row';
+    row.innerHTML =
+        '<input type="text" class="edit-input alt-brand" placeholder="Brand" value="' + (data && data.brand ? data.brand : '') + '">' +
+        '<input type="text" class="edit-input alt-vendor" placeholder="Vendor" value="' + (data && data.vendor ? data.vendor : '') + '">' +
+        '<input type="text" class="edit-input alt-catalog" placeholder="Catalog #" value="' + (data && data.catalogNumber ? data.catalogNumber : '') + '">' +
+        '<button type="button" class="remove-alternate-btn" title="Remove">&times;</button>';
+
+    row.querySelector('.remove-alternate-btn').addEventListener('click', function() {
+        row.remove();
+        updateAddAlternateBtn(prefix);
+    });
+
+    container.appendChild(row);
+    updateAddAlternateBtn(prefix);
+}
+
+function updateAddAlternateBtn(prefix) {
+    const container = document.getElementById(prefix + 'AlternateItemsContainer');
+    const btn = document.getElementById(prefix + 'AlternateItemBtn');
+    const currentCount = container.querySelectorAll('.alternate-item-row').length;
+    if (btn) {
+        btn.style.display = currentCount >= ALTERNATE_ITEMS_MAX ? 'none' : 'inline-block';
+    }
+}
+
+function collectAlternateItems(prefix) {
+    const checkbox = document.getElementById(prefix + 'AlternateItems');
+    if (!checkbox || !checkbox.checked) return [];
+
+    const container = document.getElementById(prefix + 'AlternateItemsContainer');
+    const rows = container.querySelectorAll('.alternate-item-row');
+    const items = [];
+
+    rows.forEach(function(row) {
+        const brand = row.querySelector('.alt-brand').value.trim();
+        const vendor = row.querySelector('.alt-vendor').value.trim();
+        const catalogNumber = row.querySelector('.alt-catalog').value.trim();
+        if (brand || vendor || catalogNumber) {
+            items.push({ brand: brand, vendor: vendor, catalogNumber: catalogNumber });
+        }
+    });
+
+    return items;
+}
+
+function setupAlternateItemsToggle(prefix) {
+    var checkbox = document.getElementById(prefix + 'AlternateItems');
+    var section = document.getElementById(prefix + 'AlternateItemsSection');
+    var addBtn = document.getElementById(prefix + 'AlternateItemBtn');
+
+    if (checkbox) {
+        checkbox.addEventListener('change', function() {
+            section.style.display = checkbox.checked ? 'block' : 'none';
+            if (checkbox.checked) {
+                var container = document.getElementById(prefix + 'AlternateItemsContainer');
+                if (container.querySelectorAll('.alternate-item-row').length === 0) {
+                    createAlternateItemRow(prefix);
+                }
+            }
+        });
+    }
+
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            createAlternateItemRow(prefix);
+        });
+    }
+}
+
 // Initialize add modal event listeners
 document.addEventListener('DOMContentLoaded', function() {
     // Close button
@@ -182,4 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
             closeAddModal();
         }
     });
+
+    // Alternate items toggle for add modal
+    setupAlternateItemsToggle('add');
 });

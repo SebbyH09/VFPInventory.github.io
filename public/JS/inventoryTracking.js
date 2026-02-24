@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     calculateTrackingFields();
-    addTrackingActionButtons();
     observeTableChanges();
 });
 
@@ -9,7 +8,7 @@ function calculateTrackingFields() {
 
     rows.forEach(row => {
         calculateDaysSinceLastUse(row);
-        calculateOrderFrequency(row);
+        displayOpenOrders(row);
         checkCycleCountDue(row);
     });
 }
@@ -41,37 +40,16 @@ function calculateDaysSinceLastUse(row) {
     }
 }
 
-function calculateOrderFrequency(row) {
-    const orderHistoryStr = row.getAttribute('data-order-history');
+function displayOpenOrders(row) {
+    const openOrders = parseInt(row.getAttribute('data-open-orders')) || 0;
     const orderFrequencyCell = row.querySelector('.order-frequency p');
 
     if (!orderFrequencyCell) return;
 
-    let orderHistory = [];
-    try {
-        orderHistory = JSON.parse(orderHistoryStr || '[]');
-    } catch (e) {
-        console.error('Error parsing order history:', e);
-        orderHistory = [];
-    }
+    orderFrequencyCell.textContent = openOrders;
 
-    const originalData = JSON.parse(row.getAttribute('data-original') || '{}');
-    const orderPeriod = originalData.orderFrequencyPeriod || 30;
-
-    const periodStart = new Date();
-    periodStart.setDate(periodStart.getDate() - orderPeriod);
-
-    const recentOrders = orderHistory.filter(orderDate => {
-        const date = new Date(orderDate);
-        return date >= periodStart;
-    });
-
-    orderFrequencyCell.textContent = recentOrders.length;
-
-    if (recentOrders.length > 5) {
-        orderFrequencyCell.classList.add('high-frequency');
-    } else if (recentOrders.length > 2) {
-        orderFrequencyCell.classList.add('medium-frequency');
+    if (openOrders > 0) {
+        orderFrequencyCell.classList.add('has-open-orders');
     }
 }
 
@@ -101,81 +79,6 @@ function checkCycleCountDue(row) {
     }
 }
 
-function addTrackingActionButtons() {
-    const rows = document.querySelectorAll('#mainTable1 tbody tr');
-
-    rows.forEach(row => {
-        const actionsCell = row.querySelector('td:last-child');
-        if (!actionsCell) return;
-
-        const markUsedBtn = document.createElement('button');
-        markUsedBtn.textContent = 'Mark Used';
-        markUsedBtn.className = 'mark-used-btn hidden';
-        markUsedBtn.onclick = function() { markItemAsUsed(row); };
-
-        const recordOrderBtn = document.createElement('button');
-        recordOrderBtn.textContent = 'Record Order';
-        recordOrderBtn.className = 'record-order-btn hidden';
-        recordOrderBtn.onclick = function() { recordItemOrder(row); };
-
-        actionsCell.appendChild(markUsedBtn);
-        actionsCell.appendChild(recordOrderBtn);
-    });
-}
-
-async function markItemAsUsed(row) {
-    const itemId = row.getAttribute('data-item-id');
-    const today = new Date().toISOString();
-
-    try {
-        const response = await fetch('/entry/mark-used', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ itemId, date: today })
-        });
-
-        if (response.ok) {
-            row.setAttribute('data-last-used', today);
-            calculateDaysSinceLastUse(row);
-            alert('Item marked as used');
-        } else {
-            alert('Failed to mark item as used');
-        }
-    } catch (error) {
-        console.error('Error marking item as used:', error);
-        alert('Error marking item as used');
-    }
-}
-
-async function recordItemOrder(row) {
-    const itemId = row.getAttribute('data-item-id');
-    const today = new Date().toISOString();
-
-    try {
-        const response = await fetch('/entry/record-order', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ itemId, date: today })
-        });
-
-        if (response.ok) {
-            const orderHistory = JSON.parse(row.getAttribute('data-order-history') || '[]');
-            orderHistory.push(today);
-            row.setAttribute('data-order-history', JSON.stringify(orderHistory));
-            calculateOrderFrequency(row);
-            alert('Order recorded');
-        } else {
-            alert('Failed to record order');
-        }
-    } catch (error) {
-        console.error('Error recording order:', error);
-        alert('Error recording order');
-    }
-}
 
 
 function observeTableChanges() {
@@ -188,30 +91,9 @@ function observeTableChanges() {
                 mutation.addedNodes.forEach(node => {
                     if (node.nodeType === 1 && node.tagName === 'TR') {
                         calculateDaysSinceLastUse(node);
-                        calculateOrderFrequency(node);
+                        displayOpenOrders(node);
                         checkCycleCountDue(node);
 
-                        const actionsCell = node.querySelector('td:last-child');
-                        if (actionsCell && !actionsCell.querySelector('.mark-used-btn')) {
-                            const markUsedBtn = document.createElement('button');
-                            markUsedBtn.textContent = 'Mark Used';
-                            markUsedBtn.className = 'mark-used-btn hidden';
-                            markUsedBtn.onclick = function() { markItemAsUsed(node); };
-
-                            const recordOrderBtn = document.createElement('button');
-                            recordOrderBtn.textContent = 'Record Order';
-                            recordOrderBtn.className = 'record-order-btn hidden';
-                            recordOrderBtn.onclick = function() { recordItemOrder(node); };
-
-                            const cycleCountBtn = document.createElement('button');
-                            cycleCountBtn.textContent = 'Cycle Count';
-                            cycleCountBtn.className = 'cycle-count-btn hidden';
-                            cycleCountBtn.onclick = function() { performCycleCount(node); };
-
-                            actionsCell.appendChild(markUsedBtn);
-                            actionsCell.appendChild(recordOrderBtn);
-                            actionsCell.appendChild(cycleCountBtn);
-                        }
                     }
                 });
             }

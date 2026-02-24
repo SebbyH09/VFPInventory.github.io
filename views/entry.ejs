@@ -59,7 +59,7 @@
                         <th>Type</th>
                         <th>Cost per Unit</th>
                         <th>Days Since Last Use</th>
-                        <th>Orders (Last <span class="order-period-display">30</span> days)</th>
+                        <th>Open Orders</th>
                         <th>Last Cycle Count</th>
                         <th>Actions</th>
                     </tr>
@@ -70,8 +70,8 @@
                             
                             <tr data-item-id="<%= item._id %>"
                                 data-last-used="<%= item.lastUsedDate ? item.lastUsedDate.toISOString() : '' %>"
-                                data-order-history='<%= JSON.stringify(item.orderHistory || []) %>'
                                 data-last-cycle-count="<%= item.lastCycleCount ? item.lastCycleCount.toISOString() : '' %>"
+                                data-open-orders="<%= (orderCountMap && orderCountMap[item._id.toString()]) || 0 %>"
                                 data-original='<%= JSON.stringify({
                                 item: item.item,
                                 brand: item.brand,
@@ -84,11 +84,10 @@
                                 type: item.type,
                                 cost: item.cost || 0,
                                 lastUsedDate: item.lastUsedDate,
-                                orderHistory: item.orderHistory || [],
                                 lastCycleCount: item.lastCycleCount,
                                 cycleCountInterval: item.cycleCountInterval || 90,
-                                orderFrequencyPeriod: item.orderFrequencyPeriod || 30,
-                                useCycleCount: item.useCycleCount !== undefined ? item.useCycleCount : true
+                                useCycleCount: item.useCycleCount !== undefined ? item.useCycleCount : true,
+                                alternateItems: item.alternateItems || []
                             }) %>'>
 
                                 <td class="row-number-cell">
@@ -105,7 +104,7 @@
                                 <td><p class="inventoryitem"><%= item.type || '' %></p></td>
                                 <td><p class="inventoryitem">$<%= (item.cost || 0).toFixed(2) %></p></td>
                                 <td class="days-since-use"><p class="inventoryitem tracking-field">-</p></td>
-                                <td class="order-frequency"><p class="inventoryitem tracking-field">0</p></td>
+                                <td class="order-frequency"><p class="inventoryitem tracking-field"><%= (orderCountMap && orderCountMap[item._id.toString()]) || 0 %></p></td>
                                 <td class="last-cycle-count"><p class="inventoryitem tracking-field"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></p></td>
                                 <td class="actions-cell">
                                     <button class="delete-btn hidden">Delete</button>
@@ -197,6 +196,19 @@
                         </label>
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="addAlternateItems">
+                            <span>Alternate Items</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="addAlternateItemsSection" class="alternate-items-section" style="display: none;">
+                    <div id="addAlternateItemsContainer" class="alternate-items-container">
+                    </div>
+                    <button type="button" id="addAlternateItemBtn" class="add-alternate-btn">+ Add Alternate</button>
+                </div>
                 <div class="modal-buttons">
                     <button class="btn-submit">Add Item</button>
                     <button class="btn-cancel">Cancel</button>
@@ -281,9 +293,20 @@
                         </label>
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="editAlternateItems">
+                            <span>Alternate Items</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="editAlternateItemsSection" class="alternate-items-section" style="display: none;">
+                    <div id="editAlternateItemsContainer" class="alternate-items-container">
+                    </div>
+                    <button type="button" id="editAlternateItemBtn" class="add-alternate-btn">+ Add Alternate</button>
+                </div>
                 <div class="modal-actions">
-                    <button class="mark-used-btn-modal">Mark Used</button>
-                    <button class="record-order-btn-modal">Record Order</button>
                     <button class="delete-btn-modal">Delete</button>
                 </div>
                 <div class="modal-buttons">
@@ -356,7 +379,7 @@
                         <span class="view-value" id="viewDaysSinceUse"></span>
                     </div>
                     <div class="view-field">
-                        <span class="view-label">Orders (Last 30 days)</span>
+                        <span class="view-label">Open Orders</span>
                         <span class="view-value" id="viewOrderFrequency"></span>
                     </div>
                 </div>
@@ -369,6 +392,10 @@
                         <span class="view-label">Cycle Interval (days)</span>
                         <span class="view-value" id="viewCycleInterval"></span>
                     </div>
+                </div>
+                <div id="viewAlternateItemsSection" class="view-alternate-items-section" style="display: none;">
+                    <h3 class="alternate-items-heading">Alternate Items</h3>
+                    <div id="viewAlternateItemsContainer"></div>
                 </div>
             </div>
         </div>

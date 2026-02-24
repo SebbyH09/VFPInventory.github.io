@@ -72,7 +72,12 @@ const InventorySchema = new Schema({
     useCycleCount: {
         type: Boolean,
         default: true
-    }
+    },
+    alternateItems: [{
+        brand: { type: String, trim: true, default: '' },
+        vendor: { type: String, trim: true, default: '' },
+        catalogNumber: { type: String, trim: true, default: '' }
+    }]
 }, {
     timestamps: true
 });
