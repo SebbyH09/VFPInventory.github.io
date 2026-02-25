@@ -8,14 +8,6 @@
     <div class="card-wrapper" id="ordersCardWrapper">
         <div class="card-header-controls">
             <h2 class="card-title">Recent Orders</h2>
-            <div class="size-control">
-                <label for="ordersCardSize">Size:</label>
-                <select id="ordersCardSize">
-                    <option value="small">Small</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="large">Large</option>
-                </select>
-            </div>
         </div>
         <div class="cards-grid">
             <% if (recentOrders && recentOrders.length > 0) { %>
@@ -62,19 +54,20 @@
     <div class="card-wrapper" id="inventoryCardWrapper">
         <div class="card-header-controls">
             <h2 class="card-title">Need to Order</h2>
-            <div class="size-control">
-                <label for="inventoryCardSize">Size:</label>
-                <select id="inventoryCardSize">
-                    <option value="small">Small</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="large">Large</option>
-                </select>
-            </div>
         </div>
         <div class="cards-grid">
             <% if (lowInventoryItems && lowInventoryItems.length > 0) { %>
                 <% lowInventoryItems.forEach(item => { %>
-                    <div class="card">
+                    <% const itemOrders = onOrderMap[item._id.toString()] || []; %>
+                    <% const isOnOrder = itemOrders.length > 0; %>
+                    <div class="card<%= isOnOrder ? ' on-order-card clickable-card' : '' %>"
+                         <% if (isOnOrder) { %>
+                         data-order-details="<%= encodeURIComponent(JSON.stringify(itemOrders)) %>"
+                         data-item-name="<%= item.item %>"
+                         <% } %>>
+                        <% if (isOnOrder) { %>
+                            <div class="on-order-badge">On Order</div>
+                        <% } %>
                         <div class="card-field">
                             <span class="field-label">Item:</span>
                             <span class="field-value"><%= item.item %></span>
@@ -107,14 +100,6 @@
         <div class="card-header-controls">
             <h2 class="card-title">Cycle Counts Due</h2>
             <div class="controls-group">
-                <div class="size-control">
-                    <label for="cycleCountCardSize">Size:</label>
-                    <select id="cycleCountCardSize">
-                        <option value="small">Small</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="large">Large</option>
-                    </select>
-                </div>
                 <div class="display-limit-control">
                     <label for="cycleCountLimit">Show:</label>
                     <select id="cycleCountLimit">
@@ -173,6 +158,30 @@
             <% } else { %>
                 <div class="empty-state">No cycle counts due</div>
             <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- On Order Details Modal -->
+<div id="onOrderDetailsModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close on-order-modal-close">&times;</span>
+        <h2>Order Details for <span id="onOrderItemName"></span></h2>
+        <div class="modal-body">
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Status</th>
+                        <th>Ordered</th>
+                        <th>Received</th>
+                        <th>Remaining</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="onOrderDetailsBody">
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

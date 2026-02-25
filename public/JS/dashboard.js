@@ -3,19 +3,6 @@
 
 let currentItemId = null;
 
-function adjustCardSize(wrapperId, size) {
-    const wrapper = document.getElementById(wrapperId);
-
-    // Remove existing size classes
-    wrapper.classList.remove('card-size-small', 'card-size-medium', 'card-size-large');
-
-    // Add new size class
-    wrapper.classList.add('card-size-' + size);
-
-    // Save preference to localStorage
-    localStorage.setItem(wrapperId + '-size', size);
-}
-
 async function updateCycleCountDisplay() {
     const limit = document.getElementById('cycleCountLimit').value;
     const currentCards = document.querySelectorAll('.cycle-count-card');
@@ -120,6 +107,34 @@ function closeOrderItemsModal() {
     document.getElementById('orderItemsModal').style.display = 'none';
 }
 
+function openOnOrderDetailsModal(itemName, orderDetails) {
+    document.getElementById('onOrderItemName').textContent = itemName;
+    const tbody = document.getElementById('onOrderDetailsBody');
+    tbody.innerHTML = '';
+
+    orderDetails.forEach(detail => {
+        const tr = document.createElement('tr');
+        const statusClass = detail.orderStatus === 'open' ? 'status-open' :
+                            detail.orderStatus === 'partial' ? 'status-partial' : 'status-received';
+        const statusLabel = detail.orderStatus.charAt(0).toUpperCase() + detail.orderStatus.slice(1);
+        tr.innerHTML = `
+            <td>${escapeHtml(detail.orderNumber)}</td>
+            <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            <td>${detail.quantityOrdered}</td>
+            <td>${detail.quantityReceived}</td>
+            <td>${detail.remaining}</td>
+            <td>${new Date(detail.createdAt).toLocaleDateString()}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('onOrderDetailsModal').style.display = 'block';
+}
+
+function closeOnOrderDetailsModal() {
+    document.getElementById('onOrderDetailsModal').style.display = 'none';
+}
+
 async function submitCycleCount() {
     const updatedQty = document.getElementById('updatedQty').value;
 
@@ -167,28 +182,6 @@ async function submitCycleCount() {
 
 // Initialize display and restore saved sizes on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Set up event listeners for size controls
-    const ordersCardSize = document.getElementById('ordersCardSize');
-    if (ordersCardSize) {
-        ordersCardSize.addEventListener('change', function() {
-            adjustCardSize('ordersCardWrapper', this.value);
-        });
-    }
-
-    const inventoryCardSize = document.getElementById('inventoryCardSize');
-    if (inventoryCardSize) {
-        inventoryCardSize.addEventListener('change', function() {
-            adjustCardSize('inventoryCardWrapper', this.value);
-        });
-    }
-
-    const cycleCountCardSize = document.getElementById('cycleCountCardSize');
-    if (cycleCountCardSize) {
-        cycleCountCardSize.addEventListener('change', function() {
-            adjustCardSize('cycleCountCardWrapper', this.value);
-        });
-    }
-
     const cycleCountLimit = document.getElementById('cycleCountLimit');
     if (cycleCountLimit) {
         cycleCountLimit.addEventListener('change', updateCycleCountDisplay);
@@ -204,6 +197,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const orderModalCloseButtons = document.querySelectorAll('.order-modal-close');
     orderModalCloseButtons.forEach(button => {
         button.addEventListener('click', closeOrderItemsModal);
+    });
+
+    // Set up event listeners for on-order details modal close button
+    const onOrderModalCloseButtons = document.querySelectorAll('.on-order-modal-close');
+    onOrderModalCloseButtons.forEach(button => {
+        button.addEventListener('click', closeOnOrderDetailsModal);
+    });
+
+    // Set up clickable on-order inventory cards
+    const onOrderCards = document.querySelectorAll('.on-order-card.clickable-card');
+    onOrderCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const itemName = this.getAttribute('data-item-name');
+            const detailsJson = decodeURIComponent(this.getAttribute('data-order-details'));
+            const details = JSON.parse(detailsJson);
+            openOnOrderDetailsModal(itemName, details);
+        });
     });
 
     const submitButton = document.querySelector('.btn-submit');
@@ -238,6 +248,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target == orderModal) {
             closeOrderItemsModal();
         }
+        const onOrderModal = document.getElementById('onOrderDetailsModal');
+        if (event.target == onOrderModal) {
+            closeOnOrderDetailsModal();
+        }
     };
 
     // Set up clickable order cards to open items modal
@@ -252,26 +266,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     updateCycleCountDisplay();
-
-    // Restore saved card sizes from localStorage
-    const cardWrappers = ['ordersCardWrapper', 'inventoryCardWrapper', 'cycleCountCardWrapper'];
-    cardWrappers.forEach(wrapperId => {
-        const savedSize = localStorage.getItem(wrapperId + '-size');
-        if (savedSize) {
-            const wrapper = document.getElementById(wrapperId);
-            const select = wrapper.querySelector('select[id$="CardSize"]');
-            if (select && wrapper) {
-                select.value = savedSize;
-                wrapper.classList.add('card-size-' + savedSize);
-            }
-        } else {
-            // Apply default medium size
-            const wrapper = document.getElementById(wrapperId);
-            if (wrapper) {
-                wrapper.classList.add('card-size-medium');
-            }
-        }
-    });
 });
 
 
