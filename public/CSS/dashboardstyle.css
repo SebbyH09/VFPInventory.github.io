@@ -36,20 +36,17 @@
 }
 
 /* Shared select control styling */
-.size-control,
 .display-limit-control {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.size-control label,
 .display-limit-control label {
     font-weight: bold;
     color: #333;
 }
 
-.size-control select,
 .display-limit-control select {
     padding: 5px 10px;
     border: 1px solid #ddd;
@@ -59,7 +56,6 @@
     font-size: 14px;
 }
 
-.size-control select:hover,
 .display-limit-control select:hover {
     border-color: rgb(52, 125, 39);
 }
@@ -142,52 +138,6 @@
     color: #999;
     font-size: 1.1em;
     font-style: italic;
-}
-
-/* Card size variants */
-.card-size-small .cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 10px;
-    max-height: 30vh;
-}
-
-.card-size-small .card {
-    padding: 10px;
-    font-size: 0.85em;
-}
-
-.card-size-small .card-field {
-    padding: 5px 0;
-}
-
-.card-size-small .field-label,
-.card-size-small .field-value {
-    font-size: 0.85em;
-}
-
-.card-size-medium .cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 15px;
-    max-height: 50vh;
-}
-
-.card-size-large .cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 20px;
-    max-height: 70vh;
-}
-
-.card-size-large .card {
-    padding: 20px;
-}
-
-.card-size-large .card-field {
-    padding: 12px 0;
-}
-
-.card-size-large .field-label,
-.card-size-large .field-value {
-    font-size: 1.05em;
 }
 
 /* Status badges */
@@ -439,6 +389,44 @@
         padding: 20px;
         font-size: 1em;
     }
+}
+
+/* On Order card glow/highlight */
+.on-order-card {
+    position: relative;
+    border: 2px solid #1565c0;
+    box-shadow: 0 0 12px rgba(21, 101, 192, 0.4);
+    animation: orderGlow 2s ease-in-out infinite alternate;
+}
+
+.on-order-card:hover {
+    box-shadow: 0 0 20px rgba(21, 101, 192, 0.6);
+    transform: translateY(-3px);
+    border-color: #0d47a1;
+}
+
+@keyframes orderGlow {
+    from {
+        box-shadow: 0 0 8px rgba(21, 101, 192, 0.3);
+    }
+    to {
+        box-shadow: 0 0 16px rgba(21, 101, 192, 0.5);
+    }
+}
+
+.on-order-badge {
+    position: absolute;
+    top: -10px;
+    right: 12px;
+    background-color: #1565c0;
+    color: white;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 1;
 }
 
 /* Clickable order cards */

@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
         try {
             const lowInventoryItems = await ListedInventoryItem.find({
                 $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
-            }).sort({ item: 1 });
+            }).sort({ item: 1 }).lean();
 
             // Fetch orders from the past 14 days
             const fourteenDaysAgo = new Date();
@@ -18,6 +18,35 @@ router.get('/', async (req, res) => {
             const recentOrders = await Order.find({
                 createdAt: { $gte: fourteenDaysAgo }
             }).sort({ createdAt: -1 }).lean();
+
+            // Fetch all open/partial orders to cross-reference with low inventory
+            const openOrders = await Order.find({
+                status: { $in: ['open', 'partial'] }
+            }).lean();
+
+            // Build a map: inventoryItemId -> array of order details
+            const onOrderMap = {};
+            openOrders.forEach(order => {
+                order.items.forEach(orderItem => {
+                    const itemIdStr = orderItem.itemId.toString();
+                    const remaining = orderItem.quantityOrdered - orderItem.quantityReceived;
+                    if (remaining > 0) {
+                        if (!onOrderMap[itemIdStr]) {
+                            onOrderMap[itemIdStr] = [];
+                        }
+                        onOrderMap[itemIdStr].push({
+                            orderNumber: order.orderNumber,
+                            orderStatus: order.status,
+                            quantityOrdered: orderItem.quantityOrdered,
+                            quantityReceived: orderItem.quantityReceived,
+                            remaining: remaining,
+                            cost: orderItem.cost,
+                            createdAt: order.createdAt,
+                            createdBy: order.createdBy
+                        });
+                    }
+                });
+            });
 
             // Fetch items that need cycle counts
             const today = new Date();
@@ -56,7 +85,8 @@ router.get('/', async (req, res) => {
                 lowInventoryItems: lowInventoryItems,
                 cycleCountDueItems: cycleCountDueItems,
                 totalCycleCountsDue: dueItems.length,
-                recentOrders: recentOrders
+                recentOrders: recentOrders,
+                onOrderMap: onOrderMap
             });
         } catch (error) {
             console.error('Dashboard error:', error);
@@ -65,6 +95,7 @@ router.get('/', async (req, res) => {
                 lowInventoryItems: [],
                 cycleCountDueItems: [],
                 recentOrders: [],
+                onOrderMap: {},
                 error: 'Failed to load dashboard data'
             });
         }
