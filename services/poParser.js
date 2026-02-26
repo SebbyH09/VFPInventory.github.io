@@ -7,13 +7,18 @@
  * is consistent every time. That means we can use simple, fast regex pattern
  * matching instead of AI — no API calls, no cost, no latency.
  *
- * HOW TO CALIBRATE THIS FILE:
- * When you receive your first Prendio PO confirmation PDF, run it through
- * pdfExtractor.js and console.log the rawText. Then look at the output and
- * adjust the regex patterns below to match exactly what Prendio outputs.
+ * CALIBRATED against actual Prendio PO format (Feb 2026):
+ *   - PO # 15699
+ *   - Date: 2/26/2026
+ *   - Vendor block with address + account number
+ *   - Ship To block with attention line
+ *   - Buyer / Requisitioner with name, email, phone
+ *   - Line items table: Line | Qty | U/M | Item Code/Description | Unit Price | Amount | Tax
+ *   - Part# and Desc: on separate lines within each line item
+ *   - Totals at bottom: Subtotal, Tax, Shipping, Total
  *
- * Each regex has a comment explaining what it's looking for and a test
- * string so you can verify it in regex101.com if needed.
+ * If Prendio ever changes their PDF layout, re-run a PDF through pdfExtractor.js,
+ * log the rawText, and adjust patterns below.
  */
 
 // ─────────────────────────────────────────────
@@ -35,28 +40,33 @@ function parsePOData(rawText, emailMetadata = {}) {
 
   const po = {
     // ── Header fields ──
-    poNumber:       extractPONumber(rawText),
-    orderDate:      extractOrderDate(rawText),
-    vendor:         extractVendor(rawText),
-    requester:      extractRequester(rawText),
-    department:     extractDepartment(rawText),
+    poNumber:        extractPONumber(rawText),
+    orderDate:       extractOrderDate(rawText),
+    vendor:          extractVendor(rawText),
+    vendorAddress:   extractVendorAddress(rawText),
+    accountNumber:   extractAccountNumber(rawText),
+    requester:       extractRequester(rawText),
+    buyer:           extractBuyer(rawText),
+    department:      extractDepartment(rawText),
     shippingAddress: extractShippingAddress(rawText),
-    deliveryDate:   extractDeliveryDate(rawText),
+    deliveryDate:    extractDeliveryDate(rawText),
+    shipVia:         extractShipVia(rawText),
+    terms:           extractTerms(rawText),
 
     // ── Line items ──
-    lineItems:      extractLineItems(rawText),
+    lineItems:       extractLineItems(rawText),
 
     // ── Totals ──
-    subtotal:       extractCurrencyField(rawText, ['subtotal', 'sub-total', 'sub total']),
-    tax:            extractCurrencyField(rawText, ['tax', 'sales tax']),
-    shipping:       extractCurrencyField(rawText, ['shipping', 'freight', 'delivery']),
-    total:          extractCurrencyField(rawText, ['total', 'order total', 'grand total']),
-    currency:       'USD',
+    subtotal:        extractCurrencyField(rawText, ['subtotal', 'sub-total', 'sub total']),
+    tax:             extractCurrencyField(rawText, ['tax', 'sales tax']),
+    shipping:        extractCurrencyField(rawText, ['shipping', 'freight', 'delivery']),
+    total:           extractCurrencyField(rawText, ['total', 'order total', 'grand total']),
+    currency:        'USD',
 
     // ── Source metadata ──
-    source:         'prendio',
+    source:          'prendio',
     emailMetadata,
-    parsedAt:       new Date()
+    parsedAt:        new Date()
   };
 
   // Basic validation — a PO must have at least a number and line items
@@ -73,42 +83,40 @@ function parsePOData(rawText, emailMetadata = {}) {
 }
 
 // ─────────────────────────────────────────────
-// FIELD EXTRACTORS
+// FIELD EXTRACTORS — Calibrated to Prendio format
 // ─────────────────────────────────────────────
 
-// Each function targets a specific field in the Prendio PDF.
-// Adjust the regex strings to match what your actual PDFs output.
-// All extractors return null if the field isn't found — never throw.
-
 /**
- * PO Number — typically looks like "PO-2024-00123" or "PO# 10045"
- * Test: "Purchase Order: PO-2024-00123"
+ * PO Number — Prendio uses "PO # 15699" format
+ * Test: "PO # 15699"
  */
 function extractPONumber(text) {
   const patterns = [
+    /PO\s*#\s*(\d+)/i,
     /purchase\s+order\s*[:#]?\s*([A-Z0-9\-]+)/i,
-    /po\s*[:#]?\s*([A-Z0-9\-]+)/i,
+    /po\s*[:#]\s*([A-Z0-9\-]+)/i,
     /order\s+number\s*[:#]?\s*([A-Z0-9\-]+)/i
   ];
   return tryPatterns(text, patterns);
 }
 
 /**
- * Order Date — looks for a date near "order date" or "date"
- * Test: "Order Date: 01/15/2024"
+ * Order Date — Prendio uses "Date: 2/26/2026" (M/D/YYYY, no leading zeros)
+ * Test: "Date: 2/26/2026"
  */
 function extractOrderDate(text) {
   const patterns = [
+    /(?:^|\n)\s*Date\s*:\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/i,
     /order\s+date\s*[:]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-    /date\s+ordered\s*[:]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-    /date\s*[:]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
+    /date\s+ordered\s*[:]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
   ];
   const raw = tryPatterns(text, patterns);
   return raw ? normalizeDate(raw) : null;
 }
 
 /**
- * Expected delivery date
+ * Expected delivery date — Prendio shows "Delivery Date:" in the shipping info table.
+ * May contain a date or text like "(Punchout Order)".
  */
 function extractDeliveryDate(text) {
   const patterns = [
@@ -121,11 +129,25 @@ function extractDeliveryDate(text) {
 }
 
 /**
- * Vendor/Supplier name
+ * Vendor name — Prendio shows "Vendor:" on its own line, followed by vendor name on next line.
+ * Example:
+ *   Vendor:
+ *   Fisher Scientific
+ *   P.O. Box 3648
+ *
+ * Also handles inline: "Vendor: Fisher Scientific"
  */
 function extractVendor(text) {
+  // Multi-line: "Vendor:\n  Fisher Scientific"
+  const multiLine = text.match(/Vendor\s*:\s*\n\s*(.+?)(?:\n|$)/i);
+  if (multiLine && multiLine[1].trim()) return multiLine[1].trim();
+
+  // Inline: "Vendor: Fisher Scientific"
+  const inline = text.match(/Vendor\s*:\s*(.+?)(?:\n|$)/i);
+  if (inline && inline[1].trim()) return inline[1].trim();
+
+  // Fallback
   const patterns = [
-    /vendor\s*[:]?\s*(.+?)(?:\n|$)/i,
     /supplier\s*[:]?\s*(.+?)(?:\n|$)/i,
     /ship\s+from\s*[:]?\s*(.+?)(?:\n|$)/i
   ];
@@ -133,14 +155,48 @@ function extractVendor(text) {
 }
 
 /**
- * Requester name (who submitted the PO in Prendio)
+ * Vendor address — multi-line block after vendor name, before Account Number
+ */
+function extractVendorAddress(text) {
+  const match = text.match(/Vendor\s*:\s*\n?\s*.+?\n([\s\S]+?)(?:Account\s+Number|Ship\s+To|\n\n)/i);
+  if (match) return match[1].replace(/\s+/g, ' ').trim();
+  return null;
+}
+
+/**
+ * Account Number — "Account Number: 089954-007"
+ */
+function extractAccountNumber(text) {
+  const match = text.match(/Account\s+Number\s*:\s*([A-Z0-9\-]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * Buyer — Prendio shows "Buyer" as a header, then name, email, phone on next line(s)
+ * Example:
+ *   Buyer
+ *   Sebastian Halama, shalama@vfplabs.com, 9999999999
+ */
+function extractBuyer(text) {
+  const patterns = [
+    /Buyer\s*\n\s*([^,\n]+)/i,
+    /Buyer\s*:\s*([^,\n]+)/i
+  ];
+  return tryPatterns(text, patterns);
+}
+
+/**
+ * Requester — Prendio shows "Requisitioner" as a header, then name on next line
+ * Example:
+ *   Requisitioner
+ *   Sebastian Halama, shalama@vfplabs.com, 9999999999
  */
 function extractRequester(text) {
   const patterns = [
-    /requested\s+by\s*[:]?\s*(.+?)(?:\n|$)/i,
-    /requester\s*[:]?\s*(.+?)(?:\n|$)/i,
-    /submitted\s+by\s*[:]?\s*(.+?)(?:\n|$)/i,
-    /ordered\s+by\s*[:]?\s*(.+?)(?:\n|$)/i
+    /Requisitioner\s*\n\s*([^,\n]+)/i,
+    /Requisitioner\s*:\s*([^,\n]+)/i,
+    /Requested\s+by\s*[:]?\s*([^,\n]+)/i,
+    /Requester\s*[:]?\s*([^,\n]+)/i
   ];
   return tryPatterns(text, patterns);
 }
@@ -152,22 +208,44 @@ function extractDepartment(text) {
   const patterns = [
     /department\s*[:]?\s*(.+?)(?:\n|$)/i,
     /dept\s*[:]?\s*(.+?)(?:\n|$)/i,
-    /cost\s+center\s*[:]?\s*(.+?)(?:\n|$)/i,
-    /lab\s*[:]?\s*(.+?)(?:\n|$)/i
+    /cost\s+center\s*[:]?\s*(.+?)(?:\n|$)/i
   ];
   return tryPatterns(text, patterns);
 }
 
 /**
- * Shipping address block
+ * Shipping address — Prendio uses "Ship To:" followed by multi-line address block
+ * Example:
+ *   Ship To:
+ *   Aera Therapeutics, Inc.
+ *   300 Technology Square
+ *   6th Floor
+ *   Cambridge, MA 02139
+ *   Attn: Sebastian Halama
  */
 function extractShippingAddress(text) {
   const patterns = [
-    /ship\s+to\s*[:]?\s*([\s\S]+?)(?:\n\n|\nvendor|\nbill)/i,
-    /deliver\s+to\s*[:]?\s*([\s\S]+?)(?:\n\n)/i
+    /Ship\s+To\s*:\s*\n?([\s\S]+?)(?:Ship\s+Via|Buyer|Requisitioner|FOB|\n\n)/i,
+    /Deliver\s+To\s*:\s*\n?([\s\S]+?)(?:\n\n)/i
   ];
   const raw = tryPatterns(text, patterns);
   return raw ? raw.replace(/\s+/g, ' ').trim() : null;
+}
+
+/**
+ * Ship Via — "Ship Via: Free Standard Shipping"
+ */
+function extractShipVia(text) {
+  const match = text.match(/Ship\s+Via\s*:\s*(.+?)(?:\n|$)/i);
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * Payment terms — "Terms: Net 30"
+ */
+function extractTerms(text) {
+  const match = text.match(/Terms\s*:\s*(.+?)(?:\n|$)/i);
+  return match ? match[1].trim() : null;
 }
 
 /**
@@ -190,37 +268,74 @@ function extractCurrencyField(text, labels) {
 }
 
 // ─────────────────────────────────────────────
-// LINE ITEM EXTRACTION
+// LINE ITEM EXTRACTION — Calibrated to Prendio format
 // ─────────────────────────────────────────────
 
 /**
- * This is the most complex part. Prendio PO line items are typically in a table.
- * After PDF extraction, table rows become lines of text.
+ * Prendio line items table (from actual PDF):
  *
- * Common Prendio line item format (adjust to match your actual PDFs):
- * "1    Fisher Scientific    Pipette Tips 200uL    12-345-67    10    Box    $24.99    $249.90"
+ *   Line | Qty | U/M | Item Code / Description | Unit Price | Amount | Tax
+ *   ─────┼─────┼─────┼─────────────────────────┼────────────┼────────┼────
+ *   1      1.00   CS    Part# 14223985             684.44     684.44   No
+ *                        Desc: 0.2ML PCR STRIP TUBE FLAT CAP
  *
- * Column order from Prendio:
- * Line# | Vendor | Description | Cat# | Qty | Unit | Unit Price | Total
+ * After PDF text extraction, this typically becomes:
+ *   "1 1.00 CS Part# 14223985 684.44 684.44 No"
+ *   "Desc: 0.2ML PCR STRIP TUBE FLAT CAP"
  *
- * ⚠️  IMPORTANT: Run a real Prendio PDF through the extractor and log rawText
- * to see the actual format before finalizing this regex.
+ * Strategy:
+ *   1. Find the line items section (between header row and totals)
+ *   2. Parse each numbered row for Line#, Qty, U/M, Part#, prices
+ *   3. Look at the following line(s) for "Desc:" to get the description
  */
 function extractLineItems(text) {
   const lineItems = [];
 
-  // Strategy: find the line items section between a header row and the totals section
-  // Adjust these boundary markers to match what Prendio actually outputs
+  // Find the items section — starts after the table header, ends at totals
   const sectionMatch = text.match(
-    /(?:line\s*#?|item\s*#?|qty|description).+?\n([\s\S]+?)(?:subtotal|sub-total|total\s*:|\n\n\n)/i
+    /(?:Line\s*\|?\s*Qty\s*\|?\s*U\/M|Item\s+Code.*?Description).+?\n([\s\S]+?)(?:Subtotal|Sub-total|Total\s*[\$:]|\n\n\n)/i
   );
 
   const itemSection = sectionMatch ? sectionMatch[1] : text;
-  const lines = itemSection.split('\n').map(l => l.trim()).filter(l => l.length > 10);
+  const lines = itemSection.split('\n');
 
-  for (const line of lines) {
-    const item = parseLineItemRow(line);
-    if (item) lineItems.push(item);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Try Prendio-specific format first:
+    // "1 1.00 CS Part# 14223985 684.44 684.44 No"
+    const prendioMatch = line.match(
+      /^(\d+)\s+([\d.]+)\s+(\w+)\s+Part#\s*([\w\-]+)\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s*(Yes|No)?/i
+    );
+
+    if (prendioMatch) {
+      // Look ahead for "Desc:" line
+      let description = null;
+      for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+        const descMatch = lines[j].match(/Desc\s*:\s*(.+)/i);
+        if (descMatch) {
+          description = descMatch[1].trim();
+          break;
+        }
+      }
+
+      lineItems.push({
+        lineNumber:    parseInt(prendioMatch[1]),
+        quantity:      parseFloat(prendioMatch[2]),
+        unit:          prendioMatch[3].trim(),
+        catalogNumber: prendioMatch[4].trim(),
+        unitPrice:     parseFloat(prendioMatch[5].replace(/,/g, '')),
+        totalPrice:    parseFloat(prendioMatch[6].replace(/,/g, '')),
+        taxable:       prendioMatch[7] ? prendioMatch[7].toLowerCase() === 'yes' : false,
+        description:   description || `Part# ${prendioMatch[4].trim()}`
+      });
+      continue;
+    }
+
+    // Fallback: generic line item row
+    const genericMatch = parseLineItemRow(line);
+    if (genericMatch) lineItems.push(genericMatch);
   }
 
   // If structured parsing found nothing, fall back to looser extraction
@@ -232,16 +347,10 @@ function extractLineItems(text) {
 }
 
 /**
- * Parse a single line item row.
- *
+ * Generic line item row parser (fallback for non-Prendio format).
  * Tries to match: LineNum  Description  CatalogNum  Qty  Unit  UnitPrice  Total
- * This pattern covers most standard Prendio table row formats.
- *
- * Adjust this regex after seeing your real PDF output.
  */
 function parseLineItemRow(line) {
-  // Pattern: optional line number, description, catalog number, quantity, unit, prices
-  // Example: "1  Pipette Tips 200uL  12-345-67  10  Box  24.99  249.90"
   const pattern = /^(\d+)?\s+(.+?)\s{2,}([\w\-]+)\s+(\d+(?:\.\d+)?)\s+(\w+)\s+\$?([\d,]+\.\d{2})\s+\$?([\d,]+\.\d{2})/;
 
   const match = line.match(pattern);
@@ -268,11 +377,38 @@ function extractLineItemsFallback(text) {
   const items = [];
   const lines = text.split('\n');
 
-  for (const line of lines) {
-    // Look for lines that contain a price (e.g., $24.99 or 24.99)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Check for Part# lines with prices
+    const partMatch = line.match(/Part#\s*([\w\-]+).*?([\d,]+\.\d{2})/i);
+    if (partMatch) {
+      // Look ahead for Desc: line
+      let description = null;
+      for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+        const descMatch = lines[j].match(/Desc\s*:\s*(.+)/i);
+        if (descMatch) {
+          description = descMatch[1].trim();
+          break;
+        }
+      }
+
+      const qtyMatch = line.match(/(\d+(?:\.\d+)?)\s+(\w{2,})\s+Part#/i);
+      items.push({
+        catalogNumber: partMatch[1].trim(),
+        description:   description || `Part# ${partMatch[1].trim()}`,
+        quantity:      qtyMatch ? parseFloat(qtyMatch[1]) : null,
+        unit:          qtyMatch ? qtyMatch[2].trim() : null,
+        unitPrice:     null,
+        totalPrice:    parseFloat(partMatch[2].replace(/,/g, ''))
+      });
+      continue;
+    }
+
+    // Generic: look for lines that contain a price
     if (/\$[\d,]+\.\d{2}/.test(line) && line.length > 15) {
       const priceMatches = line.match(/\$?([\d,]+\.\d{2})/g);
-      const qtyMatch = line.match(/\b(\d+)\s+(ea|each|box|case|pk|pack|bottle|vial|tube)/i);
+      const qtyMatch = line.match(/\b(\d+)\s+(ea|each|box|case|pk|pack|bottle|vial|tube|cs)\b/i);
 
       if (priceMatches) {
         items.push({
@@ -312,7 +448,7 @@ function tryPatterns(text, patterns) {
 
 /**
  * Normalize various date formats to YYYY-MM-DD
- * Handles: MM/DD/YYYY, MM-DD-YYYY, MM/DD/YY
+ * Handles: M/D/YYYY, MM/DD/YYYY, MM-DD-YYYY, MM/DD/YY
  */
 function normalizeDate(dateStr) {
   if (!dateStr) return null;
