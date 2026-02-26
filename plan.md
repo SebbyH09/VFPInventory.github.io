@@ -165,9 +165,9 @@ Frontend logic for the PO management page:
 ### Step 11: Update `.env.example` — Document new env vars
 Add:
 ```
-PARSER_EMAIL=labinventory.parse@gmail.com
+PARSER_EMAIL=parse.vfpinventory@gmail.com
 PARSER_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
-PRENDIO_EMAIL_SENDER=noreply@prendio.com
+PRENDIO_EMAIL_SENDER=noreply@procure.prendio.com
 ```
 
 ### Step 12: Update navigation — Add PO link to layout
