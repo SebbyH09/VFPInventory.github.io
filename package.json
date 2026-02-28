@@ -24,8 +24,11 @@
     "helmet": "^8.1.0",
     "html": "^1.0.0",
     "http-server": "^14.1.1",
+    "imapflow": "^1.2.10",
+    "mailparser": "^3.9.3",
     "mongoose": "^7.5.2",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "pdf-parse": "^2.4.5"
   },
   "description": "",
   "devDependencies": {
