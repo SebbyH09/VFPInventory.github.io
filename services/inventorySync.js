@@ -6,7 +6,8 @@
  * as incoming stock — added to existing totals.
  */
 
-const Item = require('../models/Item');
+const ListedInventoryItem = require('../models/ListedInventoryItem');
+const InventoryHistory = require('../models/InventoryHistory');
 const PurchaseOrder = require('../models/PurchaseOrder');
 
 async function syncPOToInventory(poId, syncedBy) {
@@ -21,7 +22,7 @@ async function syncPOToInventory(poId, syncedBy) {
 
   for (const lineItem of po.parsedData.lineItems || []) {
     try {
-      const result = await processLineItem(lineItem, po.parsedData.vendor, po.parsedData.poNumber);
+      const result = await processLineItem(lineItem, po.parsedData.vendor, po.parsedData.poNumber, syncedBy);
       results[result.action]?.push(result);
     } catch (err) {
       console.error(`[inventorySync] Error on "${lineItem.description}":`, err.message);
@@ -40,7 +41,7 @@ async function syncPOToInventory(poId, syncedBy) {
   return results;
 }
 
-async function processLineItem(lineItem, vendor, poNumber) {
+async function processLineItem(lineItem, vendor, poNumber, syncedBy) {
   if (!lineItem.quantity || lineItem.quantity <= 0) {
     return { action: 'skipped', reason: 'No valid quantity', lineItem };
   }
@@ -49,50 +50,75 @@ async function processLineItem(lineItem, vendor, poNumber) {
 
   // Match by catalog number first (most reliable identifier)
   if (lineItem.catalogNumber) {
-    existingItem = await Item.findOne({
-      $or: [
-        { catalogNumber: lineItem.catalogNumber },
-        { 'vendor.catalogNumber': lineItem.catalogNumber }
-      ]
-    });
+    existingItem = await ListedInventoryItem.findOne({ catalog: lineItem.catalogNumber });
+
+    // Also check alternateItems catalog numbers
+    if (!existingItem) {
+      existingItem = await ListedInventoryItem.findOne({
+        'alternateItems.catalogNumber': lineItem.catalogNumber
+      });
+    }
   }
 
-  // Fallback: exact name match (case-insensitive)
+  // Fallback: exact item name match (case-insensitive)
   if (!existingItem && lineItem.description) {
-    existingItem = await Item.findOne({
-      name: { $regex: new RegExp(`^${escapeRegex(lineItem.description)}$`, 'i') }
+    existingItem = await ListedInventoryItem.findOne({
+      item: { $regex: new RegExp(`^${escapeRegex(lineItem.description)}$`, 'i') }
     });
   }
 
   if (existingItem) {
-    const prev = existingItem.quantity;
-    existingItem.quantity          = (existingItem.quantity || 0) + lineItem.quantity;
-    existingItem.lastRestockedAt   = new Date();
-    existingItem.lastRestockedFrom = vendor;
-    existingItem.lastPONumber      = poNumber;
-    if (lineItem.unitPrice) existingItem.lastUnitPrice = lineItem.unitPrice;
+    const previousQty = existingItem.currentquantity || 0;
+    const newQty = previousQty + lineItem.quantity;
+
+    existingItem.currentquantity = newQty;
+    existingItem.orderHistory.push(new Date());
+    if (lineItem.unitPrice) existingItem.cost = lineItem.unitPrice;
     await existingItem.save();
 
-    console.log(`[inventorySync] Updated "${existingItem.name}": ${prev} → ${existingItem.quantity}`);
-    return { action: 'updated', itemId: existingItem._id, itemName: existingItem.name, quantityAdded: lineItem.quantity, newTotal: existingItem.quantity };
-  } else {
-    // New item — flagged needs_review so manager can fill in category, location, reorder point
-    const newItem = await Item.create({
-      name:              lineItem.description,
-      catalogNumber:     lineItem.catalogNumber || null,
-      quantity:          lineItem.quantity,
-      unit:              lineItem.unit || 'each',
-      vendor,
-      lastUnitPrice:     lineItem.unitPrice || null,
-      lastRestockedAt:   new Date(),
-      lastRestockedFrom: vendor,
-      lastPONumber:      poNumber,
-      status:            'needs_review',
-      source:            'po_import'
+    // Log to inventory history
+    await InventoryHistory.create({
+      itemId: existingItem._id,
+      itemName: existingItem.item,
+      changeType: 'quantity_change',
+      previousQuantity: previousQty,
+      newQuantity: newQty,
+      quantityChange: lineItem.quantity,
+      costPerUnit: lineItem.unitPrice || existingItem.cost,
+      totalCost: (lineItem.unitPrice || existingItem.cost || 0) * lineItem.quantity,
+      notes: `PO ${poNumber} — auto-synced from Prendio`,
+      userId: syncedBy
     });
 
-    console.log(`[inventorySync] Created "${newItem.name}" (${newItem._id})`);
-    return { action: 'created', itemId: newItem._id, itemName: newItem.name, quantity: lineItem.quantity };
+    console.log(`[inventorySync] Updated "${existingItem.item}": ${previousQty} → ${newQty}`);
+    return { action: 'updated', itemId: existingItem._id, itemName: existingItem.item, quantityAdded: lineItem.quantity, newTotal: newQty };
+  } else {
+    // Item not found — create a new inventory item
+    const newItem = await ListedInventoryItem.create({
+      item:              lineItem.description,
+      catalog:           lineItem.catalogNumber || '',
+      currentquantity:   lineItem.quantity,
+      vendor:            vendor || '',
+      cost:              lineItem.unitPrice || 0,
+      orderHistory:      [new Date()]
+    });
+
+    // Log creation to inventory history
+    await InventoryHistory.create({
+      itemId: newItem._id,
+      itemName: newItem.item,
+      changeType: 'item_created',
+      previousQuantity: 0,
+      newQuantity: lineItem.quantity,
+      quantityChange: lineItem.quantity,
+      costPerUnit: lineItem.unitPrice || 0,
+      totalCost: (lineItem.unitPrice || 0) * lineItem.quantity,
+      notes: `PO ${poNumber} — new item created from Prendio PO`,
+      userId: syncedBy
+    });
+
+    console.log(`[inventorySync] Created "${newItem.item}" (${newItem._id})`);
+    return { action: 'created', itemId: newItem._id, itemName: newItem.item, quantity: lineItem.quantity };
   }
 }
 
