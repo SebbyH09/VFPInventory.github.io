@@ -14,7 +14,6 @@ async function syncPOToInventory(poId, syncedBy) {
   const po = await PurchaseOrder.findById(poId);
   if (!po) throw new Error(`PurchaseOrder ${poId} not found.`);
   if (po.status === 'processed') throw new Error(`PO ${poId} already synced.`);
-  if (po.status === 'rejected')  throw new Error(`PO ${poId} was rejected.`);
 
   console.log(`[inventorySync] Syncing PO ${po.parsedData.poNumber || poId} (${syncedBy})`);
 
@@ -122,21 +121,8 @@ async function processLineItem(lineItem, vendor, poNumber, syncedBy) {
   }
 }
 
-async function rejectPO(poId, rejectedBy, reason) {
-  const po = await PurchaseOrder.findById(poId);
-  if (!po) throw new Error(`PurchaseOrder ${poId} not found.`);
-
-  po.status = 'rejected';
-  po.rejectedAt = new Date();
-  po.rejectedBy = rejectedBy;
-  po.rejectionReason = reason || 'No reason provided';
-  await po.save();
-
-  return po;
-}
-
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-module.exports = { syncPOToInventory, rejectPO };
+module.exports = { syncPOToInventory };
