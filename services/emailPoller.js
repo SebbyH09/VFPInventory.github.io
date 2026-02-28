@@ -125,13 +125,7 @@ async function processEmail(parsedEmail) {
         filename:     attachment.filename
       });
 
-      // Determine status based on parse quality.
-      // If there are warnings (missing fields), route to manual review.
-      // If it parsed cleanly, auto-apply to inventory.
-      const hasWarnings = parsedData.warnings && parsedData.warnings.length > 0;
-      const status = hasWarnings ? 'pending_review' : 'auto_approved';
-
-      // Save the PO record
+      // Save the PO record — all POs are auto-approved and synced immediately
       const poRecord = await PurchaseOrder.create({
         source: 'email',
         emailMetadata: {
@@ -141,19 +135,18 @@ async function processEmail(parsedEmail) {
         },
         rawText,
         parsedData,
-        status,
+        status: 'auto_approved',
         emailReceivedAt: date || new Date()
       });
 
-      console.log(`[emailPoller] PO saved: ${poRecord._id} (status: ${status})`);
+      console.log(`[emailPoller] PO saved: ${poRecord._id} (status: auto_approved)`);
 
-      // If it parsed cleanly, automatically sync to inventory
-      if (status === 'auto_approved') {
-        await syncPOToInventory(poRecord._id, 'system_auto');
-        console.log(`[emailPoller] PO ${poRecord._id} auto-synced to inventory.`);
-      } else {
-        console.log(`[emailPoller] PO ${poRecord._id} queued for review — warnings: ${parsedData.warnings.join(', ')}`);
+      if (parsedData.warnings && parsedData.warnings.length > 0) {
+        console.log(`[emailPoller] PO ${poRecord._id} has parse warnings: ${parsedData.warnings.join(', ')}`);
       }
+
+      await syncPOToInventory(poRecord._id, 'system_auto');
+      console.log(`[emailPoller] PO ${poRecord._id} auto-synced to inventory.`);
 
       results.push(poRecord);
     } catch (err) {

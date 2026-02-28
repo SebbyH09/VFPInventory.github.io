@@ -6,11 +6,8 @@
  * Lifecycle:
  *   email arrives with PO PDF
  *       ↓
- *   [status: auto_approved]   ← clean parse, immediately synced to inventory
- *   [status: pending_review]  ← parse had warnings, manager must review
- *       ↓
- *   [status: processed]       ← after manager approves + inventory updated
- *   [status: rejected]        ← manager rejected it
+ *   [status: auto_approved]   ← immediately synced to inventory
+ *   [status: processed]       ← after inventory update completes
  *
  * emailReceivedAt is used by the cleanup job to delete emails older than 7 days.
  * The PO record itself is kept permanently for your procurement audit trail.
@@ -69,8 +66,8 @@ const PurchaseOrderSchema = new mongoose.Schema({
   // ── Workflow status ──
   status: {
     type: String,
-    enum: ['auto_approved', 'pending_review', 'processed', 'rejected'],
-    default: 'pending_review',
+    enum: ['auto_approved', 'processed'],
+    default: 'auto_approved',
     index: true
   },
 
@@ -79,21 +76,12 @@ const PurchaseOrderSchema = new mongoose.Schema({
   syncedBy:    { type: String, default: null },   // user ID or 'system_auto'
   syncResults: mongoose.Schema.Types.Mixed,
 
-  // Rejection details
-  rejectedAt:      Date,
-  rejectedBy:      String,
-  rejectionReason: String,
-
   // ── Timestamps ──
   emailReceivedAt: { type: Date, default: Date.now },  // Used by cleanup job
   createdAt:       { type: Date, default: Date.now }
 });
 
 // ── Common queries ──
-
-PurchaseOrderSchema.statics.getPendingReviews = function () {
-  return this.find({ status: 'pending_review' }).sort({ createdAt: -1 });
-};
 
 PurchaseOrderSchema.statics.getByPONumber = function (poNumber) {
   return this.findOne({ 'parsedData.poNumber': poNumber });
