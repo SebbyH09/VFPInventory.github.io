@@ -12,7 +12,7 @@
     "@sendgrid/mail": "^8.1.6",
     "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.3",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.3.1",
     "ejs": "^3.1.9",
     "exceljs": "^4.4.0",
     "express": "^4.18.2",
@@ -24,10 +24,7 @@
     "helmet": "^8.1.0",
     "html": "^1.0.0",
     "http-server": "^14.1.1",
-<<<<<<< HEAD
-=======
     "imapflow": "^1.2.10",
->>>>>>> c5350096c90ece4e993d45e81eb0b738ef941696
     "mailparser": "^3.9.3",
     "mongoose": "^7.5.2",
     "multer": "^2.0.2",
