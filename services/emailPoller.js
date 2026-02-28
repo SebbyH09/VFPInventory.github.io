@@ -4,11 +4,16 @@
  * Polls a Gmail inbox for Prendio PO confirmation emails, processes any
  * PDF attachments, and handles automatic email cleanup after 7 days.
  *
+ * Uses ImapFlow (replaces the deprecated `imap` package which had 3 high-
+ * severity vulnerabilities). ImapFlow is promise-based, so no callback wrappers
+ * are needed.
+ *
  * Two scheduled jobs run in parallel:
- *   1. pollInboxForPOs()   — every 15 min, finds new unread PO emails
+ *   1. pollInboxForPOs()   — every N min, finds new unread PO emails
  *   2. cleanupOldEmails()  — once daily, permanently deletes emails older than 7 days
  */
-const Imap = require('imap');
+
+const { ImapFlow } = require('imapflow');
 const { simpleParser } = require('mailparser');
 const { extractTextFromPDF } = require('./pdfExtractor');
 const { parsePOData } = require('./poParser');
@@ -19,25 +24,16 @@ const PurchaseOrder = require('../models/PurchaseOrder');
 // IMAP CONNECTION
 // ─────────────────────────────────────────────
 
-function createImapConnection() {
-  return new Imap({
-    user: process.env.PARSER_EMAIL,
-    password: process.env.PARSER_APP_PASSWORD,
+function createClient() {
+  return new ImapFlow({
     host: 'imap.gmail.com',
     port: 993,
-    tls: true,
-    tlsOptions: { rejectUnauthorized: true },
-    authTimeout: 10000
-  });
-}
-
-// Promisified wrapper — IMAP uses callbacks but we want async/await throughout
-function withImap(fn) {
-  return new Promise((resolve, reject) => {
-    const imap = createImapConnection();
-    imap.once('ready', () => fn(imap, resolve, reject));
-    imap.once('error', reject);
-    imap.connect();
+    secure: true,
+    auth: {
+      user: process.env.PARSER_EMAIL,
+      pass: process.env.PARSER_APP_PASSWORD
+    },
+    logger: false
   });
 }
 
@@ -48,56 +44,53 @@ function withImap(fn) {
 async function pollInboxForPOs() {
   console.log(`[emailPoller] Polling inbox at ${new Date().toISOString()}`);
 
-  return withImap((imap, resolve, reject) => {
-    imap.openBox('INBOX', false, (err) => {
-      if (err) { imap.end(); return reject(err); }
+  const client = createClient();
+  const results = [];
 
-      const searchCriteria = [
-        'UNSEEN',
-        ['FROM', process.env.PRENDIO_EMAIL_SENDER || 'noreply@procure.prendio.com']
-      ];
+  try {
+    await client.connect();
 
-      imap.search(searchCriteria, async (err, uids) => {
-        if (err) { imap.end(); return reject(err); }
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      const sender = process.env.PRENDIO_EMAIL_SENDER || 'noreply@procure.prendio.com';
 
-        if (!uids || uids.length === 0) {
-          console.log('[emailPoller] No new PO emails.');
-          imap.end();
-          return resolve([]);
-        }
-
-        console.log(`[emailPoller] Found ${uids.length} new Prendio email(s).`);
-        const fetch = imap.fetch(uids, { bodies: 'BODY[]', markSeen: true });
-        const results = [];
-
-        fetch.on('message', (msg) => {
-          let rawEmail = '';
-          msg.on('body', (stream) => {
-            stream.on('data', (chunk) => rawEmail += chunk.toString('utf8'));
-          });
-          msg.once('end', async () => {
-            try {
-              const parsed = await simpleParser(rawEmail);
-              const result = await processEmail(parsed);
-              if (result) results.push(result);
-            } catch (err) {
-              console.error('[emailPoller] Error processing email:', err.message);
-            }
-          });
-        });
-
-        fetch.once('end', () => {
-          imap.end();
-          resolve(results);
-        });
-        fetch.once('error', (err) => {
-          console.error('[emailPoller] Fetch error:', err.message);
-          imap.end();
-          reject(err);
-        });
+      // Search for unseen emails from the Prendio sender
+      const uids = await client.search({
+        seen: false,
+        from: sender
       });
-    });
-  });
+
+      if (!uids || uids.length === 0) {
+        console.log('[emailPoller] No new PO emails.');
+        return results;
+      }
+
+      console.log(`[emailPoller] Found ${uids.length} new Prendio email(s).`);
+
+      // Fetch and process each message
+      for (const uid of uids) {
+        try {
+          const message = await client.fetchOne(uid, { source: true });
+          const parsed = await simpleParser(message.source);
+          const result = await processEmail(parsed);
+          if (result) results.push(...(Array.isArray(result) ? result : [result]));
+
+          // Mark as seen
+          await client.messageFlagsAdd(uid, ['\\Seen']);
+        } catch (err) {
+          console.error(`[emailPoller] Error processing UID ${uid}:`, err.message);
+        }
+      }
+    } finally {
+      lock.release();
+    }
+  } catch (err) {
+    console.error('[emailPoller] Poll error:', err.message);
+  } finally {
+    await client.logout().catch(() => {});
+  }
+
+  return results;
 }
 
 // ─────────────────────────────────────────────
@@ -178,76 +171,61 @@ async function processEmail(parsedEmail) {
 /**
  * Permanently deletes Prendio emails older than 7 days from the Gmail inbox.
  *
- * Gmail's IMAP deletion flow:
+ * ImapFlow deletion flow:
  *   1. Search for Prendio emails received before the 7-day cutoff
  *   2. Add the \Deleted flag to each one
- *   3. Call EXPUNGE to permanently remove them
+ *   3. Call expunge to permanently remove them
  *
  * Runs once daily (see scheduler below).
  */
 async function cleanupOldEmails() {
   console.log(`[emailPoller] Running cleanup at ${new Date().toISOString()}`);
 
-  return withImap((imap, resolve, reject) => {
-    imap.openBox('INBOX', false, (err) => {
-      if (err) { imap.end(); return reject(err); }
+  const client = createClient();
+  let deletedCount = 0;
+
+  try {
+    await client.connect();
+
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      const sender = process.env.PRENDIO_EMAIL_SENDER || 'noreply@procure.prendio.com';
 
       // Calculate the cutoff date (7 days ago)
-      // IMAP BEFORE format: DD-Mon-YYYY  e.g. "15-Jan-2024"
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - 7);
-      const imapDateStr = formatImapDate(cutoffDate);
 
-      console.log(`[emailPoller] Deleting Prendio emails before ${imapDateStr}`);
+      console.log(`[emailPoller] Deleting Prendio emails before ${cutoffDate.toISOString()}`);
 
-      const searchCriteria = [
-        ['BEFORE', imapDateStr],
-        ['FROM', process.env.PRENDIO_EMAIL_SENDER || 'noreply@procure.prendio.com']
-      ];
-
-      imap.search(searchCriteria, (err, uids) => {
-        if (err) { imap.end(); return reject(err); }
-
-        if (!uids || uids.length === 0) {
-          console.log('[emailPoller] No old emails to delete.');
-          imap.end();
-          return resolve(0);
-        }
-
-        console.log(`[emailPoller] Flagging ${uids.length} email(s) for deletion.`);
-
-        // Step 1: Flag as deleted
-        imap.addFlags(uids, '\\Deleted', (err) => {
-          if (err) { imap.end(); return reject(err); }
-
-          // Step 2: Expunge — permanently removes flagged emails
-          imap.expunge((err) => {
-            if (err) { imap.end(); return reject(err); }
-
-            console.log(`[emailPoller] Deleted ${uids.length} old Prendio email(s).`);
-            imap.end();
-            resolve(uids.length);
-          });
-        });
+      // Search for old emails from the Prendio sender
+      const uids = await client.search({
+        from: sender,
+        before: cutoffDate
       });
-    });
-  });
-}
 
-// ─────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────
+      if (!uids || uids.length === 0) {
+        console.log('[emailPoller] No old emails to delete.');
+        return 0;
+      }
 
-/**
- * Format a JS Date to IMAP's required format: DD-Mon-YYYY
- * e.g., new Date('2024-01-15') → "15-Jan-2024"
- */
-function formatImapDate(date) {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const day   = date.getDate().toString().padStart(2, '0');
-  const month = months[date.getMonth()];
-  const year  = date.getFullYear();
-  return `${day}-${month}-${year}`;
+      console.log(`[emailPoller] Flagging ${uids.length} email(s) for deletion.`);
+
+      // Flag as deleted and expunge
+      await client.messageFlagsAdd(uids, ['\\Deleted']);
+      await client.messageDelete(uids);
+
+      deletedCount = uids.length;
+      console.log(`[emailPoller] Deleted ${deletedCount} old Prendio email(s).`);
+    } finally {
+      lock.release();
+    }
+  } catch (err) {
+    console.error('[emailPoller] Cleanup error:', err.message);
+  } finally {
+    await client.logout().catch(() => {});
+  }
+
+  return deletedCount;
 }
 
 // ─────────────────────────────────────────────

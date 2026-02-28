@@ -103,6 +103,7 @@ const uploadRouter = require('./routes/upload')
 const historyRouter = require('./routes/history')
 const consumeRouter = require('./routes/consume')
 const ordersRouter = require('./routes/orders')
+const purchaseOrderRoutes = require('./routes/purchaseOrders')
 
 
 app.use((req, res, next) => {
@@ -156,6 +157,7 @@ app.use('/upload', requireAuth, uploadRouter);
 app.use('/history', requireAuth, historyRouter);
 app.use('/consume', requireAuth, consumeRouter);
 app.use('/orders', requireAuth, ordersRouter);
+app.use('/purchase-orders', requireAuth, purchaseOrderRoutes);
 app.use('/', homeRouter);
 
 
@@ -167,6 +169,9 @@ const MONGODB_URL = isDevelopment
   : process.env.DATABASE_URL;
 
 // Database connection with retry logic
+// Start email polling after DB connects (production only)
+const { startPolling } = require('./services/emailPoller');
+
 const connectWithRetry = (retries = 5, delay = 5000) => {
   mongoose.connect(MONGODB_URL, {
     serverSelectionTimeoutMS: 5000,
@@ -174,6 +179,10 @@ const connectWithRetry = (retries = 5, delay = 5000) => {
   .then(() => {
     if (isDevelopment) {
       console.log('Connected to MongoDB (Development)');
+    }
+    // Start Prendio email polling in production
+    if (!isDevelopment) {
+      startPolling(15); // Poll every 15 minutes, cleanup runs daily
     }
   })
   .catch(err => {
