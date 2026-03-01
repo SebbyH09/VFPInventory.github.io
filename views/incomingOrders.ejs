@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Incoming Orders</title>
+    <link rel="stylesheet" href="/orders.css">
+</head>
+<body>
+    <div class="order-container">
+        <h2>Incoming Orders</h2>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="incoming-error-banner"><%= error %></div>
+        <% } %>
+
+        <div class="mobile-tabs" id="mobile-tabs">
+            <button class="mobile-tab active" id="tab-pos">Incoming POs</button>
+            <button class="mobile-tab" id="tab-match">Match Items</button>
+        </div>
+
+        <div class="receive-layout">
+
+            <!-- Left Panel: List of pending purchase orders -->
+            <div class="left-panel" id="left-panel">
+                <h3>Pending Purchase Orders</h3>
+                <div class="order-select-list" id="po-select-list">
+                    <% if (incomingPOs && incomingPOs.length > 0) { %>
+                        <% incomingPOs.forEach(function(po) { %>
+                            <div class="order-select-card" data-po-id="<%= po._id %>">
+                                <div class="order-select-header">
+                                    <span class="order-number">
+                                        <%= (po.parsedData && po.parsedData.poNumber) ? po.parsedData.poNumber : 'No PO #' %>
+                                    </span>
+                                    <span class="order-status status-incoming">Pending Review</span>
+                                </div>
+                                <div class="order-select-meta">
+                                    <span><%= (po.parsedData && po.parsedData.vendor) ? po.parsedData.vendor : 'Unknown Vendor' %></span>
+                                    <span><%= (po.parsedData && po.parsedData.lineItems) ? po.parsedData.lineItems.length : 0 %> item(s)</span>
+                                </div>
+                                <div class="order-select-meta">
+                                    <span><%= new Date(po.createdAt).toLocaleDateString() %></span>
+                                    <% if (po.parsedData && po.parsedData.total) { %>
+                                        <span>$<%= po.parsedData.total.toFixed(2) %></span>
+                                    <% } %>
+                                </div>
+                                <% if (po.emailMetadata && po.emailMetadata.subject) { %>
+                                    <div class="po-email-subject"><%= po.emailMetadata.subject %></div>
+                                <% } %>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="no-orders">
+                            <p>No incoming orders to review.</p>
+                            <p class="no-orders-hint">Orders appear here when a purchase order email is received and processed.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Right Panel: Item matching -->
+            <div class="right-panel" id="right-panel">
+                <div class="receive-header">
+                    <div>
+                        <h3>Match Items to Inventory</h3>
+                        <p class="panel-hint" id="panel-hint">Select a purchase order from the list to begin.</p>
+                    </div>
+                    <button class="submit-order-btn" id="submit-order-btn" disabled>Submit Order</button>
+                </div>
+
+                <div class="notes-section" id="notes-section" style="display: none;">
+                    <input type="text" id="order-notes" placeholder="Order notes (optional)...">
+                </div>
+
+                <div class="receive-items-container" id="matching-container">
+                    <div class="empty-message">
+                        Select a purchase order from the left panel. You will then be able to match each line item to an inventory item before submitting to Open Orders.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Server-side data for incomingOrders.js — not executable scripts -->
+    <script type="application/json" id="incoming-pos-data"><%- JSON.stringify(incomingPOs.map(function(po) {
+        return {
+            id: po._id.toString(),
+            poNumber: (po.parsedData && po.parsedData.poNumber) || '',
+            vendor: (po.parsedData && po.parsedData.vendor) || '',
+            orderDate: (po.parsedData && po.parsedData.orderDate) || '',
+            lineItems: (po.parsedData && po.parsedData.lineItems) || [],
+            total: (po.parsedData && po.parsedData.total) || null
+        };
+    })) %></script>
+
+    <script type="application/json" id="inventory-items-data"><%- JSON.stringify(inventoryItems.map(function(item) {
+        return {
+            id: item._id.toString(),
+            name: item.item,
+            brand: item.brand || '',
+            catalog: item.catalog || '',
+            vendor: item.vendor || '',
+            cost: item.cost || 0
+        };
+    })) %></script>
+
+    <script defer src="/incomingOrders.js"></script>
+</body>
+</html>

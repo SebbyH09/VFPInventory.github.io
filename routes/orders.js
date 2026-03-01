@@ -3,6 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const inventory = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
+const PurchaseOrder = require('../models/PurchaseOrder');
 const requireAuth = require('../Middleware/auth');
 
 // Generate order number: ORD-YYYYMMDD-XXXX
@@ -244,6 +245,97 @@ router.post('/receive', requireAuth, async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: 'Error receiving items. Please try again.' });
+    }
+});
+
+// GET /orders/incoming - render incoming orders page
+router.get('/incoming', requireAuth, async (req, res) => {
+    try {
+        const incomingPOs = await PurchaseOrder.find({ status: 'pending_review' })
+            .sort({ createdAt: -1 });
+        const inventoryItems = await inventory.find({}).sort({ item: 1 });
+        res.render('incomingOrders', {
+            incomingPOs: incomingPOs,
+            inventoryItems: inventoryItems,
+            user: req.session.user
+        });
+    } catch (error) {
+        res.render('incomingOrders', {
+            incomingPOs: [],
+            inventoryItems: [],
+            user: req.session.user,
+            error: 'Failed to load incoming orders'
+        });
+    }
+});
+
+// POST /orders/incoming/:id/submit - convert a reviewed PO into an open Order
+router.post('/incoming/:id/submit', requireAuth, async (req, res) => {
+    try {
+        const { matchedItems, notes } = req.body;
+
+        const po = await PurchaseOrder.findById(req.params.id);
+        if (!po) {
+            return res.status(404).json({ message: 'Purchase order not found' });
+        }
+        if (po.status !== 'pending_review') {
+            return res.status(400).json({ message: 'This order has already been processed' });
+        }
+        if (!matchedItems || matchedItems.length === 0) {
+            return res.status(400).json({ message: 'At least one item must be matched to an inventory item' });
+        }
+
+        const orderNumber = await generateOrderNumber();
+        const orderItems = [];
+
+        for (const match of matchedItems) {
+            const invItem = await inventory.findById(match.inventoryItemId);
+            if (!invItem) continue;
+            orderItems.push({
+                itemId: invItem._id,
+                itemName: invItem.item,
+                brand: invItem.brand || '',
+                quantityOrdered: parseInt(match.quantity, 10) || 1,
+                quantityReceived: 0,
+                cost: parseFloat(match.unitPrice) || invItem.cost || 0
+            });
+        }
+
+        if (orderItems.length === 0) {
+            return res.status(400).json({ message: 'No valid inventory items found for matched items' });
+        }
+
+        const poNumber = (po.parsedData && po.parsedData.poNumber) ? po.parsedData.poNumber : po._id.toString();
+        const order = await Order.create({
+            orderNumber,
+            status: 'open',
+            items: orderItems,
+            createdBy: req.session.user?.email || 'unknown',
+            notes: notes || ('From PO: ' + poNumber)
+        });
+
+        for (const oi of orderItems) {
+            await InventoryHistory.create({
+                itemId: oi.itemId,
+                itemName: oi.itemName,
+                changeType: 'order_placed',
+                notes: `Order ${orderNumber}: ordered ${oi.quantityOrdered} unit(s) from PO ${poNumber}`,
+                userId: req.session.user?.email || 'unknown'
+            });
+        }
+
+        po.status = 'processed';
+        po.syncedAt = new Date();
+        po.syncedBy = req.session.user?.email || 'unknown';
+        await po.save();
+
+        res.json({
+            message: 'Order created successfully',
+            orderNumber: order.orderNumber,
+            orderId: order._id
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating order. Please try again.' });
     }
 });
 
