@@ -17,7 +17,6 @@ const { ImapFlow } = require('imapflow');
 const { simpleParser } = require('mailparser');
 const { extractTextFromPDF } = require('./pdfExtractor');
 const { parsePOData } = require('./poParser');
-const { syncPOToInventory } = require('./inventorySync');
 const PurchaseOrder = require('../models/PurchaseOrder');
 
 // ─────────────────────────────────────────────
@@ -125,7 +124,7 @@ async function processEmail(parsedEmail) {
         filename:     attachment.filename
       });
 
-      // Save the PO record — all POs are auto-approved and synced immediately
+      // Save the PO record — queued for manual review in Incoming Orders
       const poRecord = await PurchaseOrder.create({
         source: 'email',
         emailMetadata: {
@@ -135,18 +134,15 @@ async function processEmail(parsedEmail) {
         },
         rawText,
         parsedData,
-        status: 'auto_approved',
+        status: 'pending_review',
         emailReceivedAt: date || new Date()
       });
 
-      console.log(`[emailPoller] PO saved: ${poRecord._id} (status: auto_approved)`);
+      console.log(`[emailPoller] PO saved: ${poRecord._id} (status: pending_review — awaiting review in Incoming Orders)`);
 
       if (parsedData.warnings && parsedData.warnings.length > 0) {
         console.log(`[emailPoller] PO ${poRecord._id} has parse warnings: ${parsedData.warnings.join(', ')}`);
       }
-
-      await syncPOToInventory(poRecord._id, 'system_auto');
-      console.log(`[emailPoller] PO ${poRecord._id} auto-synced to inventory.`);
 
       results.push(poRecord);
     } catch (err) {

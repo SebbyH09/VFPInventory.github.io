@@ -66,8 +66,8 @@ const PurchaseOrderSchema = new mongoose.Schema({
   // ── Workflow status ──
   status: {
     type: String,
-    enum: ['auto_approved', 'processed'],
-    default: 'auto_approved',
+    enum: ['pending_review', 'auto_approved', 'processed'],
+    default: 'pending_review',
     index: true
   },
 
