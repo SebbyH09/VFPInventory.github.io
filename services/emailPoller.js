@@ -8,6 +8,10 @@
  * severity vulnerabilities). ImapFlow is promise-based, so no callback wrappers
  * are needed.
  *
+ * Authentication uses Google OAuth2 with a refresh token. The OAuth2 client
+ * automatically obtains and caches access tokens, refreshing them as needed.
+ * Required env vars: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN.
+ *
  * Two scheduled jobs run in parallel:
  *   1. pollInboxForPOs()   — every N min, finds new unread PO emails
  *   2. cleanupOldEmails()  — once daily, permanently deletes emails older than 7 days
@@ -15,22 +19,50 @@
 
 const { ImapFlow } = require('imapflow');
 const { simpleParser } = require('mailparser');
+const { OAuth2Client } = require('google-auth-library');
 const { extractTextFromPDF } = require('./pdfExtractor');
 const { parsePOData } = require('./poParser');
 const PurchaseOrder = require('../models/PurchaseOrder');
 
 // ─────────────────────────────────────────────
+// GOOGLE OAUTH2
+// ─────────────────────────────────────────────
+
+const oauth2Client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'https://developers.google.com/oauthplayground' // redirect URI used during token generation
+);
+
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+});
+
+/**
+ * Gets a valid access token, refreshing automatically if expired.
+ */
+async function getAccessToken() {
+  const { token } = await oauth2Client.getAccessToken();
+  if (!token) {
+    throw new Error('Failed to obtain OAuth2 access token — check GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN');
+  }
+  return token;
+}
+
+// ─────────────────────────────────────────────
 // IMAP CONNECTION
 // ─────────────────────────────────────────────
 
-function createClient() {
+async function createClient() {
+  const accessToken = await getAccessToken();
+
   return new ImapFlow({
     host: 'imap.gmail.com',
     port: 993,
     secure: true,
     auth: {
       user: process.env.PARSER_EMAIL,
-      pass: process.env.PARSER_APP_PASSWORD
+      accessToken
     },
     logger: false
   });
@@ -43,10 +75,11 @@ function createClient() {
 async function pollInboxForPOs() {
   console.log(`[emailPoller] Polling inbox at ${new Date().toISOString()}`);
 
-  const client = createClient();
   const results = [];
+  let client;
 
   try {
+    client = await createClient();
     await client.connect();
 
     const lock = await client.getMailboxLock('INBOX');
@@ -86,7 +119,7 @@ async function pollInboxForPOs() {
   } catch (err) {
     console.error('[emailPoller] Poll error:', err.message);
   } finally {
-    await client.logout().catch(() => {});
+    if (client) await client.logout().catch(() => {});
   }
 
   return results;
@@ -170,10 +203,11 @@ async function processEmail(parsedEmail) {
 async function cleanupOldEmails() {
   console.log(`[emailPoller] Running cleanup at ${new Date().toISOString()}`);
 
-  const client = createClient();
+  let client;
   let deletedCount = 0;
 
   try {
+    client = await createClient();
     await client.connect();
 
     const lock = await client.getMailboxLock('INBOX');
@@ -211,7 +245,7 @@ async function cleanupOldEmails() {
   } catch (err) {
     console.error('[emailPoller] Cleanup error:', err.message);
   } finally {
-    await client.logout().catch(() => {});
+    if (client) await client.logout().catch(() => {});
   }
 
   return deletedCount;
