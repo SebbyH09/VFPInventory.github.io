@@ -79,46 +79,49 @@
             return;
         }
 
-        const rows = po.lineItems.map(function (item, index) {
-            const suggested = suggestMatch(item);
-            const optionsHtml = buildOptions(suggested ? suggested.id : '');
+        var tableHeader =
+            '<table class="po-line-items-table">' +
+                '<thead><tr>' +
+                    '<th>Qty</th>' +
+                    '<th>Item Code / Description</th>' +
+                    '<th>PO#</th>' +
+                    '<th>Unit Price</th>' +
+                    '<th>Match</th>' +
+                '</tr></thead>' +
+                '<tbody>';
+
+        var tableRows = po.lineItems.map(function (item, index) {
+            var suggested = suggestMatch(item);
+            var optionsHtml = buildOptions(suggested ? suggested.id : '');
+            var codeDesc = '';
+            if (item.catalogNumber) codeDesc += escapeHtml(item.catalogNumber) + ' — ';
+            codeDesc += escapeHtml(item.description || 'No description');
+
             return (
-                '<div class="match-item-card" data-line-index="' + index + '">' +
-                    '<div class="match-item-po-details">' +
-                        '<div class="match-item-description">' + escapeHtml(item.description || 'No description') + '</div>' +
-                        '<div class="match-item-meta">' +
-                            (item.lineNumber   ? '<span>Line ' + item.lineNumber + '</span>' : '') +
-                            (item.catalogNumber ? '<span>Cat#: ' + escapeHtml(item.catalogNumber) + '</span>' : '') +
-                            '<span>Qty: ' + (item.quantity || 0) + '</span>' +
-                            (item.unitPrice  ? '<span>Unit: $' + Number(item.unitPrice).toFixed(2)  + '</span>' : '') +
-                            (item.totalPrice ? '<span>Total: $' + Number(item.totalPrice).toFixed(2) + '</span>' : '') +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="match-item-controls">' +
-                        '<div class="match-search-row">' +
-                            '<label>Search inventory:</label>' +
-                            '<input type="text" class="match-search-input" placeholder="Filter items..." data-line-index="' + index + '">' +
-                        '</div>' +
+                '<tr class="po-line-row" data-line-index="' + index + '">' +
+                    '<td class="po-col-qty">' + (item.quantity || 0) + '</td>' +
+                    '<td class="po-col-desc">' + codeDesc + '</td>' +
+                    '<td class="po-col-po">' + escapeHtml(po.poNumber || 'N/A') + '</td>' +
+                    '<td class="po-col-price">' + (item.unitPrice ? '$' + Number(item.unitPrice).toFixed(2) : '—') + '</td>' +
+                    '<td class="po-col-match">' +
                         '<select class="match-inv-select" data-line-index="' + index + '">' +
                             optionsHtml +
                         '</select>' +
-                        (suggested ? '<p class="match-suggestion">Suggested match: <strong>' + escapeHtml(suggested.name) + '</strong></p>' : '') +
-                        '<div class="match-quantity-row">' +
-                            '<label>Quantity to order:</label>' +
-                            '<input type="number" class="match-qty-input" value="' + (item.quantity || 1) + '" min="1" data-line-index="' + index + '">' +
-                        '</div>' +
-                        '<div class="match-skip-row">' +
+                        (suggested ? '<p class="match-suggestion">Suggested: ' + escapeHtml(suggested.name) + '</p>' : '') +
+                        '<input type="text" class="match-search-input" placeholder="Filter..." data-line-index="' + index + '">' +
+                        '<div class="po-row-actions">' +
+                            '<input type="number" class="match-qty-input" value="' + (item.quantity || 1) + '" min="1" data-line-index="' + index + '" title="Order qty">' +
                             '<label class="skip-label">' +
                                 '<input type="checkbox" class="skip-checkbox" data-line-index="' + index + '">' +
-                                ' Skip this item (no inventory match)' +
+                                ' Skip' +
                             '</label>' +
                         '</div>' +
-                    '</div>' +
-                '</div>'
+                    '</td>' +
+                '</tr>'
             );
         }).join('');
 
-        matchingContainer.innerHTML = '<div class="match-items-list">' + rows + '</div>';
+        matchingContainer.innerHTML = tableHeader + tableRows + '</tbody></table>';
 
         // Wire up search inputs
         matchingContainer.querySelectorAll('.match-search-input').forEach(function (input) {
@@ -130,16 +133,16 @@
         // Wire up skip checkboxes
         matchingContainer.querySelectorAll('.skip-checkbox').forEach(function (cb) {
             cb.addEventListener('change', function () {
-                var card = this.closest('.match-item-card');
-                var sel  = card.querySelector('.match-inv-select');
-                var qty  = card.querySelector('.match-qty-input');
-                var srch = card.querySelector('.match-search-input');
+                var row = this.closest('.po-line-row');
+                var sel  = row.querySelector('.match-inv-select');
+                var qty  = row.querySelector('.match-qty-input');
+                var srch = row.querySelector('.match-search-input');
                 var skipped = this.checked;
                 sel.disabled  = skipped;
                 qty.disabled  = skipped;
                 srch.disabled = skipped;
-                card.classList.toggle('skipped', skipped);
-                card.classList.remove('match-error');
+                row.classList.toggle('skipped', skipped);
+                row.classList.remove('match-error');
             });
         });
     }
@@ -229,21 +232,21 @@
             var matchedItems = [];
             var hasUnresolved = false;
 
-            matchingContainer.querySelectorAll('.match-item-card').forEach(function (card) {
-                var lineIndex = parseInt(card.dataset.lineIndex, 10);
-                var skipCb   = card.querySelector('.skip-checkbox');
+            matchingContainer.querySelectorAll('.po-line-row').forEach(function (row) {
+                var lineIndex = parseInt(row.dataset.lineIndex, 10);
+                var skipCb   = row.querySelector('.skip-checkbox');
 
                 if (skipCb && skipCb.checked) return; // intentionally skipped
 
-                var sel = card.querySelector('.match-inv-select');
-                var qty = card.querySelector('.match-qty-input');
+                var sel = row.querySelector('.match-inv-select');
+                var qty = row.querySelector('.match-qty-input');
 
                 if (!sel || !sel.value) {
-                    card.classList.add('match-error');
+                    row.classList.add('match-error');
                     hasUnresolved = true;
                     return;
                 }
-                card.classList.remove('match-error');
+                row.classList.remove('match-error');
 
                 matchedItems.push({
                     lineIndex:       lineIndex,
