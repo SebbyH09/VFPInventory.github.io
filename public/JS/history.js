@@ -920,7 +920,7 @@ function renderConsumptionRateTable(tile, data) {
             <table class="analytics-table">
                 <thead><tr>
                     <th>Item</th><th>Total Consumed</th><th>Per Day</th>
-                    <th>Per Week</th><th>Per Month</th><th>Current Qty</th><th>Unit Cost</th>
+                    <th>Per Week</th><th>Per Month</th><th>Current Qty</th><th>Unit Cost</th><th>Total Cost</th>
                 </tr></thead>
                 <tbody>
                     ${items.map(i => `<tr>
@@ -931,6 +931,7 @@ function renderConsumptionRateTable(tile, data) {
                         <td>${i.perMonth}</td>
                         <td>${i.currentQty}</td>
                         <td>${formatCurrency(i.cost)}</td>
+                        <td>${formatCurrency(i.totalCost)}</td>
                     </tr>`).join('')}
                 </tbody>
             </table>
@@ -1096,8 +1097,8 @@ function exportToExcel() {
                 break;
             }
             case 'consumptionRate': {
-                const rows = [['Item', 'Total Consumed', 'Per Day', 'Per Week', 'Per Month', 'Current Qty', 'Unit Cost']];
-                data.consumption.rates.forEach(i => rows.push([i.item, i.totalConsumed, i.perDay, i.perWeek, i.perMonth, i.currentQty, i.cost]));
+                const rows = [['Item', 'Total Consumed', 'Per Day', 'Per Week', 'Per Month', 'Current Qty', 'Unit Cost', 'Total Cost']];
+                data.consumption.rates.forEach(i => rows.push([i.item, i.totalConsumed, i.perDay, i.perWeek, i.perMonth, i.currentQty, i.cost, i.totalCost]));
                 XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Consumption Rate');
                 break;
             }

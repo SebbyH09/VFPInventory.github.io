@@ -37,6 +37,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     })();
 
+    // Add All Recommended button
+    const addAllRecommendedBtn = document.getElementById('addAllRecommendedBtn');
+    if (addAllRecommendedBtn) {
+        addAllRecommendedBtn.addEventListener('click', function () {
+            const recommendedRows = document.querySelectorAll('.recommended-table tbody tr');
+            recommendedRows.forEach(row => {
+                const itemId = row.dataset.itemId;
+                if (!cart.has(itemId)) {
+                    cart.set(itemId, {
+                        itemId: itemId,
+                        name: row.dataset.itemName,
+                        brand: row.dataset.itemBrand,
+                        quantity: 1,
+                        cost: parseFloat(row.dataset.itemCost) || 0,
+                        currentQty: parseInt(row.dataset.itemQuantity, 10) || 0
+                    });
+                }
+            });
+            renderCart();
+
+            // Auto-switch to cart tab on mobile
+            const cartTab = document.querySelector('.mobile-tab[data-tab="cart"]');
+            if (cartTab && window.innerWidth <= 768) {
+                cartTab.click();
+            }
+        });
+    }
+
     // Search functionality
     function filterTable() {
         const query = searchBar.value.toLowerCase().trim();

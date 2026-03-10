@@ -280,7 +280,8 @@ router.get('/analytics', async (req, res) => {
           perWeek: +((data.total / daySpan) * 7).toFixed(2),
           perMonth: +((data.total / daySpan) * 30).toFixed(2),
           currentQty: inv?.currentquantity || 0,
-          cost: inv?.cost || 0
+          cost: inv?.cost || 0,
+          totalCost: +(data.total * (inv?.cost || 0)).toFixed(2)
         };
       })
       .sort((a, b) => b.totalConsumed - a.totalConsumed);

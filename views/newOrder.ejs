@@ -8,6 +8,50 @@
     <div class="order-container">
         <h2>New Order</h2>
 
+        <!-- Recommended Order Section -->
+        <% const recommendedItems = inventoryItems ? inventoryItems.filter(item => item.minimumquantity > 0 && item.currentquantity <= item.minimumquantity) : []; %>
+        <% if (recommendedItems.length > 0) { %>
+        <div class="recommended-order-section">
+            <div class="recommended-header">
+                <h3>Recommended Order</h3>
+                <span class="recommended-count"><%= recommendedItems.length %> item<%= recommendedItems.length !== 1 ? 's' : '' %> at or below minimum</span>
+                <button id="addAllRecommendedBtn" class="add-recommended-btn">Add All to Order</button>
+            </div>
+            <div class="recommended-table-wrapper">
+                <table class="recommended-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Brand</th>
+                            <th>Catalog #</th>
+                            <th>Current Qty</th>
+                            <th>Min Qty</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% recommendedItems.forEach(item => { %>
+                            <tr data-item-id="<%= item._id %>"
+                                data-item-name="<%= item.item %>"
+                                data-item-brand="<%= item.brand || '' %>"
+                                data-item-catalog="<%= item.catalog || '' %>"
+                                data-item-quantity="<%= item.currentquantity %>"
+                                data-item-min="<%= item.minimumquantity %>"
+                                data-item-cost="<%= (item.cost || 0).toFixed(2) %>">
+                                <td><%= item.item %></td>
+                                <td><%= item.brand || '' %></td>
+                                <td><%= item.catalog || '' %></td>
+                                <td class="qty-low"><%= item.currentquantity %></td>
+                                <td><%= item.minimumquantity %></td>
+                                <td>$<%= (item.cost || 0).toFixed(2) %></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% } %>
+
         <!-- Mobile Tab Bar -->
         <div class="mobile-tabs">
             <button class="mobile-tab active" data-tab="inventory">Inventory</button>

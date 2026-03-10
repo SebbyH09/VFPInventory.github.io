@@ -9,7 +9,8 @@ router.get('/', async (req, res) => {
     if (req.session.isLoggedIn) {
         try {
             const lowInventoryItems = await ListedInventoryItem.find({
-                $expr: { $lt: ['$currentquantity', '$minimumquantity'] }
+                $expr: { $lte: ['$currentquantity', '$minimumquantity'] },
+                minimumquantity: { $gt: 0 }
             }).sort({ item: 1 }).lean();
 
             // Fetch orders from the past 14 days
