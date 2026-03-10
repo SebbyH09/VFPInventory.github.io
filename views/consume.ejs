@@ -31,6 +31,7 @@
                             <tr>
                                 <th>Item</th>
                                 <th>Brand</th>
+                                <th>Catalog #</th>
                                 <th>Current Quantity</th>
                                 <th>Select</th>
                             </tr>
@@ -41,9 +42,11 @@
                                     <tr data-item-id="<%= item._id %>"
                                         data-item-name="<%= item.item %>"
                                         data-item-brand="<%= item.brand %>"
+                                        data-item-catalog="<%= item.catalog || '' %>"
                                         data-item-quantity="<%= item.currentquantity %>">
                                         <td><%= item.item %></td>
                                         <td><%= item.brand %></td>
+                                        <td><%= item.catalog || '' %></td>
                                         <td><%= item.currentquantity %></td>
                                         <td>
                                             <input type="checkbox" class="item-checkbox" data-item-id="<%= item._id %>">
@@ -52,7 +55,7 @@
                                 <% }); %>
                             <% } else { %>
                                 <tr>
-                                    <td colspan="4" style="text-align: center;">No inventory items available</td>
+                                    <td colspan="5" style="text-align: center;">No inventory items available</td>
                                 </tr>
                             <% } %>
                         </tbody>

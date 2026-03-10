@@ -45,7 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!row.dataset.itemId) { row.style.display = ''; return; }
             const name = (row.dataset.itemName || '').toLowerCase();
             const brand = (row.dataset.itemBrand || '').toLowerCase();
-            row.style.display = (name.includes(query) || brand.includes(query)) ? '' : 'none';
+            const catalog = (row.dataset.itemCatalog || '').toLowerCase();
+            row.style.display = (name.includes(query) || brand.includes(query) || catalog.includes(query)) ? '' : 'none';
         });
     }
 

@@ -31,6 +31,7 @@
                             <tr>
                                 <th>Item</th>
                                 <th>Brand</th>
+                                <th>Catalog #</th>
                                 <th>Current Qty</th>
                                 <th>Min Qty</th>
                                 <th>Cost</th>
@@ -43,11 +44,13 @@
                                     <tr data-item-id="<%= item._id %>"
                                         data-item-name="<%= item.item %>"
                                         data-item-brand="<%= item.brand || '' %>"
+                                        data-item-catalog="<%= item.catalog || '' %>"
                                         data-item-quantity="<%= item.currentquantity %>"
                                         data-item-min="<%= item.minimumquantity %>"
                                         data-item-cost="<%= (item.cost || 0).toFixed(2) %>">
                                         <td><%= item.item %></td>
                                         <td><%= item.brand || '' %></td>
+                                        <td><%= item.catalog || '' %></td>
                                         <td><%= item.currentquantity %></td>
                                         <td><%= item.minimumquantity %></td>
                                         <td>$<%= (item.cost || 0).toFixed(2) %></td>
@@ -58,7 +61,7 @@
                                 <% }); %>
                             <% } else { %>
                                 <tr>
-                                    <td colspan="6" style="text-align: center;">No inventory items available</td>
+                                    <td colspan="7" style="text-align: center;">No inventory items available</td>
                                 </tr>
                             <% } %>
                         </tbody>
