@@ -67,8 +67,9 @@ function performSearch() {
     rows.forEach(row => {
         const itemName = row.querySelector('td:nth-child(1)')?.textContent.toLowerCase() || '';
         const itemBrand = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+        const itemCatalog = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
 
-        if (itemName.includes(searchTerm) || itemBrand.includes(searchTerm)) {
+        if (itemName.includes(searchTerm) || itemBrand.includes(searchTerm) || itemCatalog.includes(searchTerm)) {
             row.style.display = '';
         } else {
             row.style.display = 'none';
