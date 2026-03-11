@@ -462,41 +462,6 @@
     <script defer src="/searchBar.js"></script>
     <script defer src="/tableColumnControls.js"></script>
     <script defer src="/tableSorting.js"></script>
-    <script>
-        // Category pill filter logic
-        document.querySelectorAll('.category-pill').forEach(pill => {
-            pill.addEventListener('click', function() {
-                document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
-                this.classList.add('active');
-                const filterType = document.getElementById('filterType');
-                if (filterType) {
-                    filterType.value = this.dataset.category;
-                    filterType.dispatchEvent(new Event('change'));
-                }
-            });
-        });
-
-        // Stock status filter logic
-        document.querySelectorAll('.stock-filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.stock-filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                const filterStock = document.getElementById('filterStock');
-                if (filterStock) {
-                    filterStock.value = this.dataset.stockFilter;
-                    filterStock.dispatchEvent(new Event('change'));
-                }
-            });
-        });
-
-        // Empty state add button
-        const emptyStateAddBtn = document.getElementById('emptyStateAddBtn');
-        if (emptyStateAddBtn) {
-            emptyStateAddBtn.addEventListener('click', function() {
-                const newRowBtn = document.getElementById('newRowAdditionBtn');
-                if (newRowBtn) newRowBtn.click();
-            });
-        }
-    </script>
+    <script src="/entryFilters.js"></script>
 </body>
 </html>
