@@ -10,7 +10,7 @@ router.get('/', (req, res) => {
     if (req.session && req.session.userId) {
         return res.redirect('/');
     }
-    res.render('login');
+    res.render('login', { layout: false });
 });
 
 // Login form data

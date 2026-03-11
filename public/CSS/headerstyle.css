@@ -126,6 +126,37 @@ main.main-content {
     opacity: 1;
 }
 
+/* Sidebar Dropdown */
+.sidebar-dropdown-toggle {
+    justify-content: flex-start;
+    position: relative;
+}
+
+.sidebar-dropdown-arrow {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-dropdown.open .sidebar-dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.sidebar-dropdown-menu {
+    display: none;
+    flex-direction: column;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-dropdown.open .sidebar-dropdown-menu {
+    display: flex;
+}
+
+.sidebar-sublink {
+    padding-left: 50px !important;
+    font-size: 13px !important;
+}
+
 /* Sidebar Footer */
 .sidebar-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
