@@ -1,308 +1,305 @@
+/* ===== Inventory Container ===== */
 .inventory-container {
     max-width: 100%;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 24px 32px;
 }
 
-.table-controls {
+/* ===== Page Header ===== */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.page-subtitle {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.page-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-add-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-add-item:hover {
+    background-color: #2563eb;
+}
+
+.btn-notification {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s;
+}
+
+.btn-notification:hover {
+    background-color: #f9fafb;
+    color: #374151;
+}
+
+/* ===== Search and Stock Filters Row ===== */
+.search-filter-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 5px;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
+.search-bar-container {
+    position: relative;
+    flex: 0 1 400px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+#inventorySearchBar {
+    width: 100%;
+    padding: 10px 14px 10px 40px;
+    font-size: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #111827;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+#inventorySearchBar:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#inventorySearchBar::placeholder {
+    color: #9ca3af;
+}
+
+.stock-status-filters {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.stock-filter-btn {
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.stock-filter-btn:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.stock-filter-btn.active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* ===== Category Filter Pills ===== */
+.category-filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.category-pill {
+    padding: 6px 16px;
+    border: 1px solid #e5e7eb;
+    background-color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.category-pill:hover {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.category-pill.active {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+/* ===== Hidden Utility ===== */
 .hidden {
     display: none;
 }
 
-/* Scrollable table wrapper */
+/* ===== Table Wrapper ===== */
 .table-wrapper {
-    max-height: 750px;
-    overflow-y: auto;
-    overflow-x: auto;
-    border: 1px solid #ddd;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    -webkit-overflow-scrolling: touch;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-/* Table styling */
+.table-wrapper table {
+    width: 100%;
+}
+
+/* ===== Table Styling ===== */
 #mainTable1 {
-    width: auto;
+    width: 100%;
     min-width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
 }
 
 #mainTable1 thead {
     position: sticky;
     top: 0;
-    background-color: #4CAF50;
-    color: white;
+    background-color: #f9fafb;
     z-index: 10;
 }
 
-#mainTable1 th,
-#mainTable1 td {
-    padding: 4px 6px;
-    text-align: left;
-    border: 1px solid #ddd;
-    font-size: 12px;
-}
-
 #mainTable1 th {
+    padding: 12px 14px;
+    text-align: left;
     font-size: 12px;
-    line-height: 1.1;
     font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5e7eb;
+    line-height: 1.2;
 }
 
-#mainTable1 tbody tr {
-    border-bottom: 1px solid #e0e0e0;
+#mainTable1 td {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 13px;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
 }
 
 #mainTable1 tbody tr {
     cursor: pointer;
-    transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    transition: background-color 0.15s ease;
 }
 
 #mainTable1 tbody tr:hover {
-    background-color: #c8e6c9 !important;
-    transform: scale(1.01);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    z-index: 1;
-    position: relative;
+    background-color: #f9fafb;
 }
 
-#mainTable1 tbody tr:nth-child(odd) {
-    background-color: #fafafa;
-}
-
-#mainTable1 tbody tr:nth-child(even) {
-    background-color: #f0f0f0;
+#mainTable1 tbody tr:last-child td {
+    border-bottom: none;
 }
 
 #mainTable1 .inventoryitem {
     margin: 0;
     padding: 0;
-    line-height: 1.3;
+    line-height: 1.4;
 }
 
-/* Button styling */
-.inventory-container button,
-.table-controls button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-#editEndOfRow {
-    background-color: #2196F3;
-    color: white;
-}
-
-#newRowAdditionBtn {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.inventory-container button:hover,
-.table-controls button:hover {
-    opacity: 0.8;
-}
-
-.delete-btn {
-    background-color: #f44336;
-    color: white;
-    padding: 4px 8px;
-    font-size: 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    display: none;
-}
-
-.delete-btn:hover {
-    background-color: #d32f2f;
-}
-
-body.edit-mode .delete-btn {
-    display: inline-block;
-}
-
-/* Tracking action buttons */
-.cycle-count-btn {
-    padding: 4px 8px;
-    font-size: 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 2px;
-    background-color: #9C27B0;
-    color: white;
-}
-
-.cycle-count-btn:hover { background-color: #7B1FA2; }
-
-body.edit-mode .cycle-count-btn {
-    display: inline-block;
-}
-
-/* Tracking field visual indicators */
-.never-used {
-    color: #9e9e9e;
-    font-style: italic;
-}
-
-.very-old {
-    background-color: #ffebee !important;
-    color: #c62828;
-    font-weight: bold;
-}
-
-.old {
-    background-color: #fff3e0 !important;
-    color: #e65100;
-}
-
-.has-open-orders {
-    background-color: #fff3e0 !important;
-    color: #e65100;
-    font-weight: bold;
-}
-
-.cycle-count-overdue {
-    background-color: #ef5350 !important;
-    color: white;
-    font-weight: bold;
-}
-
-.cycle-count-due {
-    background-color: #ffcdd2 !important;
-    color: #c62828;
-}
-
-.cycle-count-warning {
-    background-color: #fff3e0 !important;
-    color: #e65100;
-}
-
-.qty-zero {
-    background-color: #ef5350 !important;
-}
-
-.qty-low {
-    background-color: #ffcdd2 !important;
-}
-
-.qty-zero:hover,
-.qty-low:hover {
-    opacity: 0.9;
-}
-
-/* Search bar */
-.search-bar-container {
-    margin-bottom: 5px;
+/* ===== Empty State ===== */
+.empty-state {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
     align-items: center;
-    flex-wrap: wrap;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
 }
 
-#inventorySearchBar {
-    width: 100%;
-    max-width: 400px;
-    padding: 10px 15px;
+.empty-state-icon {
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state-title {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.empty-state-text {
+    margin: 0 0 20px;
     font-size: 14px;
-    border: 2px solid #4CAF50;
-    border-radius: 4px;
-    box-sizing: border-box;
+    color: #9ca3af;
 }
 
-#inventorySearchBar:focus {
-    outline: none;
-    border-color: #45a049;
-}
-
-.search-button {
-    padding: 10px 20px;
-    font-size: 14px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    white-space: nowrap;
-}
-
-.search-button:hover { background-color: #45a049; }
-.search-button:active { background-color: #3d8b40; }
-
-/* Filter bar */
-.filter-bar {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-    padding: 8px 12px;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
-}
-
-.filter-group {
-    display: flex;
+.btn-add-item-empty {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-}
-
-.filter-group label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #555;
-    white-space: nowrap;
-}
-
-.filter-select {
-    padding: 6px 10px;
-    font-size: 13px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: white;
-    cursor: pointer;
-    min-width: 120px;
-}
-
-.filter-select:focus {
-    outline: none;
-    border-color: #4CAF50;
-}
-
-.clear-filters-btn {
-    padding: 6px 14px;
-    font-size: 13px;
-    background-color: #757575;
+    padding: 10px 24px;
+    background-color: #3b82f6;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.clear-filters-btn:hover {
-    background-color: #616161;
+.btn-add-item-empty:hover {
+    background-color: #2563eb;
 }
 
-/* Actions column */
-#mainTable1 thead th.actions-cell,
-#mainTable1 tbody td.actions-cell {
-    display: table-cell;
-}
-
+/* ===== Action Buttons ===== */
 .actions-cell {
     white-space: nowrap;
 }
@@ -312,20 +309,128 @@ body.edit-mode .cycle-count-btn {
 }
 
 .row-edit-btn {
-    background-color: #2196F3;
+    background-color: #3b82f6;
     color: white;
-    padding: 4px 10px;
+    padding: 5px 12px;
     font-size: 12px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .row-edit-btn:hover {
-    background-color: #0b7dda;
+    background-color: #2563eb;
 }
 
-/* Edit Modal */
+.delete-btn {
+    background-color: #ef4444;
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: none;
+}
+
+.delete-btn:hover {
+    background-color: #dc2626;
+}
+
+body.edit-mode .delete-btn {
+    display: inline-block;
+}
+
+/* ===== Tracking Field Indicators ===== */
+.never-used {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.very-old {
+    background-color: #fef2f2 !important;
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.old {
+    background-color: #fff7ed !important;
+    color: #ea580c;
+}
+
+.has-open-orders {
+    background-color: #fff7ed !important;
+    color: #ea580c;
+    font-weight: bold;
+}
+
+.cycle-count-overdue {
+    background-color: #ef4444 !important;
+    color: white;
+    font-weight: bold;
+}
+
+.cycle-count-due {
+    background-color: #fecaca !important;
+    color: #dc2626;
+}
+
+.cycle-count-warning {
+    background-color: #fff7ed !important;
+    color: #ea580c;
+}
+
+.qty-zero {
+    background-color: #ef4444 !important;
+}
+
+.qty-low {
+    background-color: #fecaca !important;
+}
+
+.qty-zero:hover,
+.qty-low:hover {
+    opacity: 0.9;
+}
+
+/* ===== Cycle Count Button ===== */
+.cycle-count-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 2px;
+    background-color: #8b5cf6;
+    color: white;
+}
+
+.cycle-count-btn:hover { background-color: #7c3aed; }
+
+body.edit-mode .cycle-count-btn {
+    display: inline-block;
+}
+
+/* ===== Search Button (hidden in new design, kept for JS compat) ===== */
+.search-button {
+    display: none;
+}
+
+/* ===== Filter Bar (hidden, replaced by pills) ===== */
+.filter-bar {
+    display: none;
+}
+
+/* ===== Table Controls ===== */
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+/* ===== Edit Modal ===== */
 .edit-modal {
     display: none;
     position: fixed;
@@ -334,32 +439,33 @@ body.edit-mode .cycle-count-btn {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(3px);
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
 }
 
 .edit-modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 25px;
-    border: 1px solid #888;
-    border-radius: 8px;
+    background-color: #fff;
+    margin: 4% auto;
+    padding: 28px;
+    border: none;
+    border-radius: 12px;
     width: 80%;
     max-width: 700px;
     max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 .edit-modal-content h2 {
     margin-top: 0;
-    color: #333;
-    border-bottom: 2px solid #4CAF50;
-    padding-bottom: 10px;
+    color: #111827;
+    font-size: 20px;
+    border-bottom: 2px solid #3b82f6;
+    padding-bottom: 12px;
 }
 
 .close-modal {
-    color: #aaa;
+    color: #9ca3af;
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -369,7 +475,7 @@ body.edit-mode .cycle-count-btn {
 
 .close-modal:hover,
 .close-modal:focus {
-    color: #000;
+    color: #374151;
 }
 
 .edit-modal-body {
@@ -378,8 +484,8 @@ body.edit-mode .cycle-count-btn {
 
 .form-row {
     display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
 .form-group {
@@ -389,22 +495,25 @@ body.edit-mode .cycle-count-btn {
 }
 
 .form-group label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #555;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #374151;
+    font-size: 13px;
 }
 
 .edit-input {
-    padding: 8px 12px;
+    padding: 9px 12px;
     font-size: 14px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
     box-sizing: border-box;
+    transition: border-color 0.2s;
 }
 
 .edit-input:focus {
     outline: none;
-    border-color: #4CAF50;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .modal-actions {
@@ -412,8 +521,8 @@ body.edit-mode .cycle-count-btn {
     gap: 10px;
     margin: 20px 0;
     padding: 15px;
-    background-color: #f5f5f5;
-    border-radius: 4px;
+    background-color: #f9fafb;
+    border-radius: 8px;
     flex-wrap: wrap;
 }
 
@@ -422,16 +531,16 @@ body.edit-mode .cycle-count-btn {
     padding: 8px 16px;
     font-size: 13px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     color: white;
 }
 
-.cycle-count-btn-modal { background-color: #9C27B0; }
-.delete-btn-modal { background-color: #f44336; }
+.cycle-count-btn-modal { background-color: #8b5cf6; }
+.delete-btn-modal { background-color: #ef4444; }
 
-.cycle-count-btn-modal:hover { background-color: #7B1FA2; }
-.delete-btn-modal:hover { background-color: #d32f2f; }
+.cycle-count-btn-modal:hover { background-color: #7c3aed; }
+.delete-btn-modal:hover { background-color: #dc2626; }
 
 .modal-buttons {
     display: flex;
@@ -441,29 +550,33 @@ body.edit-mode .cycle-count-btn {
 }
 
 .btn-submit {
-    background-color: #4CAF50;
+    background-color: #3b82f6;
     color: white;
-    padding: 10px 20px;
+    padding: 10px 24px;
     font-size: 14px;
+    font-weight: 500;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .btn-cancel {
-    background-color: #757575;
-    color: white;
-    padding: 10px 20px;
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 10px 24px;
     font-size: 14px;
-    border: none;
-    border-radius: 4px;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
-.btn-submit:hover { background-color: #45a049; }
-.btn-cancel:hover { background-color: #616161; }
+.btn-submit:hover { background-color: #2563eb; }
+.btn-cancel:hover { background-color: #e5e7eb; }
 
-/* View Modal (read-only) */
+/* ===== View Modal (read-only) ===== */
 .view-modal-content {
     max-width: 650px;
 }
@@ -474,7 +587,7 @@ body.edit-mode .cycle-count-btn {
 
 .view-row {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     margin-bottom: 12px;
 }
 
@@ -482,16 +595,16 @@ body.edit-mode .cycle-count-btn {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background-color: #f9f9f9;
-    border: 1px solid #e8e8e8;
-    border-radius: 4px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
     padding: 10px 12px;
 }
 
 .view-label {
     font-size: 11px;
     font-weight: 600;
-    color: #888;
+    color: #9ca3af;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
@@ -499,18 +612,18 @@ body.edit-mode .cycle-count-btn {
 
 .view-value {
     font-size: 15px;
-    color: #333;
+    color: #111827;
     font-weight: 500;
     word-break: break-word;
 }
 
-/* Alternate Items - Edit/Add Modals */
+/* ===== Alternate Items ===== */
 .alternate-items-section {
     margin: 15px 0;
     padding: 15px;
-    background-color: #f9f9f9;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
 }
 
 .alternate-items-container {
@@ -531,10 +644,10 @@ body.edit-mode .cycle-count-btn {
 }
 
 .remove-alternate-btn {
-    background-color: #f44336;
+    background-color: #ef4444;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     width: 30px;
     height: 30px;
     font-size: 18px;
@@ -546,53 +659,54 @@ body.edit-mode .cycle-count-btn {
 }
 
 .remove-alternate-btn:hover {
-    background-color: #d32f2f;
+    background-color: #dc2626;
 }
 
 .add-alternate-btn {
     margin-top: 10px;
     padding: 6px 14px;
     font-size: 13px;
-    background-color: #4CAF50;
+    background-color: #3b82f6;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
 }
 
 .add-alternate-btn:hover {
-    background-color: #45a049;
+    background-color: #2563eb;
 }
 
-/* Alternate Items - View Modal */
+/* View Alternate Items */
 .view-alternate-items-section {
     margin-top: 20px;
-    border-top: 2px solid #4CAF50;
+    border-top: 2px solid #3b82f6;
     padding-top: 15px;
 }
 
 .alternate-items-heading {
     font-size: 16px;
-    color: #333;
+    color: #111827;
     margin: 0 0 12px 0;
 }
 
 .view-alternate-item {
     margin-bottom: 12px;
     padding: 10px;
-    background-color: #f5f5f5;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
 }
 
 .alt-item-number {
     font-size: 12px;
     font-weight: 600;
-    color: #4CAF50;
+    color: #3b82f6;
     margin-bottom: 8px;
     display: block;
 }
 
+/* Modal open state blur */
 body.modal-open .inventory-container,
 body.modal-open .table-controls,
 body.modal-open .search-bar-container,
@@ -601,6 +715,7 @@ body.modal-open .table-wrapper {
     pointer-events: none;
 }
 
+/* Inline editing */
 #mainTable1 input.inventoryitem,
 #mainTable1 select.inventoryitem {
     width: 100%;
@@ -614,45 +729,53 @@ body.modal-open .table-wrapper {
 }
 
 .column-highlight {
-    background-color: rgba(76, 175, 80, 0.15) !important;
-    outline: 1px dashed #4CAF50;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    outline: 1px dashed #3b82f6;
 }
 
-/* Sortable table headers */
+/* ===== Sortable Headers ===== */
+#mainTable1 th {
+    cursor: pointer;
+}
+
+#mainTable1 th:hover {
+    background-color: #f3f4f6;
+}
+
 #mainTable1 th.sort-asc::after {
-    content: ' ▲';
+    content: ' \25B2';
     font-size: 10px;
-    margin-left: 5px;
+    margin-left: 4px;
 }
 
 #mainTable1 th.sort-desc::after {
-    content: ' ▼';
+    content: ' \25BC';
     font-size: 10px;
-    margin-left: 5px;
+    margin-left: 4px;
 }
 
-/* Column Visibility Settings */
+/* ===== Column Visibility Settings ===== */
 .column-settings-btn {
     padding: 8px 16px;
-    background-color: #4CAF50;
+    background-color: #3b82f6;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
     margin-left: 10px;
 }
 
 .column-settings-btn:hover {
-    background-color: #45a049;
+    background-color: #2563eb;
 }
 
 .column-visibility-menu {
     position: absolute;
     background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     padding: 10px;
     z-index: 1000;
     max-height: 400px;
@@ -662,7 +785,7 @@ body.modal-open .table-wrapper {
 
 .column-menu-header {
     padding: 8px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e5e7eb;
     margin-bottom: 8px;
 }
 
@@ -672,10 +795,11 @@ body.modal-open .table-wrapper {
     padding: 6px 8px;
     cursor: pointer;
     user-select: none;
+    border-radius: 4px;
 }
 
 .column-checkbox-wrapper:hover {
-    background-color: #f0f0f0;
+    background-color: #f9fafb;
 }
 
 .column-checkbox-wrapper input[type="checkbox"] {
@@ -689,35 +813,51 @@ body.modal-open .table-wrapper {
 
 /* ===== Responsive ===== */
 @media screen and (max-width: 1200px) {
+    .inventory-container {
+        padding: 20px 24px;
+    }
+
     #mainTable1 th,
     #mainTable1 td {
-        padding: 4px;
-        font-size: 11px;
+        padding: 8px 10px;
+        font-size: 12px;
     }
 }
 
 @media screen and (max-width: 768px) {
     .inventory-container {
-        padding: 5px 10px;
+        padding: 16px;
     }
 
-    .search-bar-container {
+    .page-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .page-header-right {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .search-filter-row {
         flex-direction: column;
         align-items: stretch;
     }
 
-    #inventorySearchBar {
-        max-width: 100%;
+    .search-bar-container {
+        flex: 1;
     }
 
-    .table-controls {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+    .stock-status-filters {
+        justify-content: flex-start;
+        overflow-x: auto;
     }
 
-    .table-controls h2 {
-        font-size: 18px;
+    .category-filter-bar {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 12px;
     }
 
     #mainTable1 {
@@ -726,23 +866,14 @@ body.modal-open .table-wrapper {
 
     #mainTable1 th,
     #mainTable1 td {
-        padding: 3px 4px;
+        padding: 6px 8px;
         font-size: 11px;
         white-space: nowrap;
     }
 
-    .filter-bar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-    }
-
-    .filter-group {
-        justify-content: space-between;
-    }
-
-    .filter-select {
-        flex: 1;
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .view-row {
@@ -750,11 +881,10 @@ body.modal-open .table-wrapper {
         gap: 8px;
     }
 
-    /* Modal full-width on mobile */
     .edit-modal-content {
         width: 95%;
         margin: 2% auto;
-        padding: 15px;
+        padding: 18px;
         max-height: 90vh;
     }
 
@@ -814,12 +944,16 @@ body.modal-open .table-wrapper {
 
 @media screen and (max-width: 480px) {
     .inventory-container {
-        padding: 5px;
+        padding: 12px;
+    }
+
+    .page-title {
+        font-size: 20px;
     }
 
     #mainTable1 th,
     #mainTable1 td {
-        padding: 2px 3px;
+        padding: 4px 6px;
         font-size: 10px;
     }
 
