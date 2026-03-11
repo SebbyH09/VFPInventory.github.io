@@ -110,6 +110,17 @@
             });
         }
 
+        // Close sidebar when a nav link is clicked on mobile
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 1024) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    hamburgerBtn.classList.remove('active');
+                }
+            });
+        });
+
         // Highlight active sidebar link based on current path
         const currentPath = window.location.pathname;
         document.querySelectorAll('.sidebar-link').forEach(link => {
