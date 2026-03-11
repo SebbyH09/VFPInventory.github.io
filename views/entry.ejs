@@ -1,48 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Inventory Entry</title>
+    <title>Inventory Items</title>
     <link rel="stylesheet" href="/inventory.css">
 </head>
 <body>
     <div class="inventory-container">
-        <div class="search-bar-container">
-            <input type="text" id="inventorySearchBar" placeholder="Search inventory...">
-            <button id="searchButton" class="search-button">Search</button>
-            <button id="newRowAdditionBtn">Add Item</button>
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1 class="page-title">Inventory Items</h1>
+                <p class="page-subtitle">Manage consumable inventory stock</p>
+            </div>
+            <div class="page-header-right">
+                <button id="newRowAdditionBtn" class="btn-add-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Item
+                </button>
+                <button class="btn-notification" aria-label="Notifications">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                </button>
+            </div>
         </div>
 
-        <div class="filter-bar">
-            <div class="filter-group">
-                <label for="filterType">Type:</label>
-                <select id="filterType" class="filter-select">
-                    <option value="">All</option>
-                    <option value="Reagent">Reagent</option>
-                    <option value="Equipment">Equipment</option>
-                    <option value="Consumable">Consumable</option>
-                    <option value="Tool">Tool</option>
-                    <option value="Chemical">Chemical</option>
-                    <option value="Other">Other</option>
-                </select>
+        <!-- Search and Stock Status Filters -->
+        <div class="search-filter-row">
+            <div class="search-bar-container">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="inventorySearchBar" placeholder="Search items, SKU, vendor...">
             </div>
-            <div class="filter-group">
-                <label for="filterLocation">Location:</label>
-                <select id="filterLocation" class="filter-select">
-                    <option value="">All</option>
-                </select>
+            <div class="stock-status-filters">
+                <button class="stock-filter-btn active" data-stock-filter="">All</button>
+                <button class="stock-filter-btn" data-stock-filter="low">Low Stock</button>
+                <button class="stock-filter-btn" data-stock-filter="out">Out Of Stock</button>
+                <button class="stock-filter-btn" data-stock-filter="ok">In Stock</button>
             </div>
-            <div class="filter-group">
-                <label for="filterStock">Stock Status:</label>
-                <select id="filterStock" class="filter-select">
-                    <option value="">All</option>
-                    <option value="out">Out of Stock</option>
-                    <option value="low">Low Stock</option>
-                    <option value="ok">In Stock</option>
-                </select>
-            </div>
-            <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
         </div>
 
+        <!-- Category Filter Pills -->
+        <div class="category-filter-bar">
+            <button class="category-pill active" data-category="">All</button>
+            <button class="category-pill" data-category="Reagent">Reagents</button>
+            <button class="category-pill" data-category="Filter">Filters</button>
+            <button class="category-pill" data-category="PPE">PPE</button>
+            <button class="category-pill" data-category="Cleaning">Cleaning Supplies</button>
+            <button class="category-pill" data-category="Office">Office Supplies</button>
+            <button class="category-pill" data-category="Consumable">Lab Consumables</button>
+            <button class="category-pill" data-category="Electrical">Electrical</button>
+            <button class="category-pill" data-category="Mechanical">Mechanical Parts</button>
+            <button class="category-pill" data-category="Other">Other</button>
+        </div>
+
+        <!-- Hidden select filters for JS compatibility -->
+        <div style="display: none;">
+            <select id="filterType" class="filter-select">
+                <option value="">All</option>
+                <option value="Reagent">Reagent</option>
+                <option value="Filter">Filter</option>
+                <option value="PPE">PPE</option>
+                <option value="Cleaning">Cleaning</option>
+                <option value="Office">Office</option>
+                <option value="Consumable">Consumable</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Mechanical">Mechanical</option>
+                <option value="Equipment">Equipment</option>
+                <option value="Tool">Tool</option>
+                <option value="Chemical">Chemical</option>
+                <option value="Other">Other</option>
+            </select>
+            <select id="filterLocation" class="filter-select">
+                <option value="">All</option>
+            </select>
+            <select id="filterStock" class="filter-select">
+                <option value="">All</option>
+                <option value="out">Out of Stock</option>
+                <option value="low">Low Stock</option>
+                <option value="ok">In Stock</option>
+            </select>
+        </div>
+
+        <!-- Data Table -->
         <div class="table-wrapper">
             <table id="mainTable1">
                 <thead>
@@ -67,7 +104,7 @@
                 <tbody>
                     <% if (inventoryItems && inventoryItems.length > 0) { %>
                         <% inventoryItems.forEach((item, index) => { %>
-                            
+
                             <tr data-item-id="<%= item._id %>"
                                 data-last-used="<%= item.lastUsedDate ? item.lastUsedDate.toISOString() : '' %>"
                                 data-last-cycle-count="<%= item.lastCycleCount ? item.lastCycleCount.toISOString() : '' %>"
@@ -113,10 +150,25 @@
                             </tr>
                         <% }); %>
                     <% } else { %>
-                        <!-- Empty state - no rows -->
+                        <!-- Empty state shown via CSS/JS -->
                     <% } %>
                 </tbody>
             </table>
+
+            <% if (!inventoryItems || inventoryItems.length === 0) { %>
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="1.5">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                </div>
+                <h3 class="empty-state-title">No items found</h3>
+                <p class="empty-state-text">Add your first inventory item to get started</p>
+                <button class="btn-add-item-empty" id="emptyStateAddBtn">Add Item</button>
+            </div>
+            <% } %>
         </div>
     </div>
 
@@ -410,5 +462,41 @@
     <script defer src="/searchBar.js"></script>
     <script defer src="/tableColumnControls.js"></script>
     <script defer src="/tableSorting.js"></script>
+    <script>
+        // Category pill filter logic
+        document.querySelectorAll('.category-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                const filterType = document.getElementById('filterType');
+                if (filterType) {
+                    filterType.value = this.dataset.category;
+                    filterType.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+
+        // Stock status filter logic
+        document.querySelectorAll('.stock-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.stock-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const filterStock = document.getElementById('filterStock');
+                if (filterStock) {
+                    filterStock.value = this.dataset.stockFilter;
+                    filterStock.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+
+        // Empty state add button
+        const emptyStateAddBtn = document.getElementById('emptyStateAddBtn');
+        if (emptyStateAddBtn) {
+            emptyStateAddBtn.addEventListener('click', function() {
+                const newRowBtn = document.getElementById('newRowAdditionBtn');
+                if (newRowBtn) newRowBtn.click();
+            });
+        }
+    </script>
 </body>
 </html>

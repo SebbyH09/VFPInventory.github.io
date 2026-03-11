@@ -1,50 +1,167 @@
 /* ===== Base Reset ===== */
-body {
-    margin: 0;
-    padding-top: 70px;
+* {
+    box-sizing: border-box;
 }
 
-main {
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+}
+
+main.main-content {
+    margin-left: 240px;
+    min-height: 100vh;
+    padding: 0;
+    transition: margin-left 0.3s ease;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh;
+    background-color: #1a2332;
+    color: #c0c8d4;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-brand-icon {
+    width: 36px;
+    height: 36px;
+    background-color: #3b82f6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.sidebar-brand-name {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.sidebar-brand-sub {
+    display: block;
+    font-size: 11px;
+    color: #7a8a9e;
+    line-height: 1.2;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
     flex: 1;
+    padding: 8px 0;
     overflow-y: auto;
 }
 
-/* ===== Header ===== */
-.header-container {
+.sidebar-section {
+    padding: 8px 0;
+}
+
+.sidebar-section-label {
+    display: block;
+    padding: 8px 20px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #5a6a7e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    color: #a0aec0;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.15s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+}
+
+.sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: #e2e8f0;
+}
+
+.sidebar-link.active {
+    background-color: #3b82f6;
+    color: #fff;
+    border-radius: 0;
+}
+
+.sidebar-link svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.sidebar-link.active svg {
+    opacity: 1;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 8px 0;
+}
+
+.sidebar-logout-form {
+    margin: 0;
+}
+
+.sidebar-logout-btn {
+    font-family: inherit;
+}
+
+/* ===== Mobile Header ===== */
+.mobile-header {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    background-image: url('/Laboratory-Design.jpg');
-    background-size: cover;
-    border-bottom: 2px solid #42a52c;
-    z-index: 1000;
-    padding: 10px 20px;
-    box-sizing: border-box;
-}
-
-.header-nav {
-    display: flex;
+    height: 56px;
+    background-color: #1a2332;
+    color: white;
     align-items: center;
-    gap: 20px;
+    padding: 0 16px;
+    gap: 12px;
+    z-index: 999;
 }
 
-/* Brand section: title + hamburger */
-.nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-shrink: 0;
+.mobile-header-title {
+    font-size: 16px;
+    font-weight: 600;
 }
 
-.header-title {
-    margin: 0;
-    font-size: 24px;
-    color: #333;
-    white-space: nowrap;
-}
-
-/* Hamburger button - hidden on desktop */
+/* Hamburger button */
 .hamburger {
     display: none;
     flex-direction: column;
@@ -59,15 +176,15 @@ main {
 
 .hamburger span {
     display: block;
-    width: 24px;
-    height: 3px;
-    background-color: #333;
+    width: 22px;
+    height: 2px;
+    background-color: #fff;
     border-radius: 2px;
     transition: transform 0.3s, opacity 0.3s;
 }
 
 .hamburger.active span:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
+    transform: translateY(7px) rotate(45deg);
 }
 
 .hamburger.active span:nth-child(2) {
@@ -75,77 +192,26 @@ main {
 }
 
 .hamburger.active span:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+    transform: translateY(-7px) rotate(-45deg);
 }
 
-/* Navigation menu container */
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex: 1;
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
 }
 
-.nav-left {
-    display: flex;
-    gap: 10px;
-    align-items: center;
+.sidebar-overlay.active {
+    display: block;
 }
 
-.nav-right {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-left: auto;
-}
-
-/* ===== Buttons ===== */
-.header-button {
-    padding: 8px 16px;
-    background-color: #004669;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s;
-}
-
-.header-button:hover {
-    background-color: #45a049;
-}
-
-.header-button-login {
-    padding: 8px 16px;
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s;
-}
-
-.header-button-login:hover {
-    background-color: #0b7dda;
-}
-
-.header-button-logout {
-    padding: 8px 16px;
-    background-color: #f44336cb;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s;
-}
-
-.header-button-logout:hover {
-    background-color: #da190b;
-}
-
-/* ===== Dropdowns ===== */
+/* ===== Dropdowns (kept for backward compatibility) ===== */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -183,102 +249,49 @@ main {
     display: block;
 }
 
-.header-nav a {
-    text-decoration: none;
-}
-
-/* ===== Mobile (768px and below) ===== */
-@media (max-width: 768px) {
-    body {
-        padding-top: 60px;
+/* ===== Responsive - Tablet ===== */
+@media (max-width: 1024px) {
+    .sidebar {
+        transform: translateX(-100%);
     }
 
-    .header-container {
-        padding: 8px 15px;
+    .sidebar.open {
+        transform: translateX(0);
     }
 
-    .header-title {
-        font-size: 18px;
+    .mobile-header {
+        display: flex;
     }
 
     .hamburger {
         display: flex;
     }
 
-    .nav-menu {
-        display: none;
-        flex-direction: column;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background-color: #fff;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        padding: 10px 0;
-        gap: 0;
-        z-index: 1000;
-    }
-
-    .nav-menu.open {
-        display: flex;
-    }
-
-    .nav-left,
-    .nav-right {
-        flex-direction: column;
-        width: 100%;
-        gap: 0;
+    main.main-content {
         margin-left: 0;
+        padding-top: 56px;
     }
+}
 
-    .nav-left a,
-    .nav-right a,
-    .nav-right form {
-        display: block;
-        width: 100%;
+/* ===== Responsive - Mobile ===== */
+@media (max-width: 768px) {
+    main.main-content {
+        margin-left: 0;
+        padding-top: 56px;
     }
-
-    .header-button,
-    .header-button-login,
-    .header-button-logout,
-    .dropbtn {
-        width: 100%;
-        text-align: left;
-        border-radius: 0;
-        padding: 14px 20px;
-        font-size: 15px;
-        min-height: 44px;
-        box-sizing: border-box;
-    }
-
-    .dropdown {
-        display: block;
-        width: 100%;
-    }
-
-    .dropdown-content {
-        position: static;
-        box-shadow: none;
-        background-color: #f0f0f0;
-        min-width: 100%;
-    }
-
-    .dropdown-content a {
-        padding: 12px 30px;
-        font-size: 14px;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-    }
-
 }
 
 @media (max-width: 480px) {
-    .header-title {
-        font-size: 16px;
+    .mobile-header {
+        height: 48px;
+        padding: 0 12px;
     }
 
-    .header-container {
-        padding: 8px 10px;
+    .mobile-header-title {
+        font-size: 14px;
+    }
+
+    main.main-content {
+        padding-top: 48px;
     }
 }
