@@ -20,10 +20,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Close sidebar when a nav link is clicked on mobile
+    // Close sidebar when a nav link is clicked on mobile (but not dropdown toggles)
     document.querySelectorAll('.sidebar-link').forEach(function(link) {
         link.addEventListener('click', function() {
-            if (window.innerWidth <= 1024) {
+            if (window.innerWidth <= 1024 && !this.classList.contains('sidebar-dropdown-toggle')) {
                 sidebar.classList.remove('open');
                 overlay.classList.remove('active');
                 hamburgerBtn.classList.remove('active');
