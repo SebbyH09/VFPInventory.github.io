@@ -34,6 +34,7 @@
                 <button class="stock-filter-btn" data-stock-filter="low">Low Stock</button>
                 <button class="stock-filter-btn" data-stock-filter="out">Out Of Stock</button>
                 <button class="stock-filter-btn" data-stock-filter="ok">In Stock</button>
+                <button class="stock-filter-btn" data-stock-filter="inactive">Inactive</button>
             </div>
         </div>
 
@@ -76,6 +77,7 @@
                 <option value="out">Out of Stock</option>
                 <option value="low">Low Stock</option>
                 <option value="ok">In Stock</option>
+                <option value="inactive">Inactive</option>
             </select>
         </div>
 
@@ -98,6 +100,7 @@
                         <th>Days Since Last Use</th>
                         <th>Open Orders</th>
                         <th>Last Cycle Count</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -109,6 +112,8 @@
                                 data-last-used="<%= item.lastUsedDate ? item.lastUsedDate.toISOString() : '' %>"
                                 data-last-cycle-count="<%= item.lastCycleCount ? item.lastCycleCount.toISOString() : '' %>"
                                 data-open-orders="<%= (orderCountMap && orderCountMap[item._id.toString()]) || 0 %>"
+                                data-active="<%= item.isActive !== false %>"
+                                class="<%= item.isActive === false ? 'inactive-row' : '' %>"
                                 data-original='<%= JSON.stringify({
                                 item: item.item,
                                 brand: item.brand,
@@ -124,6 +129,7 @@
                                 lastCycleCount: item.lastCycleCount,
                                 cycleCountInterval: item.cycleCountInterval || 90,
                                 useCycleCount: item.useCycleCount !== undefined ? item.useCycleCount : true,
+                                isActive: item.isActive !== false,
                                 alternateItems: item.alternateItems || []
                             }) %>'>
 
@@ -143,6 +149,11 @@
                                 <td class="days-since-use"><p class="inventoryitem tracking-field">-</p></td>
                                 <td class="order-frequency"><p class="inventoryitem tracking-field"><%= (orderCountMap && orderCountMap[item._id.toString()]) || 0 %></p></td>
                                 <td class="last-cycle-count"><p class="inventoryitem tracking-field"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></p></td>
+                                <td class="status-cell">
+                                    <span class="status-badge <%= item.isActive === false ? 'status-inactive' : 'status-active' %>">
+                                        <%= item.isActive === false ? 'Inactive' : 'Active' %>
+                                    </span>
+                                </td>
                                 <td class="actions-cell">
                                     <button class="delete-btn hidden">Delete</button>
                                     <button class="row-edit-btn">Edit</button>
@@ -359,6 +370,7 @@
                     <button type="button" id="editAlternateItemBtn" class="add-alternate-btn">+ Add Alternate</button>
                 </div>
                 <div class="modal-actions">
+                    <button class="toggle-active-btn-modal">Mark Inactive</button>
                     <button class="delete-btn-modal">Delete</button>
                 </div>
                 <div class="modal-buttons">
@@ -443,6 +455,12 @@
                     <div class="view-field">
                         <span class="view-label">Cycle Interval (days)</span>
                         <span class="view-value" id="viewCycleInterval"></span>
+                    </div>
+                </div>
+                <div class="view-row">
+                    <div class="view-field">
+                        <span class="view-label">Status</span>
+                        <span class="view-value" id="viewStatus"></span>
                     </div>
                 </div>
                 <div id="viewAlternateItemsSection" class="view-alternate-items-section" style="display: none;">

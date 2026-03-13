@@ -87,6 +87,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Apply filters on page load to hide inactive items by default
+    setTimeout(applyAllFilters, 0);
+
     function applyAllFilters() {
         const searchTerm = searchBar.value.toLowerCase().trim();
         const typeValue = filterType ? filterType.value : '';
@@ -129,17 +132,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Stock status filter
-            if (visible && stockValue !== '') {
-                const currentQty = originalData.currentQuantity || 0;
-                const minQty = originalData.minimumQuantity || 0;
+            // Active/Inactive filter
+            const isActive = originalData.isActive !== false;
 
-                if (stockValue === 'out' && currentQty !== 0) {
+            if (stockValue === 'inactive') {
+                // Show only inactive items
+                if (visible && isActive) {
                     visible = false;
-                } else if (stockValue === 'low' && (currentQty === 0 || currentQty >= minQty)) {
+                }
+            } else {
+                // For all other filters, hide inactive items by default
+                if (visible && !isActive) {
                     visible = false;
-                } else if (stockValue === 'ok' && currentQty < minQty) {
-                    visible = false;
+                }
+
+                // Stock status filter
+                if (visible && stockValue !== '') {
+                    const currentQty = originalData.currentQuantity || 0;
+                    const minQty = originalData.minimumQuantity || 0;
+
+                    if (stockValue === 'out' && currentQty !== 0) {
+                        visible = false;
+                    } else if (stockValue === 'low' && (currentQty === 0 || currentQty >= minQty)) {
+                        visible = false;
+                    } else if (stockValue === 'ok' && currentQty < minQty) {
+                        visible = false;
+                    }
                 }
             }
 

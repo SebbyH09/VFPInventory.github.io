@@ -30,7 +30,7 @@ async function generateOrderNumber() {
 // GET /orders/new - render new order page
 router.get('/new', requireAuth, async (req, res) => {
     try {
-        const inventoryItems = await inventory.find({}).sort({ item: 1 });
+        const inventoryItems = await inventory.find({ isActive: { $ne: false } }).sort({ item: 1 });
         res.render('newOrder', {
             inventoryItems: inventoryItems,
             user: req.session.user

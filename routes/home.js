@@ -10,7 +10,8 @@ router.get('/', async (req, res) => {
         try {
             const lowInventoryItems = await ListedInventoryItem.find({
                 $expr: { $lte: ['$currentquantity', '$minimumquantity'] },
-                minimumquantity: { $gt: 0 }
+                minimumquantity: { $gt: 0 },
+                isActive: { $ne: false }
             }).sort({ item: 1 }).lean();
 
             // Fetch orders from the past 14 days
@@ -53,8 +54,8 @@ router.get('/', async (req, res) => {
             const today = new Date();
             const defaultLimit = 10; // ← ADD THIS
             
-            const allItems = await ListedInventoryItem.find({});
-            
+            const allItems = await ListedInventoryItem.find({ isActive: { $ne: false } });
+
             const dueItems = allItems.filter(item => { // ← RENAMED from cycleCountDueItems to dueItems
                 const interval = item.cycleCountInterval || 90;
                 if (!item.lastCycleCount) {
@@ -172,7 +173,7 @@ router.get('/cycle-counts-next', requireAuth, async (req, res) => {
         const today = new Date();
         
         // Get all items sorted by last cycle count date (oldest first)
-        const allItems = await ListedInventoryItem.find({})
+        const allItems = await ListedInventoryItem.find({ isActive: { $ne: false } })
             .sort({ lastCycleCount: 1 })
             .lean();
         

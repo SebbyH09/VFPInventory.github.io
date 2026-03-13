@@ -73,6 +73,10 @@ const InventorySchema = new Schema({
         type: Boolean,
         default: true
     },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
     alternateItems: [{
         brand: { type: String, trim: true, default: '' },
         vendor: { type: String, trim: true, default: '' },
@@ -86,5 +90,6 @@ const InventorySchema = new Schema({
 InventorySchema.index({ item: 1 });
 InventorySchema.index({ vendor: 1 });
 InventorySchema.index({ type: 1 });
+InventorySchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('ListedInventoryItem', InventorySchema);
