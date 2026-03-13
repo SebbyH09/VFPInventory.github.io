@@ -31,6 +31,19 @@ function openEditModal(itemId) {
     document.getElementById('editCycleInterval').value = originalData.cycleCountInterval || 90;
     document.getElementById('editUseCycleCount').checked = originalData.useCycleCount !== undefined ? originalData.useCycleCount : true;
 
+    // Update toggle active button text based on current status
+    const toggleActiveBtn = document.querySelector('.toggle-active-btn-modal');
+    if (toggleActiveBtn) {
+        const isActive = originalData.isActive !== false;
+        if (isActive) {
+            toggleActiveBtn.textContent = 'Mark Inactive';
+            toggleActiveBtn.classList.remove('reactivate');
+        } else {
+            toggleActiveBtn.textContent = 'Reactivate';
+            toggleActiveBtn.classList.add('reactivate');
+        }
+    }
+
     // Populate alternate items
     const altCheckbox = document.getElementById('editAlternateItems');
     const altSection = document.getElementById('editAlternateItemsSection');
@@ -183,6 +196,45 @@ async function deleteItemFromModal() {
     }
 }
 
+async function toggleActiveFromModal() {
+    if (!currentEditItemId) {
+        alert('No item selected');
+        return;
+    }
+
+    const originalData = JSON.parse(currentEditRow.getAttribute('data-original'));
+    const isCurrentlyActive = originalData.isActive !== false;
+    const action = isCurrentlyActive ? 'mark as inactive' : 'reactivate';
+
+    if (!confirm(`Are you sure you want to ${action} this item?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/entry/${currentEditItemId}/toggle-active`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            alert('Failed to update status: ' + (error.message || 'Unknown error'));
+            return;
+        }
+
+        const result = await response.json();
+        alert(result.message);
+        closeEditModal();
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Error toggling active status:', error);
+        alert('Failed to update item status. Please try again.');
+    }
+}
+
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Close modal button
@@ -207,6 +259,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const deleteBtn = document.querySelector('.delete-btn-modal');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', deleteItemFromModal);
+    }
+
+    // Toggle active button
+    const toggleActiveBtn = document.querySelector('.toggle-active-btn-modal');
+    if (toggleActiveBtn) {
+        toggleActiveBtn.addEventListener('click', toggleActiveFromModal);
     }
 
     // Row edit buttons (dynamically added, use event delegation)
@@ -291,6 +349,14 @@ function openViewModal(row) {
 
     // Cycle interval (hidden from table, shown here)
     document.getElementById('viewCycleInterval').textContent = originalData.cycleCountInterval || 90;
+
+    // Status
+    const viewStatus = document.getElementById('viewStatus');
+    if (viewStatus) {
+        const isActive = originalData.isActive !== false;
+        viewStatus.textContent = isActive ? 'Active' : 'Inactive';
+        viewStatus.style.color = isActive ? '#166534' : '#6b7280';
+    }
 
     // Alternate items
     const altSection = document.getElementById('viewAlternateItemsSection');

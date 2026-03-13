@@ -70,7 +70,8 @@ router.post("/", requireAuth, async (req, res) => {
                     cost: parseFloat(row[9]) || 0,
                     cycleCountInterval: parseInt(row[10]) || 90,
                     orderFrequencyPeriod: parseInt(row[11]) || 30,
-                    useCycleCount: row[12] !== undefined ? row[12] : true
+                    useCycleCount: row[12] !== undefined ? row[12] : true,
+                    isActive: row[14] !== undefined ? row[14] : true
                 };
                 if (row[13] && Array.isArray(row[13])) {
                     itemData.alternateItems = row[13];
@@ -142,6 +143,42 @@ router.post("/", requireAuth, async (req, res) => {
         res.status(500).json({
             message: "Error saving data. Please try again later."
         });
+    }
+});
+
+// PATCH route - toggle item active/inactive status
+router.patch("/:id/toggle-active", requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id || id === 'undefined') {
+            return res.status(400).json({ message: "Invalid item ID" });
+        }
+
+        const item = await inventory.findById(id);
+        if (!item) {
+            return res.status(404).json({ message: "Item not found" });
+        }
+
+        const newStatus = !item.isActive;
+        item.isActive = newStatus;
+        await item.save();
+
+        // Log status change to history
+        await InventoryHistory.create({
+            itemId: item._id,
+            itemName: item.item,
+            changeType: 'item_updated',
+            notes: newStatus ? 'Item reactivated' : 'Item marked inactive',
+            userId: req.session.user?.email || 'unknown'
+        });
+
+        res.json({
+            message: newStatus ? 'Item reactivated' : 'Item marked inactive',
+            isActive: newStatus
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating item status." });
     }
 });
 

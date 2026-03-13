@@ -8,7 +8,7 @@ const requireAuth = require('../Middleware/auth');
 router.get('/', requireAuth, async (req, res) => {
     try {
         // Fetch all inventory items from database
-        const inventoryItems = await inventory.find({}).sort({ item: 1 });
+        const inventoryItems = await inventory.find({ isActive: { $ne: false } }).sort({ item: 1 });
 
         res.render('consume', {
             inventoryItems: inventoryItems,
