@@ -1055,3 +1055,59 @@ body.modal-open .table-wrapper {
         font-size: 18px;
     }
 }
+
+/* ===== View Modal Cart Actions ===== */
+.view-cart-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.view-cart-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.view-cart-btn:active {
+    transform: scale(0.97);
+}
+
+.view-cart-btn:disabled {
+    cursor: default;
+    opacity: 0.9;
+}
+
+.view-order-btn {
+    background-color: #2196F3;
+}
+
+.view-order-btn:hover:not(:disabled) {
+    background-color: #1976D2;
+}
+
+.view-consume-btn {
+    background-color: #FF5722;
+}
+
+.view-consume-btn:hover:not(:disabled) {
+    background-color: #E64A19;
+}
+
+@media (max-width: 480px) {
+    .view-cart-actions {
+        flex-direction: column;
+    }
+}
