@@ -190,7 +190,8 @@
     background-color: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -201,7 +202,7 @@
 /* ===== Table Styling ===== */
 #mainTable1 {
     width: 100%;
-    min-width: 100%;
+    min-width: 900px;
     border-collapse: collapse;
     table-layout: auto;
 }
@@ -301,7 +302,24 @@
 
 /* ===== Action Buttons ===== */
 .actions-cell {
+    position: sticky;
+    right: 0;
+    background-color: #fff;
     white-space: nowrap;
+    box-shadow: -2px 0 6px rgba(0, 0, 0, 0.07);
+    z-index: 1;
+}
+
+#mainTable1 thead th:last-child {
+    position: sticky;
+    right: 0;
+    background-color: #f9fafb;
+    box-shadow: -2px 0 6px rgba(0, 0, 0, 0.07);
+    z-index: 11;
+}
+
+#mainTable1 tbody tr:hover .actions-cell {
+    background-color: #f9fafb;
 }
 
 .actions-cell button {
@@ -524,6 +542,11 @@ body.edit-mode .cycle-count-btn {
     font-weight: bold;
     cursor: pointer;
     line-height: 20px;
+    min-width: 36px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .close-modal:hover,
@@ -924,9 +947,21 @@ body.modal-open .table-wrapper {
         white-space: nowrap;
     }
 
-    .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+    .close-modal {
+        float: none;
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+        background-color: #f3f4f6;
+        border-radius: 50%;
+        z-index: 10;
+    }
+
+    .edit-modal-content {
+        position: relative;
     }
 
     .view-row {
