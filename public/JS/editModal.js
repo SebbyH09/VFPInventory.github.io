@@ -293,10 +293,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // View modal close button
+    // View modal close button (× icon)
     const viewModalClose = document.getElementById('viewModalClose');
     if (viewModalClose) {
         viewModalClose.addEventListener('click', closeViewModal);
+    }
+
+    // View modal bottom Close button
+    const viewModalCloseBtn = document.getElementById('viewModalCloseBtn');
+    if (viewModalCloseBtn) {
+        viewModalCloseBtn.addEventListener('click', closeViewModal);
     }
 
     // Close modals when clicking outside of them
