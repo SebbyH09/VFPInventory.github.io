@@ -265,8 +265,67 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Set up "Add to Order Cart" buttons on Need to Order cards
+    document.querySelectorAll('.card-add-order-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const card = this.closest('.card');
+            const item = getCardItemData(card);
+            if (window.CartManager) {
+                CartManager.addToOrderCart(item);
+                CartManager.showToast(item.name + ' added to order cart');
+                this.textContent = 'Added';
+                this.classList.add('added');
+                setTimeout(() => {
+                    this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Order';
+                    this.classList.remove('added');
+                }, 1500);
+            }
+        });
+    });
+
+    // Set up "Add to Consume Cart" buttons on Need to Order cards
+    document.querySelectorAll('.card-add-consume-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const card = this.closest('.card');
+            const item = getCardItemData(card);
+            if (window.CartManager) {
+                CartManager.addToConsumeCart({
+                    itemId: item.itemId,
+                    name: item.name,
+                    brand: item.brand,
+                    catalog: item.catalog,
+                    consumeQuantity: 1,
+                    currentQty: item.currentQty
+                });
+                CartManager.showToast(item.name + ' added to consume cart');
+                this.textContent = 'Added';
+                this.classList.add('added');
+                setTimeout(() => {
+                    this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Consume';
+                    this.classList.remove('added');
+                }, 1500);
+            }
+        });
+    });
+
     updateCycleCountDisplay();
 });
+
+function getCardItemData(card) {
+    return {
+        itemId: card.getAttribute('data-item-id'),
+        name: card.getAttribute('data-item-name'),
+        brand: card.getAttribute('data-item-brand') || '',
+        catalog: card.getAttribute('data-item-catalog') || '',
+        currentQty: parseInt(card.getAttribute('data-item-quantity')) || 0,
+        minQty: parseInt(card.getAttribute('data-item-min')) || 0,
+        maxQty: parseInt(card.getAttribute('data-item-max')) || 0,
+        cost: parseFloat(card.getAttribute('data-item-cost')) || 0,
+        quantity: 1
+    };
+}
 
 
 async function refreshCycleCountCards() {

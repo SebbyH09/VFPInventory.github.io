@@ -387,6 +387,32 @@ function openViewModal(row) {
         altSection.style.display = 'none';
     }
 
+    // Store item data for cart buttons
+    window._viewModalItemData = {
+        itemId: row.getAttribute('data-item-id'),
+        name: originalData.item || '',
+        brand: originalData.brand || '',
+        catalog: originalData.catalogNumber || '',
+        currentQty: originalData.currentQuantity || 0,
+        minQty: originalData.minimumQuantity || 0,
+        maxQty: originalData.maxQuantity || 0,
+        cost: originalData.cost || 0
+    };
+
+    // Reset cart button states
+    var orderBtn = document.getElementById('viewAddToOrderBtn');
+    var consumeBtn = document.getElementById('viewAddToConsumeBtn');
+    if (orderBtn) {
+        orderBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Add to Order Cart';
+        orderBtn.disabled = false;
+        orderBtn.style.backgroundColor = '';
+    }
+    if (consumeBtn) {
+        consumeBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Add to Consume Cart';
+        consumeBtn.disabled = false;
+        consumeBtn.style.backgroundColor = '';
+    }
+
     viewModal.style.display = 'block';
     document.body.classList.add('modal-open');
 }
@@ -396,3 +422,52 @@ function closeViewModal() {
     viewModal.style.display = 'none';
     document.body.classList.remove('modal-open');
 }
+
+// View modal cart button handlers
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        var orderBtn = document.getElementById('viewAddToOrderBtn');
+        var consumeBtn = document.getElementById('viewAddToConsumeBtn');
+
+        if (orderBtn) {
+            orderBtn.addEventListener('click', function() {
+                if (!window.CartManager || !window._viewModalItemData) return;
+                var item = window._viewModalItemData;
+                CartManager.addToOrderCart({
+                    itemId: item.itemId,
+                    name: item.name,
+                    brand: item.brand,
+                    catalog: item.catalog,
+                    quantity: 1,
+                    cost: item.cost,
+                    currentQty: item.currentQty,
+                    minQty: item.minQty,
+                    maxQty: item.maxQty
+                });
+                CartManager.showToast(item.name + ' added to order cart');
+                this.textContent = 'Added to Order Cart';
+                this.style.backgroundColor = '#4CAF50';
+                this.disabled = true;
+            });
+        }
+
+        if (consumeBtn) {
+            consumeBtn.addEventListener('click', function() {
+                if (!window.CartManager || !window._viewModalItemData) return;
+                var item = window._viewModalItemData;
+                CartManager.addToConsumeCart({
+                    itemId: item.itemId,
+                    name: item.name,
+                    brand: item.brand,
+                    catalog: item.catalog,
+                    consumeQuantity: 1,
+                    currentQty: item.currentQty
+                });
+                CartManager.showToast(item.name + ' added to consume cart');
+                this.textContent = 'Added to Consume Cart';
+                this.style.backgroundColor = '#4CAF50';
+                this.disabled = true;
+            });
+        }
+    });
+})();

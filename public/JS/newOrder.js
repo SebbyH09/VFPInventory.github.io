@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const cart = new Map(); // itemId -> { itemId, name, brand, quantity, cost, currentQty }
+    window._orderCart = new Map(); // exposed for cart integration
+    const cart = window._orderCart; // itemId -> { itemId, name, brand, quantity, cost, currentQty }
 
     const searchBar = document.getElementById('orderSearchBar');
     const searchButton = document.getElementById('searchButton');
@@ -128,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    window._renderOrderCart = renderCart; // exposed for cart integration
     function renderCart() {
         if (cart.size === 0) {
             cartContainer.innerHTML = '<p class="empty-message">No items in cart. Select items from the left and click "Add to Order".</p>';
