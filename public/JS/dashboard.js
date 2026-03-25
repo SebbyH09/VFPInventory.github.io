@@ -284,32 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Set up "Add to Consume Cart" buttons on Need to Order cards
-    document.querySelectorAll('.card-add-consume-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const card = this.closest('.card');
-            const item = getCardItemData(card);
-            if (window.CartManager) {
-                CartManager.addToConsumeCart({
-                    itemId: item.itemId,
-                    name: item.name,
-                    brand: item.brand,
-                    catalog: item.catalog,
-                    consumeQuantity: 1,
-                    currentQty: item.currentQty
-                });
-                CartManager.showToast(item.name + ' added to consume cart');
-                this.textContent = 'Added';
-                this.classList.add('added');
-                setTimeout(() => {
-                    this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Consume';
-                    this.classList.remove('added');
-                }, 1500);
-            }
-        });
-    });
-
     updateCycleCountDisplay();
 });
 

@@ -438,14 +438,6 @@
     background-color: #1976D2;
 }
 
-.card-add-consume-btn {
-    background-color: #FF5722;
-    color: white;
-}
-
-.card-add-consume-btn:hover {
-    background-color: #E64A19;
-}
 
 .card-action-btn.added {
     background-color: #4CAF50 !important;
