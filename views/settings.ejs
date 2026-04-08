@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings</title>
+    <link rel="stylesheet" href="/settings.css">
+</head>
+<body>
+    <div class="settings-container">
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1 class="page-title">Settings</h1>
+                <p class="page-subtitle">Manage categories, timeframes, users, and preferences</p>
+            </div>
+        </div>
+
+        <div class="settings-grid">
+
+            <!-- Categories Section -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <div class="settings-card-icon" style="background-color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="settings-card-title">Categories</h2>
+                        <p class="settings-card-desc">Add or remove inventory item categories</p>
+                    </div>
+                </div>
+                <div class="settings-card-body">
+                    <div class="category-list" id="categoryList">
+                        <% if (settings && settings.categories) { %>
+                            <% settings.categories.forEach(function(cat) { %>
+                                <div class="category-item" data-value="<%= cat.value %>">
+                                    <span class="category-name"><%= cat.name %></span>
+                                    <span class="category-value-tag"><%= cat.value %></span>
+                                    <button class="category-remove-btn" data-value="<%= cat.value %>" title="Remove">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    </button>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                    <div class="add-category-form">
+                        <input type="text" id="newCategoryName" class="settings-input" placeholder="Display Name (e.g. Safety Equipment)">
+                        <input type="text" id="newCategoryValue" class="settings-input" placeholder="Value (e.g. Safety)">
+                        <button id="addCategoryBtn" class="settings-btn settings-btn-primary">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeframe Settings -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <div class="settings-card-icon" style="background-color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="settings-card-title">Timeframes</h2>
+                        <p class="settings-card-desc">Configure default intervals and periods</p>
+                    </div>
+                </div>
+                <div class="settings-card-body">
+                    <div class="settings-field">
+                        <label class="settings-label">Default Cycle Count Interval (days)</label>
+                        <input type="number" id="defaultCycleCountInterval" class="settings-input" min="1"
+                            value="<%= settings ? settings.defaultCycleCountInterval : 90 %>">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label">Default Order Frequency Period (days)</label>
+                        <input type="number" id="defaultOrderFrequencyPeriod" class="settings-input" min="1"
+                            value="<%= settings ? settings.defaultOrderFrequencyPeriod : 30 %>">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label">Recommendation Lookback (days)</label>
+                        <input type="number" id="recommendationLookbackDays" class="settings-input" min="7"
+                            value="<%= settings ? settings.recommendationLookbackDays : 90 %>">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label">Lead Time for Orders (days)</label>
+                        <input type="number" id="leadTimeDays" class="settings-input" min="1"
+                            value="<%= settings ? settings.leadTimeDays : 14 %>">
+                    </div>
+                    <button id="saveTimeframesBtn" class="settings-btn settings-btn-primary settings-btn-full">
+                        Save Timeframe Settings
+                    </button>
+                </div>
+            </div>
+
+            <!-- Default Values -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <div class="settings-card-icon" style="background-color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="settings-card-title">Default Values</h2>
+                        <p class="settings-card-desc">Defaults applied when creating new items</p>
+                    </div>
+                </div>
+                <div class="settings-card-body">
+                    <div class="settings-field">
+                        <label class="settings-label">Default Min Quantity</label>
+                        <input type="number" id="defaultMinQuantity" class="settings-input" min="0"
+                            value="<%= settings ? settings.defaultMinQuantity : 0 %>">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label">Default Max Quantity</label>
+                        <input type="number" id="defaultMaxQuantity" class="settings-input" min="0"
+                            value="<%= settings ? settings.defaultMaxQuantity : 0 %>">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label-toggle">
+                            <input type="checkbox" id="lowStockAlertEnabled"
+                                <%= settings && settings.lowStockAlertEnabled ? 'checked' : '' %>>
+                            <span>Enable Low Stock Alerts on Dashboard</span>
+                        </label>
+                    </div>
+                    <button id="saveDefaultsBtn" class="settings-btn settings-btn-primary settings-btn-full">
+                        Save Default Values
+                    </button>
+                </div>
+            </div>
+
+            <!-- User Management -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <div class="settings-card-icon" style="background-color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="settings-card-title">User Management</h2>
+                        <p class="settings-card-desc">Add or remove user accounts</p>
+                    </div>
+                </div>
+                <div class="settings-card-body">
+                    <div class="user-list" id="userList">
+                        <% if (users && users.length > 0) { %>
+                            <% users.forEach(function(u) { %>
+                                <div class="user-item" data-id="<%= u._id %>">
+                                    <div class="user-info">
+                                        <span class="user-avatar"><%= u.email.charAt(0).toUpperCase() %></span>
+                                        <div>
+                                            <span class="user-email"><%= u.email %></span>
+                                            <span class="user-date">Added <%= new Date(u.createdAt).toLocaleDateString() %></span>
+                                        </div>
+                                    </div>
+                                    <button class="user-remove-btn" data-id="<%= u._id %>" title="Remove user">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    </button>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <p class="no-users-text">No users found</p>
+                        <% } %>
+                    </div>
+                    <div class="add-user-form">
+                        <input type="email" id="newUserEmail" class="settings-input" placeholder="Email address">
+                        <input type="password" id="newUserPassword" class="settings-input" placeholder="Password (min 8 chars)">
+                        <button id="addUserBtn" class="settings-btn settings-btn-primary">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add User
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script defer src="/settings.js"></script>
+</body>
+</html>

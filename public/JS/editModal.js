@@ -387,6 +387,9 @@ function openViewModal(row) {
         altSection.style.display = 'none';
     }
 
+    // Fetch and display recommendations
+    fetchRecommendations(row.getAttribute('data-item-id'));
+
     // Store item data for cart buttons
     window._viewModalItemData = {
         itemId: row.getAttribute('data-item-id'),
@@ -422,6 +425,93 @@ function closeViewModal() {
     viewModal.style.display = 'none';
     document.body.classList.remove('modal-open');
 }
+
+// Recommendations logic
+function fetchRecommendations(itemId) {
+    var section = document.getElementById('viewRecommendationsSection');
+    section.style.display = 'none';
+
+    fetch('/entry/' + itemId + '/recommendations')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data.hasRecommendation || !data.hasData) {
+                section.style.display = 'none';
+                return;
+            }
+            document.getElementById('recCurrentMin').textContent = data.currentMin;
+            document.getElementById('recCurrentMax').textContent = data.currentMax;
+            document.getElementById('recSuggestedMin').textContent = data.recommendedMin;
+            document.getElementById('recSuggestedMax').textContent = data.recommendedMax;
+            document.getElementById('recBasis').textContent =
+                'Based on ' + data.totalConsumed + ' units consumed over ' + data.lookbackDays +
+                ' days (' + data.dailyRate + '/day) across ' + data.consumptionEvents + ' events.';
+
+            // Store recommendation data for adopt button
+            window._recData = {
+                itemId: itemId,
+                recommendedMin: data.recommendedMin,
+                recommendedMax: data.recommendedMax
+            };
+
+            // Reset button states
+            var adoptBtn = document.getElementById('recAdoptBtn');
+            var ignoreBtn = document.getElementById('recIgnoreBtn');
+            adoptBtn.disabled = false;
+            adoptBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Adopt';
+            ignoreBtn.disabled = false;
+
+            section.style.display = 'block';
+        })
+        .catch(function() {
+            section.style.display = 'none';
+        });
+}
+
+// Recommendation button handlers
+document.addEventListener('DOMContentLoaded', function() {
+    var adoptBtn = document.getElementById('recAdoptBtn');
+    var ignoreBtn = document.getElementById('recIgnoreBtn');
+
+    if (adoptBtn) {
+        adoptBtn.addEventListener('click', function() {
+            if (!window._recData) return;
+            adoptBtn.disabled = true;
+            adoptBtn.textContent = 'Saving...';
+
+            fetch('/entry/' + window._recData.itemId + '/adopt-recommendations', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    minimumquantity: window._recData.recommendedMin,
+                    maximumquantity: window._recData.recommendedMax
+                })
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('Failed');
+                return res.json();
+            })
+            .then(function() {
+                adoptBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Adopted!';
+                adoptBtn.style.backgroundColor = '#16a34a';
+                // Update the displayed values in the modal
+                document.getElementById('viewMinQty').textContent = window._recData.recommendedMin;
+                document.getElementById('viewMaxQty').textContent = window._recData.recommendedMax;
+                // Reload after brief delay to update the table
+                setTimeout(function() { window.location.reload(); }, 1200);
+            })
+            .catch(function() {
+                adoptBtn.textContent = 'Error - Retry';
+                adoptBtn.disabled = false;
+            });
+        });
+    }
+
+    if (ignoreBtn) {
+        ignoreBtn.addEventListener('click', function() {
+            document.getElementById('viewRecommendationsSection').style.display = 'none';
+        });
+    }
+});
 
 // View modal cart button handlers
 (function() {
