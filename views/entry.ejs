@@ -466,6 +466,58 @@
                         <span class="view-value" id="viewStatus"></span>
                     </div>
                 </div>
+                <!-- Recommendations Section -->
+                <div id="viewRecommendationsSection" class="recommendations-section" style="display: none;">
+                    <h3 class="recommendations-heading">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        Recommended Min / Max
+                    </h3>
+                    <div class="recommendations-body">
+                        <div class="recommendations-comparison">
+                            <div class="rec-column">
+                                <span class="rec-col-label">Current</span>
+                                <div class="rec-values">
+                                    <div class="rec-value-item">
+                                        <span class="rec-label">Min</span>
+                                        <span class="rec-value" id="recCurrentMin">-</span>
+                                    </div>
+                                    <div class="rec-value-item">
+                                        <span class="rec-label">Max</span>
+                                        <span class="rec-value" id="recCurrentMax">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="rec-arrow">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                            </div>
+                            <div class="rec-column rec-column-recommended">
+                                <span class="rec-col-label">Recommended</span>
+                                <div class="rec-values">
+                                    <div class="rec-value-item">
+                                        <span class="rec-label">Min</span>
+                                        <span class="rec-value rec-value-highlight" id="recSuggestedMin">-</span>
+                                    </div>
+                                    <div class="rec-value-item">
+                                        <span class="rec-label">Max</span>
+                                        <span class="rec-value rec-value-highlight" id="recSuggestedMax">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="rec-basis" id="recBasis"></p>
+                        <div class="rec-actions">
+                            <button id="recAdoptBtn" class="rec-btn rec-adopt-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                Adopt
+                            </button>
+                            <button id="recIgnoreBtn" class="rec-btn rec-ignore-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                Ignore
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="viewAlternateItemsSection" class="view-alternate-items-section" style="display: none;">
                     <h3 class="alternate-items-heading">Alternate Items</h3>
                     <div id="viewAlternateItemsContainer"></div>

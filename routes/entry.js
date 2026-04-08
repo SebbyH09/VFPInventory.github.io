@@ -182,6 +182,108 @@ router.patch("/:id/toggle-active", requireAuth, async (req, res) => {
     }
 });
 
+// GET route - get min/max recommendations for an item
+router.get('/:id/recommendations', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const item = await inventory.findById(id);
+        if (!item) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        // Look back 90 days of consumption history
+        const lookbackDays = 90;
+        const lookbackDate = new Date();
+        lookbackDate.setDate(lookbackDate.getDate() - lookbackDays);
+
+        const history = await InventoryHistory.find({
+            itemId: id,
+            changeType: { $in: ['quantity_consumed', 'quantity_change'] },
+            changeDate: { $gte: lookbackDate }
+        }).sort({ changeDate: -1 });
+
+        // Calculate total consumption (negative quantity changes = usage)
+        let totalConsumed = 0;
+        let consumptionEvents = 0;
+        history.forEach(entry => {
+            const change = entry.quantityChange || 0;
+            if (change < 0) {
+                totalConsumed += Math.abs(change);
+                consumptionEvents++;
+            }
+        });
+
+        // Calculate daily consumption rate
+        const dailyRate = totalConsumed / lookbackDays;
+
+        // Lead time buffer: 14 days (time to receive an order)
+        const leadTimeDays = 14;
+        // Safety stock: enough for lead time
+        const safetyStock = Math.ceil(dailyRate * leadTimeDays);
+        // Recommended min: safety stock + average consumption during lead time
+        const recommendedMin = Math.max(1, Math.ceil(safetyStock + (dailyRate * 7)));
+        // Recommended max: enough stock for ~45 days of usage
+        const reorderCycleDays = 45;
+        const recommendedMax = Math.max(recommendedMin + 1, Math.ceil(dailyRate * reorderCycleDays));
+
+        // Determine if a recommendation should be shown
+        const hasData = consumptionEvents >= 2;
+        const currentMin = item.minimumquantity || 0;
+        const currentMax = item.maximumquantity || 0;
+        const minDiffers = hasData && Math.abs(recommendedMin - currentMin) > 0;
+        const maxDiffers = hasData && Math.abs(recommendedMax - currentMax) > 0;
+        const hasRecommendation = minDiffers || maxDiffers;
+
+        res.json({
+            hasRecommendation,
+            hasData,
+            currentMin,
+            currentMax,
+            recommendedMin: hasData ? recommendedMin : null,
+            recommendedMax: hasData ? recommendedMax : null,
+            dailyRate: Math.round(dailyRate * 100) / 100,
+            totalConsumed,
+            consumptionEvents,
+            lookbackDays
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error calculating recommendations' });
+    }
+});
+
+// PATCH route - adopt recommendations for an item
+router.patch('/:id/adopt-recommendations', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { minimumquantity, maximumquantity } = req.body;
+
+        const item = await inventory.findById(id);
+        if (!item) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        const oldMin = item.minimumquantity;
+        const oldMax = item.maximumquantity;
+
+        item.minimumquantity = minimumquantity;
+        item.maximumquantity = maximumquantity;
+        await item.save();
+
+        // Log the change
+        await InventoryHistory.create({
+            itemId: item._id,
+            itemName: item.item,
+            changeType: 'item_updated',
+            notes: `Adopted recommendations: Min ${oldMin} → ${minimumquantity}, Max ${oldMax} → ${maximumquantity}`,
+            userId: req.session.user?.email || 'unknown'
+        });
+
+        res.json({ message: 'Recommendations adopted successfully', item });
+    } catch (error) {
+        res.status(500).json({ message: 'Error adopting recommendations' });
+    }
+});
+
 // DELETE route - delete inventory item by ID
 router.delete("/:id", requireAuth, async (req, res) => {
     try {
