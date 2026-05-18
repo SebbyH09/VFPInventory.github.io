@@ -6,14 +6,22 @@
 </head>
 <body>
     <div class="order-container">
-        <h2>New Order</h2>
+        <div class="order-page-header">
+            <div class="order-page-header-left">
+                <h1 class="page-title">New Order</h1>
+                <p class="page-subtitle">Build a purchase order from current inventory</p>
+            </div>
+        </div>
 
         <!-- Recommended Order Section -->
         <% const recommendedItems = inventoryItems ? inventoryItems.filter(item => item.minimumquantity > 0 && item.currentquantity <= item.minimumquantity) : []; %>
         <% if (recommendedItems.length > 0) { %>
         <div class="recommended-order-section">
             <div class="recommended-header">
-                <h3>Recommended Order</h3>
+                <h3>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Recommended Order
+                </h3>
                 <span class="recommended-count"><%= recommendedItems.length %> item<%= recommendedItems.length !== 1 ? 's' : '' %> at or below minimum</span>
                 <button id="addAllRecommendedBtn" class="add-recommended-btn">Add All to Order</button>
             </div>
@@ -34,10 +42,12 @@
                             <tr data-item-id="<%= item._id %>"
                                 data-item-name="<%= item.item %>"
                                 data-item-brand="<%= item.brand || '' %>"
+                                data-item-vendor="<%= item.vendor || '' %>"
                                 data-item-catalog="<%= item.catalog || '' %>"
                                 data-item-quantity="<%= item.currentquantity %>"
                                 data-item-min="<%= item.minimumquantity %>"
-                                data-item-cost="<%= (item.cost || 0).toFixed(2) %>">
+                                data-item-cost="<%= (item.cost || 0).toFixed(2) %>"
+                                data-item-alternates='<%= JSON.stringify(item.alternateItems || []) %>'>
                                 <td><%= item.item %></td>
                                 <td><%= item.brand || '' %></td>
                                 <td><%= item.catalog || '' %></td>
@@ -61,8 +71,12 @@
         <div class="order-layout">
             <!-- Left Side: Inventory List -->
             <div class="left-panel" data-panel="inventory">
+                <h3 class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    Available Inventory
+                </h3>
                 <div class="search-section">
-                    <input type="text" id="orderSearchBar" placeholder="Search inventory...">
+                    <input type="text" id="orderSearchBar" placeholder="Search items, brand or catalog...">
                     <div class="search-buttons">
                         <button id="searchButton" class="search-btn">Search</button>
                         <button id="clearButton" class="clear-btn">Clear</button>
@@ -76,8 +90,8 @@
                                 <th>Item</th>
                                 <th>Brand</th>
                                 <th>Catalog #</th>
-                                <th>Current Qty</th>
-                                <th>Min Qty</th>
+                                <th>Current</th>
+                                <th>Min</th>
                                 <th>Cost</th>
                                 <th>Select</th>
                             </tr>
@@ -85,14 +99,22 @@
                         <tbody>
                             <% if (inventoryItems && inventoryItems.length > 0) { %>
                                 <% inventoryItems.forEach((item) => { %>
+                                    <% const altCount = (item.alternateItems || []).length; %>
                                     <tr data-item-id="<%= item._id %>"
                                         data-item-name="<%= item.item %>"
                                         data-item-brand="<%= item.brand || '' %>"
+                                        data-item-vendor="<%= item.vendor || '' %>"
                                         data-item-catalog="<%= item.catalog || '' %>"
                                         data-item-quantity="<%= item.currentquantity %>"
                                         data-item-min="<%= item.minimumquantity %>"
-                                        data-item-cost="<%= (item.cost || 0).toFixed(2) %>">
-                                        <td><%= item.item %></td>
+                                        data-item-cost="<%= (item.cost || 0).toFixed(2) %>"
+                                        data-item-alternates='<%= JSON.stringify(item.alternateItems || []) %>'>
+                                        <td>
+                                            <%= item.item %>
+                                            <% if (altCount > 0) { %>
+                                                <span class="has-alternates-badge" title="Has alternate options"><%= altCount %> alt</span>
+                                            <% } %>
+                                        </td>
                                         <td><%= item.brand || '' %></td>
                                         <td><%= item.catalog || '' %></td>
                                         <td><%= item.currentquantity %></td>
@@ -105,7 +127,7 @@
                                 <% }); %>
                             <% } else { %>
                                 <tr>
-                                    <td colspan="7" style="text-align: center;">No inventory items available</td>
+                                    <td colspan="7" style="text-align: center; color: #9ca3af;">No inventory items available</td>
                                 </tr>
                             <% } %>
                         </tbody>
@@ -118,7 +140,10 @@
             <!-- Right Side: Cart -->
             <div class="right-panel" data-panel="cart">
                 <div class="cart-header">
-                    <h3>Order Cart</h3>
+                    <h3>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        Order Cart
+                    </h3>
                     <button id="submitOrderBtn" class="submit-order-btn">Submit Order</button>
                 </div>
 
@@ -129,6 +154,28 @@
                 <div id="cartContainer" class="cart-container">
                     <p class="empty-message">No items in cart. Select items from the left and click "Add to Order".</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alternate Item Selection Modal -->
+    <div id="alternateItemsModal" class="alt-items-modal" aria-hidden="true" role="dialog">
+        <div class="alt-items-modal-content">
+            <div class="alt-items-modal-header">
+                <div class="alt-items-modal-header-text">
+                    <h3 id="altModalTitle">Choose product variant</h3>
+                    <p>This item has alternate options. Pick which one you're ordering.</p>
+                </div>
+                <button type="button" class="alt-items-modal-close" id="altModalCloseBtn" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="alt-items-modal-body">
+                <div id="altOptionsList" class="alt-items-list"></div>
+            </div>
+            <div class="alt-items-modal-footer">
+                <button type="button" class="alt-modal-btn alt-modal-btn-cancel" id="altModalCancelBtn">Cancel</button>
+                <button type="button" class="alt-modal-btn alt-modal-btn-confirm" id="altModalConfirmBtn">Add to Order</button>
             </div>
         </div>
     </div>

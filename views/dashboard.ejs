@@ -51,6 +51,7 @@
         </div>
     </div>
 
+    <% if (typeof lowStockAlertEnabled === 'undefined' || lowStockAlertEnabled) { %>
     <div class="card-wrapper" id="inventoryCardWrapper">
         <div class="card-header-controls">
             <h2 class="card-title">Need to Order</h2>
@@ -112,6 +113,7 @@
             <% } %>
         </div>
     </div>
+    <% } %>
 
     <div class="card-wrapper cycle-count-wrapper" id="cycleCountCardWrapper">
         <div class="card-header-controls">

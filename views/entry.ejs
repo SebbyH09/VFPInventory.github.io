@@ -39,32 +39,21 @@
         </div>
 
         <!-- Category Filter Pills -->
+        <% const categoryList = (settings && settings.categories && settings.categories.length > 0) ? settings.categories : []; %>
         <div class="category-filter-bar">
             <button class="category-pill active" data-category="">All</button>
-            <button class="category-pill" data-category="Reagent">Reagents</button>
-            <button class="category-pill" data-category="Filter">Filters</button>
-            <button class="category-pill" data-category="PPE">PPE</button>
-            <button class="category-pill" data-category="Cleaning">Cleaning Supplies</button>
-            <button class="category-pill" data-category="Office">Office Supplies</button>
-            <button class="category-pill" data-category="Consumable">Lab Consumables</button>
-            <button class="category-pill" data-category="Electrical">Electrical</button>
-            <button class="category-pill" data-category="Mechanical">Mechanical Parts</button>
-            <button class="category-pill" data-category="Other">Other</button>
+            <% categoryList.forEach(function(cat) { %>
+                <button class="category-pill" data-category="<%= cat.value %>"><%= cat.name %></button>
+            <% }); %>
         </div>
 
         <!-- Hidden select filters for JS compatibility -->
         <div style="display: none;">
             <select id="filterType" class="filter-select">
                 <option value="">All</option>
-                <option value="Reagent">Reagent</option>
-                <option value="Filter">Filter</option>
-                <option value="PPE">PPE</option>
-                <option value="Cleaning">Cleaning Supplies</option>
-                <option value="Office">Office Supplies</option>
-                <option value="Consumable">Lab Consumables</option>
-                <option value="Electrical">Electrical</option>
-                <option value="Mechanical">Mechanical Parts</option>
-                <option value="Other">Other</option>
+                <% categoryList.forEach(function(cat) { %>
+                    <option value="<%= cat.value %>"><%= cat.name %></option>
+                <% }); %>
             </select>
             <select id="filterLocation" class="filter-select">
                 <option value="">All</option>
@@ -181,7 +170,15 @@
     </div>
 
     <!-- Add Item Modal -->
-    <div id="addModal" class="edit-modal">
+    <% const defaultMinQty = settings ? settings.defaultMinQuantity : 0; %>
+    <% const defaultMaxQty = settings ? settings.defaultMaxQuantity : 0; %>
+    <% const defaultCycleInterval = settings ? settings.defaultCycleCountInterval : 90; %>
+    <% const defaultOrderFrequency = settings ? settings.defaultOrderFrequencyPeriod : 30; %>
+    <div id="addModal" class="edit-modal"
+         data-default-min="<%= defaultMinQty %>"
+         data-default-max="<%= defaultMaxQty %>"
+         data-default-cycle-interval="<%= defaultCycleInterval %>"
+         data-default-order-frequency="<%= defaultOrderFrequency %>">
         <div class="edit-modal-content">
             <span class="close-modal">&times;</span>
             <h2>Add New Item</h2>
@@ -213,13 +210,13 @@
                     </div>
                     <div class="form-group">
                         <label for="addMinQty">Minimum Quantity:</label>
-                        <input type="number" id="addMinQty" class="edit-input">
+                        <input type="number" id="addMinQty" class="edit-input" value="<%= defaultMinQty %>">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="addMaxQty">Max Quantity:</label>
-                        <input type="number" id="addMaxQty" class="edit-input">
+                        <input type="number" id="addMaxQty" class="edit-input" value="<%= defaultMaxQty %>">
                     </div>
                     <div class="form-group">
                         <label for="addLocation">Location:</label>
@@ -231,15 +228,9 @@
                         <label for="addType">Type:</label>
                         <select id="addType" class="edit-input">
                             <option value="">Select Type</option>
-                            <option value="Reagent">Reagent</option>
-                            <option value="Filter">Filter</option>
-                            <option value="PPE">PPE</option>
-                            <option value="Cleaning">Cleaning Supplies</option>
-                            <option value="Office">Office Supplies</option>
-                            <option value="Consumable">Lab Consumables</option>
-                            <option value="Electrical">Electrical</option>
-                            <option value="Mechanical">Mechanical Parts</option>
-                            <option value="Other">Other</option>
+                            <% categoryList.forEach(function(cat) { %>
+                                <option value="<%= cat.value %>"><%= cat.name %></option>
+                            <% }); %>
                         </select>
                     </div>
                     <div class="form-group">
@@ -250,7 +241,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="addCycleInterval">Cycle Interval (days):</label>
-                        <input type="number" id="addCycleInterval" class="edit-input" value="90">
+                        <input type="number" id="addCycleInterval" class="edit-input" value="<%= defaultCycleInterval %>">
                     </div>
                     <div class="form-group">
                         <label style="display: flex; align-items: center; gap: 8px;">
@@ -331,15 +322,9 @@
                         <label for="editType">Type:</label>
                         <select id="editType" class="edit-input">
                             <option value="">Select Type</option>
-                            <option value="Reagent">Reagent</option>
-                            <option value="Filter">Filter</option>
-                            <option value="PPE">PPE</option>
-                            <option value="Cleaning">Cleaning Supplies</option>
-                            <option value="Office">Office Supplies</option>
-                            <option value="Consumable">Lab Consumables</option>
-                            <option value="Electrical">Electrical</option>
-                            <option value="Mechanical">Mechanical Parts</option>
-                            <option value="Other">Other</option>
+                            <% categoryList.forEach(function(cat) { %>
+                                <option value="<%= cat.value %>"><%= cat.name %></option>
+                            <% }); %>
                         </select>
                     </div>
                     <div class="form-group">

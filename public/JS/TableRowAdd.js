@@ -70,18 +70,23 @@ document.addEventListener('DOMContentLoaded', function() {
 function openAddModal() {
     const modal = document.getElementById('addModal');
     if (modal) {
+        // Read default values from settings (rendered as data attributes)
+        const defaultMin = modal.dataset.defaultMin || '0';
+        const defaultMax = modal.dataset.defaultMax || '0';
+        const defaultCycleInterval = modal.dataset.defaultCycleInterval || '90';
+
         // Clear all input fields
         document.getElementById('addItem').value = '';
         document.getElementById('addBrand').value = '';
         document.getElementById('addVendor').value = '';
         document.getElementById('addCatalog').value = '';
         document.getElementById('addCurrentQty').value = '';
-        document.getElementById('addMinQty').value = '';
-        document.getElementById('addMaxQty').value = '';
+        document.getElementById('addMinQty').value = defaultMin;
+        document.getElementById('addMaxQty').value = defaultMax;
         document.getElementById('addLocation').value = '';
         document.getElementById('addType').value = '';
         document.getElementById('addCost').value = '0';
-        document.getElementById('addCycleInterval').value = '90';
+        document.getElementById('addCycleInterval').value = defaultCycleInterval;
         document.getElementById('addUseCycleCount').checked = true;
 
         // Reset alternate items
@@ -106,6 +111,10 @@ async function submitAddModal() {
     // Collect alternate items if enabled
     const alternateItems = collectAlternateItems('add');
 
+    const modal = document.getElementById('addModal');
+    const defaultCycleInterval = (modal && modal.dataset.defaultCycleInterval) || '90';
+    const defaultOrderFrequency = (modal && modal.dataset.defaultOrderFrequency) || '30';
+
     // Get all the values from the modal
     const itemData = [
         document.getElementById('addItem').value.trim(),
@@ -118,8 +127,8 @@ async function submitAddModal() {
         document.getElementById('addLocation').value.trim(),
         document.getElementById('addType').value,
         document.getElementById('addCost').value.trim() || '0',
-        document.getElementById('addCycleInterval').value.trim() || '90',
-        '30',
+        document.getElementById('addCycleInterval').value.trim() || defaultCycleInterval,
+        defaultOrderFrequency,
         document.getElementById('addUseCycleCount').checked,
         alternateItems
     ];

@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const ExcelJS = require('exceljs');
 const inventory = require('../models/ListedInventoryItem');
+const Settings = require('../models/Settings');
 const requireAuth = require('../Middleware/auth');
 
 // Configure multer for file upload
@@ -64,6 +65,12 @@ router.post('/', requireAuth, upload.single('excelFile'), async (req, res) => {
         const itemsToInsert = [];
         const errors = [];
 
+        const settings = await Settings.getSettings();
+        const defaultMin = settings.defaultMinQuantity || 0;
+        const defaultMax = settings.defaultMaxQuantity || 0;
+        const defaultCycleInterval = settings.defaultCycleCountInterval || 90;
+        const defaultOrderFrequency = settings.defaultOrderFrequencyPeriod || 30;
+
         rows.forEach((row, index) => {
             // Skip empty rows
             if (!row || row.length === 0 || !row[0]) {
@@ -82,10 +89,10 @@ router.post('/', requireAuth, upload.single('excelFile'), async (req, res) => {
                 vendor: row[2] || '',
                 catalog: row[3] || '',
                 currentquantity: parseInt(row[4]) || 0,
-                minimumquantity: parseInt(row[5]) || 0,
-                maximumquantity: parseInt(row[6]) || 0,
-                cycleCountInterval: parseInt(row[7]) || 90,
-                orderFrequencyPeriod: parseInt(row[8]) || 30
+                minimumquantity: parseInt(row[5]) || defaultMin,
+                maximumquantity: parseInt(row[6]) || defaultMax,
+                cycleCountInterval: parseInt(row[7]) || defaultCycleInterval,
+                orderFrequencyPeriod: parseInt(row[8]) || defaultOrderFrequency
             });
         });
 
