@@ -6,7 +6,12 @@
 </head>
 <body>
     <div class="consume-container">
-        <h2>Consume Inventory</h2>
+        <div class="consume-page-header">
+            <div class="consume-page-header-left">
+                <h1 class="page-title">Consume Inventory</h1>
+                <p class="page-subtitle">Record items used or removed from stock</p>
+            </div>
+        </div>
 
         <!-- Mobile Tab Bar -->
         <div class="mobile-tabs">
@@ -17,10 +22,14 @@
         <div class="consume-layout">
             <!-- Left Side: Inventory List -->
             <div class="left-panel" data-panel="inventory">
+                <h3 class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    Available Inventory
+                </h3>
                 <div class="search-section">
-                    <input type="text" id="consumeSearchBar" placeholder="Search inventory...">
+                    <input type="text" id="consumeSearchBar" placeholder="Search items, brand or catalog...">
                     <div class="search-buttons">
-                        <button id="searchButton" class="search-btn">Enter</button>
+                        <button id="searchButton" class="search-btn">Search</button>
                         <button id="clearButton" class="clear-btn">Clear</button>
                     </div>
                 </div>
@@ -67,8 +76,12 @@
 
             <!-- Right Side: Selected Items -->
             <div class="right-panel" data-panel="selected">
+                <h3 class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Items to Consume
+                </h3>
                 <div class="consume-header">
-                    <button id="consumeBtn" class="consume-btn">Consume</button>
+                    <button id="consumeBtn" class="consume-btn">Consume Selected</button>
                 </div>
 
                 <div id="selectedItemsContainer" class="selected-items-container">

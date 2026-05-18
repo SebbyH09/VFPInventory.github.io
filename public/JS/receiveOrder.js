@@ -78,10 +78,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const remaining = item.quantityOrdered - item.quantityReceived;
             const fullyReceived = remaining <= 0;
 
+            const variantBadge = item.variantIsPrimary === false
+                ? ` <span class="has-alternates-badge">${escapeHtml(item.variantLabel || 'Alternate')}</span>`
+                : '';
+            const catalogRow = item.catalog
+                ? `<div class="receive-item-detail"><span class="receive-item-label">Catalog #:</span><span>${escapeHtml(item.catalog)}</span></div>`
+                : '';
+
             html += `
                 <div class="receive-item-card ${fullyReceived ? 'fully-received' : ''}" data-order-item-id="${escapeHtml(item._id)}">
                     <div class="receive-item-header">
-                        <span class="receive-item-title">${escapeHtml(item.itemName)}</span>
+                        <span class="receive-item-title">${escapeHtml(item.itemName)}${variantBadge}</span>
                         <span class="receive-item-status ${fullyReceived ? 'received' : item.quantityReceived > 0 ? 'partial' : 'pending'}">
                             ${fullyReceived ? 'Received' : item.quantityReceived > 0 ? 'Partial' : 'Pending'}
                         </span>
@@ -91,6 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="receive-item-label">Brand:</span>
                             <span>${escapeHtml(item.brand)}</span>
                         </div>
+                        ${catalogRow}
                         <div class="receive-item-detail">
                             <span class="receive-item-label">Ordered:</span>
                             <span>${item.quantityOrdered}</span>

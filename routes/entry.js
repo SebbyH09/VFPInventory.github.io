@@ -3,6 +3,7 @@ const router = express.Router();
 const inventory = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
 const Order = require('../models/Order');
+const Settings = require('../models/Settings');
 const requireAuth = require('../Middleware/auth');
 
 // GET route - render page with existing inventory
@@ -27,15 +28,19 @@ router.get('/', requireAuth, async (req, res) => {
             });
         });
 
+        const settings = await Settings.getSettings();
+
         res.render('entry', {
             inventoryItems: inventoryItems,
             orderCountMap: orderCountMap,
+            settings: settings,
             user: req.session.user
         });
     } catch (error) {
         res.render('entry', {
             inventoryItems: [],
             orderCountMap: {},
+            settings: null,
             user: req.session.user,
             error: 'Failed to load inventory data'
         });
@@ -191,8 +196,11 @@ router.get('/:id/recommendations', requireAuth, async (req, res) => {
             return res.status(404).json({ message: 'Item not found' });
         }
 
-        // Look back 90 days of consumption history
-        const lookbackDays = 90;
+        const settings = await Settings.getSettings();
+        const lookbackDays = settings.recommendationLookbackDays || 90;
+        const leadTimeDays = settings.leadTimeDays || 14;
+        const reorderCycleDays = settings.defaultOrderFrequencyPeriod || 30;
+
         const lookbackDate = new Date();
         lookbackDate.setDate(lookbackDate.getDate() - lookbackDays);
 
@@ -216,14 +224,11 @@ router.get('/:id/recommendations', requireAuth, async (req, res) => {
         // Calculate daily consumption rate
         const dailyRate = totalConsumed / lookbackDays;
 
-        // Lead time buffer: 14 days (time to receive an order)
-        const leadTimeDays = 14;
         // Safety stock: enough for lead time
         const safetyStock = Math.ceil(dailyRate * leadTimeDays);
         // Recommended min: safety stock + average consumption during lead time
         const recommendedMin = Math.max(1, Math.ceil(safetyStock + (dailyRate * 7)));
-        // Recommended max: enough stock for ~45 days of usage
-        const reorderCycleDays = 45;
+        // Recommended max: enough stock for the reorder cycle
         const recommendedMax = Math.max(recommendedMin + 1, Math.ceil(dailyRate * reorderCycleDays));
 
         // Determine if a recommendation should be shown

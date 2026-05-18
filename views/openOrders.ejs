@@ -6,7 +6,12 @@
 </head>
 <body>
     <div class="order-container">
-        <h2>Open Orders</h2>
+        <div class="order-page-header">
+            <div class="order-page-header-left">
+                <h1 class="page-title">Open Orders</h1>
+                <p class="page-subtitle">Track orders awaiting receipt</p>
+            </div>
+        </div>
 
         <div class="orders-controls">
             <div class="filter-section">
@@ -66,7 +71,12 @@
                                 <tbody>
                                     <% order.items.forEach((item) => { %>
                                         <tr class="<%= item.quantityReceived >= item.quantityOrdered ? 'item-received' : item.quantityReceived > 0 ? 'item-partial' : '' %>">
-                                            <td><%= item.itemName %></td>
+                                            <td>
+                                                <%= item.itemName %>
+                                                <% if (item.variantIsPrimary === false) { %>
+                                                    <span class="has-alternates-badge"><%= item.variantLabel || 'Alternate' %></span>
+                                                <% } %>
+                                            </td>
                                             <td><%= item.brand || '' %></td>
                                             <td><%= item.quantityOrdered %></td>
                                             <td><%= item.quantityReceived %></td>

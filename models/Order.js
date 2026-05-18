@@ -16,6 +16,24 @@ const OrderItemSchema = new Schema({
         type: String,
         default: ''
     },
+    vendor: {
+        type: String,
+        default: ''
+    },
+    catalog: {
+        type: String,
+        default: ''
+    },
+    // Variant fields capture which alternate (if any) was ordered.
+    // isPrimary=true means the inventory item's main brand/vendor/catalog.
+    variantLabel: {
+        type: String,
+        default: 'Primary'
+    },
+    variantIsPrimary: {
+        type: Boolean,
+        default: true
+    },
     quantityOrdered: {
         type: Number,
         required: true,

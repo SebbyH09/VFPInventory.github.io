@@ -61,10 +61,16 @@ router.post('/', requireAuth, async (req, res) => {
             if (!invItem) {
                 return res.status(400).json({ message: `Item not found: ${item.itemId}` });
             }
+            const variant = item.variant || {};
+            const isPrimary = variant.isPrimary !== false;
             orderItems.push({
                 itemId: invItem._id,
                 itemName: invItem.item,
-                brand: invItem.brand || '',
+                brand: isPrimary ? (invItem.brand || '') : (variant.brand || ''),
+                vendor: isPrimary ? (invItem.vendor || '') : (variant.vendor || ''),
+                catalog: isPrimary ? (invItem.catalog || '') : (variant.catalog || ''),
+                variantLabel: variant.label || 'Primary',
+                variantIsPrimary: isPrimary,
                 quantityOrdered: item.quantity,
                 quantityReceived: 0,
                 cost: invItem.cost || 0
@@ -81,11 +87,14 @@ router.post('/', requireAuth, async (req, res) => {
 
         // Log order_placed for each item in inventory history
         for (const oi of orderItems) {
+            const variantNote = oi.variantIsPrimary
+                ? ''
+                : ` (${oi.variantLabel}${oi.brand ? ' – ' + oi.brand : ''}${oi.catalog ? ' / ' + oi.catalog : ''})`;
             await InventoryHistory.create({
                 itemId: oi.itemId,
                 itemName: oi.itemName,
                 changeType: 'order_placed',
-                notes: `Order ${orderNumber}: ordered ${oi.quantityOrdered} unit(s)`,
+                notes: `Order ${orderNumber}: ordered ${oi.quantityOrdered} unit(s)${variantNote}`,
                 userId: req.session.user?.email || 'unknown'
             });
         }

@@ -4,15 +4,19 @@ const requireAuth = require('../Middleware/auth');
 const ListedInventoryItem = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
 const Order = require('../models/Order');
+const Settings = require('../models/Settings');
 
 router.get('/', async (req, res) => {
     if (req.session.isLoggedIn) {
         try {
-            const lowInventoryItems = await ListedInventoryItem.find({
+            const settings = await Settings.getSettings();
+            const lowStockAlertEnabled = settings.lowStockAlertEnabled !== false;
+
+            const lowInventoryItems = lowStockAlertEnabled ? await ListedInventoryItem.find({
                 $expr: { $lte: ['$currentquantity', '$minimumquantity'] },
                 minimumquantity: { $gt: 0 },
                 isActive: { $ne: false }
-            }).sort({ item: 1 }).lean();
+            }).sort({ item: 1 }).lean() : [];
 
             // Fetch orders from the past 14 days
             const fourteenDaysAgo = new Date();
@@ -85,6 +89,7 @@ router.get('/', async (req, res) => {
             res.render('dashboard', {
                 user: req.session.user,
                 lowInventoryItems: lowInventoryItems,
+                lowStockAlertEnabled: lowStockAlertEnabled,
                 cycleCountDueItems: cycleCountDueItems,
                 totalCycleCountsDue: dueItems.length,
                 recentOrders: recentOrders,
@@ -95,6 +100,7 @@ router.get('/', async (req, res) => {
             res.render('dashboard', {
                 user: req.session.user,
                 lowInventoryItems: [],
+                lowStockAlertEnabled: true,
                 cycleCountDueItems: [],
                 recentOrders: [],
                 onOrderMap: {},
