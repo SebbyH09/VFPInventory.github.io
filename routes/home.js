@@ -5,6 +5,7 @@ const ListedInventoryItem = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
 const Order = require('../models/Order');
 const Settings = require('../models/Settings');
+const Location = require('../models/Location');
 
 router.get('/', async (req, res) => {
     if (req.session.isLoggedIn) {
@@ -86,6 +87,22 @@ router.get('/', async (req, res) => {
             const cycleCountDueItems = dueItems.slice(0, defaultLimit);
             console.log('Sending to template:', cycleCountDueItems.length, 'items'); // Optional debug log
 
+            // Fetch location items not yet linked to inventory
+            const allLocations = await Location.find().lean();
+            const unlinkedLocationItems = [];
+            allLocations.forEach(loc => {
+                loc.items.forEach(item => {
+                    if (!item.inventoryItemId) {
+                        unlinkedLocationItems.push({
+                            locationId: loc._id,
+                            locationName: loc.name,
+                            itemName: item.itemName,
+                            specificLocation: item.specificLocation || ''
+                        });
+                    }
+                });
+            });
+
             res.render('dashboard', {
                 user: req.session.user,
                 lowInventoryItems: lowInventoryItems,
@@ -93,7 +110,8 @@ router.get('/', async (req, res) => {
                 cycleCountDueItems: cycleCountDueItems,
                 totalCycleCountsDue: dueItems.length,
                 recentOrders: recentOrders,
-                onOrderMap: onOrderMap
+                onOrderMap: onOrderMap,
+                unlinkedLocationItems: unlinkedLocationItems
             });
         } catch (error) {
             console.error('Dashboard error:', error);
@@ -104,6 +122,7 @@ router.get('/', async (req, res) => {
                 cycleCountDueItems: [],
                 recentOrders: [],
                 onOrderMap: {},
+                unlinkedLocationItems: [],
                 error: 'Failed to load dashboard data'
             });
         }

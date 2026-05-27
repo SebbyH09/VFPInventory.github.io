@@ -1,0 +1,179 @@
+<head>
+    <title>Locations</title>
+    <link rel="stylesheet" href="/locations.css">
+</head>
+
+<div class="locations-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title">Locations</h1>
+            <p class="page-subtitle">Manage storage locations and the items stocked in each area</p>
+        </div>
+        <div class="page-header-right">
+            <button id="addLocationBtn" class="btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Location
+            </button>
+        </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-banner"><%= error %></div>
+    <% } %>
+
+    <!-- Locations Grid -->
+    <div class="locations-grid" id="locationsGrid">
+        <% if (locations && locations.length > 0) { %>
+            <% locations.forEach(function(loc) { %>
+                <%
+                    const unlinkedCount = loc.items.filter(i => !i.inventoryItemId).length;
+                %>
+                <div class="location-card"
+                     data-location-id="<%= loc._id %>"
+                     data-location-name="<%= loc.name %>"
+                     data-location-description="<%= loc.description || '' %>"
+                     data-location-items="<%= encodeURIComponent(JSON.stringify(loc.items)) %>">
+                    <p class="location-card-name"><%= loc.name %></p>
+                    <p class="location-card-description"><%= loc.description || '' %></p>
+                    <div class="location-card-meta">
+                        <span class="location-card-count"><%= loc.items.length %> item<%= loc.items.length !== 1 ? 's' : '' %></span>
+                        <% if (unlinkedCount > 0) { %>
+                            <span class="location-card-unlinked">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <%= unlinkedCount %> not in inventory
+                            </span>
+                        <% } %>
+                    </div>
+                    <svg class="location-card-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="empty-locations">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="1.5">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <h3>No locations yet</h3>
+                <p>Add your first storage location to get started</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- ===== Add / Edit Location Modal ===== -->
+<div id="locationFormOverlay" class="loc-modal-overlay">
+    <div class="loc-modal">
+        <div class="loc-modal-header">
+            <h2 class="loc-modal-title" id="locationFormTitle">Add Location</h2>
+            <button class="loc-modal-close" data-close="locationFormOverlay">&times;</button>
+        </div>
+        <div class="loc-modal-body">
+            <input type="hidden" id="locationFormId">
+            <div class="loc-form-group">
+                <label for="locationFormName">Location Name <span style="color:#ef4444">*</span></label>
+                <input type="text" id="locationFormName" placeholder="e.g. Storage Room A">
+            </div>
+            <div class="loc-form-group">
+                <label for="locationFormDescription">Description</label>
+                <textarea id="locationFormDescription" placeholder="Optional description"></textarea>
+            </div>
+        </div>
+        <div class="loc-modal-footer">
+            <button class="btn-cancel" data-close="locationFormOverlay">Cancel</button>
+            <button class="btn-save" id="locationFormSave">Save Location</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Location Detail Modal ===== -->
+<div id="locationDetailOverlay" class="loc-modal-overlay">
+    <div class="loc-modal loc-modal-wide">
+        <div class="loc-modal-header">
+            <h2 class="loc-modal-title" id="detailLocationName">Location</h2>
+            <button class="loc-modal-close" data-close="locationDetailOverlay">&times;</button>
+        </div>
+        <div class="loc-modal-body">
+            <div class="loc-detail-info">
+                <div class="loc-detail-info-text">
+                    <h3 id="detailLocationNameSub"></h3>
+                    <p id="detailLocationDesc"></p>
+                </div>
+                <div class="loc-detail-actions">
+                    <button class="btn-secondary" id="editLocationBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Edit
+                    </button>
+                    <button class="btn-secondary" id="deleteLocationBtn" style="color:#dc2626;border-color:#fca5a5;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        Delete
+                    </button>
+                </div>
+            </div>
+
+            <div class="loc-items-header">
+                <h4>Items at this location</h4>
+                <button class="btn-secondary" id="addItemToLocationBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Item
+                </button>
+            </div>
+            <div class="loc-items-table-wrapper">
+                <table class="loc-items-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Specific Location</th>
+                            <th>Inventory Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailItemsBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="loc-modal-footer">
+            <button class="btn-cancel" data-close="locationDetailOverlay">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Add / Edit Item Modal ===== -->
+<div id="itemFormOverlay" class="loc-modal-overlay">
+    <div class="loc-modal">
+        <div class="loc-modal-header">
+            <h2 class="loc-modal-title" id="itemFormTitle">Add Item</h2>
+            <button class="loc-modal-close" data-close="itemFormOverlay">&times;</button>
+        </div>
+        <div class="loc-modal-body">
+            <input type="hidden" id="itemFormLocationId">
+            <input type="hidden" id="itemFormItemId">
+            <div class="loc-form-group">
+                <label for="itemFormName">Item Name <span style="color:#ef4444">*</span></label>
+                <input type="text" id="itemFormName" placeholder="e.g. Nitrile Gloves">
+            </div>
+            <div class="loc-form-group">
+                <label for="itemFormSpecificLocation">Specific Location</label>
+                <input type="text" id="itemFormSpecificLocation" placeholder="e.g. Shelf 3, Bin A2">
+            </div>
+            <div class="loc-form-group">
+                <label for="itemFormInventoryLink">Link to Inventory Item (optional)</label>
+                <select id="itemFormInventoryLink">
+                    <option value="">— Not linked to inventory —</option>
+                    <% if (inventoryItems && inventoryItems.length > 0) { %>
+                        <% inventoryItems.forEach(function(inv) { %>
+                            <option value="<%= inv._id %>"><%= inv.item %><% if (inv.location) { %> (<%= inv.location %>)<% } %></option>
+                        <% }); %>
+                    <% } %>
+                </select>
+            </div>
+        </div>
+        <div class="loc-modal-footer">
+            <button class="btn-cancel" data-close="itemFormOverlay">Cancel</button>
+            <button class="btn-save" id="itemFormSave">Save Item</button>
+        </div>
+    </div>
+</div>
+
+<script src="/locations.js"></script>

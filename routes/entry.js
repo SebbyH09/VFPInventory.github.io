@@ -4,6 +4,7 @@ const inventory = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
 const Order = require('../models/Order');
 const Settings = require('../models/Settings');
+const Location = require('../models/Location');
 const requireAuth = require('../Middleware/auth');
 
 // GET route - render page with existing inventory
@@ -30,11 +31,20 @@ router.get('/', requireAuth, async (req, res) => {
 
         const settings = await Settings.getSettings();
 
+        const allLocations = await Location.find().lean();
+        let unlinkedLocationCount = 0;
+        allLocations.forEach(loc => {
+            loc.items.forEach(item => {
+                if (!item.inventoryItemId) unlinkedLocationCount++;
+            });
+        });
+
         res.render('entry', {
             inventoryItems: inventoryItems,
             orderCountMap: orderCountMap,
             settings: settings,
-            user: req.session.user
+            user: req.session.user,
+            unlinkedLocationCount: unlinkedLocationCount
         });
     } catch (error) {
         res.render('entry', {
@@ -42,6 +52,7 @@ router.get('/', requireAuth, async (req, res) => {
             orderCountMap: {},
             settings: null,
             user: req.session.user,
+            unlinkedLocationCount: 0,
             error: 'Failed to load inventory data'
         });
     }

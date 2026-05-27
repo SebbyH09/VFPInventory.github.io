@@ -105,6 +105,7 @@ const consumeRouter = require('./routes/consume')
 const ordersRouter = require('./routes/orders')
 const purchaseOrderRoutes = require('./routes/purchaseOrders')
 const settingsRouter = require('./routes/settings')
+const locationsRouter = require('./routes/locations')
 
 
 app.use((req, res, next) => {
@@ -160,6 +161,7 @@ app.use('/consume', requireAuth, consumeRouter);
 app.use('/orders', requireAuth, ordersRouter);
 app.use('/purchase-orders', requireAuth, purchaseOrderRoutes);
 app.use('/settings', requireAuth, settingsRouter);
+app.use('/locations', requireAuth, locationsRouter);
 app.use('/', homeRouter);
 
 
