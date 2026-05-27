@@ -1,0 +1,525 @@
+/* ===== Locations Container ===== */
+.locations-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 24px 32px;
+}
+
+/* ===== Page Header ===== */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.page-subtitle {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+/* ===== Locations Grid ===== */
+.locations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.location-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+    padding: 20px;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.1s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.location-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+}
+
+.location-card-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.location-card-description {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+    min-height: 18px;
+}
+
+.location-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.location-card-count {
+    font-size: 13px;
+    color: #374151;
+    background: #f3f4f6;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.location-card-unlinked {
+    font-size: 12px;
+    color: #92400e;
+    background: #fef3c7;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.location-card-arrow {
+    position: absolute;
+    right: 16px;
+    bottom: 18px;
+    color: #9ca3af;
+}
+
+.empty-locations {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+}
+
+.empty-locations svg {
+    margin-bottom: 12px;
+    display: block;
+    margin: 0 auto 12px;
+}
+
+.empty-locations h3 {
+    margin: 0 0 6px;
+    color: #6b7280;
+    font-size: 18px;
+}
+
+.empty-locations p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ===== Modals ===== */
+.loc-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.loc-modal-overlay.open {
+    display: flex;
+}
+
+.loc-modal {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.loc-modal.loc-modal-wide {
+    max-width: 820px;
+}
+
+.loc-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+.loc-modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.loc-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #6b7280;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+    transition: background 0.15s, color 0.15s;
+}
+
+.loc-modal-close:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.loc-modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.loc-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* ===== Form Styles ===== */
+.loc-form-group {
+    margin-bottom: 16px;
+}
+
+.loc-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.loc-form-group input,
+.loc-form-group textarea,
+.loc-form-group select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #111827;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+
+.loc-form-group input:focus,
+.loc-form-group textarea:focus,
+.loc-form-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.loc-form-group textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.loc-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* ===== Buttons ===== */
+.btn-save {
+    padding: 9px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-save:hover { background: #2563eb; }
+
+.btn-cancel {
+    padding: 9px 20px;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cancel:hover { background: #e5e7eb; }
+
+.btn-danger {
+    padding: 9px 20px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-danger:hover { background: #dc2626; }
+
+.btn-secondary {
+    padding: 7px 14px;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover { background: #e5e7eb; }
+
+.btn-icon {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-icon:hover { background: #f3f4f6; color: #111827; }
+.btn-icon.btn-icon-danger:hover { background: #fee2e2; color: #dc2626; }
+.btn-icon.btn-icon-edit:hover { background: #dbeafe; color: #2563eb; }
+
+/* ===== Detail Modal - Location Info ===== */
+.loc-detail-info {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.loc-detail-info-text h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.loc-detail-info-text p {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.loc-detail-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ===== Items Table ===== */
+.loc-items-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.loc-items-header h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.loc-items-table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.loc-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.loc-items-table th {
+    background: #f9fafb;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.loc-items-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #111827;
+    vertical-align: middle;
+}
+
+.loc-items-table tr:last-child td {
+    border-bottom: none;
+}
+
+.loc-items-table tr:hover td {
+    background: #f9fafb;
+}
+
+.loc-items-empty {
+    text-align: center;
+    color: #9ca3af;
+    padding: 24px;
+    font-size: 14px;
+}
+
+/* ===== Status Badges ===== */
+.badge-in-inventory {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-not-in-inventory {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ===== Unlinked Items Alert (Dashboard & Entry) ===== */
+.unlinked-alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fffbeb;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #92400e;
+}
+
+.unlinked-alert-banner svg {
+    flex-shrink: 0;
+    color: #d97706;
+}
+
+.unlinked-alert-banner a {
+    color: #b45309;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* ===== Error Banner ===== */
+.error-banner {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .locations-container {
+        padding: 16px;
+    }
+
+    .loc-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .loc-modal {
+        max-height: 95vh;
+    }
+}

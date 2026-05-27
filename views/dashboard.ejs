@@ -115,6 +115,41 @@
     </div>
     <% } %>
 
+    <% if (typeof unlinkedLocationItems !== 'undefined' && unlinkedLocationItems && unlinkedLocationItems.length > 0) { %>
+    <div class="card-wrapper" id="unlinkedLocationCardWrapper" style="grid-column: 1 / 3;">
+        <div class="card-header-controls">
+            <h2 class="card-title" style="color:#92400e;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Items in Locations Not Yet in Inventory
+            </h2>
+            <a href="/locations" style="font-size:13px;color:#3b82f6;text-decoration:none;font-weight:600;">Manage Locations →</a>
+        </div>
+        <div class="cards-grid">
+            <% unlinkedLocationItems.forEach(function(item) { %>
+                <div class="card" style="border-left:3px solid #f59e0b;">
+                    <div class="card-field">
+                        <span class="field-label">Item:</span>
+                        <span class="field-value"><%= item.itemName %></span>
+                    </div>
+                    <div class="card-field">
+                        <span class="field-label">Location:</span>
+                        <span class="field-value"><%= item.locationName %></span>
+                    </div>
+                    <% if (item.specificLocation) { %>
+                    <div class="card-field">
+                        <span class="field-label">Spot:</span>
+                        <span class="field-value"><%= item.specificLocation %></span>
+                    </div>
+                    <% } %>
+                    <div class="card-actions-row">
+                        <a href="/entry" class="card-action-btn" style="text-decoration:none;background:#3b82f6;color:white;border-color:#3b82f6;">+ Add to Inventory</a>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+    <% } %>
+
     <div class="card-wrapper cycle-count-wrapper" id="cycleCountCardWrapper">
         <div class="card-header-controls">
             <h2 class="card-title">Cycle Counts Due</h2>
