@@ -13,7 +13,7 @@ async function updateCycleCountDisplay() {
     if (limit === 'all') {
         // Fetch all remaining items
         try {
-            const response = await fetch(`/dashboard/api/cycle-counts-next?limit=1000&skip=${currentCards.length}`);
+            const response = await fetch(`/cycle-counts-next?limit=1000&skip=${currentCards.length}`);
             if (response.ok) {
                 const result = await response.json();
                 if (result.success && result.items && result.items.length > 0) {
@@ -28,7 +28,8 @@ async function updateCycleCountDisplay() {
                             const itemId = card.getAttribute('data-item-id');
                             const itemName = card.querySelector('.field-value').textContent;
                             const currentQty = card.getAttribute('data-current-qty');
-                            openCycleCountModal(itemId, itemName, currentQty);
+                            const catalog = card.getAttribute('data-item-catalog') || '';
+                            openCycleCountModal(itemId, itemName, currentQty, catalog);
                         });
                     });
                 }
@@ -43,7 +44,7 @@ async function updateCycleCountDisplay() {
         
         if (needToFetch > 0) {
             try {
-                const response = await fetch(`/dashboard/api/cycle-counts-next?limit=${needToFetch}&skip=${currentCards.length}`);
+                const response = await fetch(`/cycle-counts-next?limit=${needToFetch}&skip=${currentCards.length}`);
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success && result.items && result.items.length > 0) {
@@ -58,7 +59,8 @@ async function updateCycleCountDisplay() {
                                 const itemId = card.getAttribute('data-item-id');
                                 const itemName = card.querySelector('.field-value').textContent;
                                 const currentQty = card.getAttribute('data-current-qty');
-                                openCycleCountModal(itemId, itemName, currentQty);
+                                const catalog = card.getAttribute('data-item-catalog') || '';
+                                openCycleCountModal(itemId, itemName, currentQty, catalog);
                             });
                         });
                     }
@@ -70,9 +72,10 @@ async function updateCycleCountDisplay() {
     }
 }
 
-function openCycleCountModal(itemId, itemName, currentQty) {
+function openCycleCountModal(itemId, itemName, currentQty, catalog) {
     currentItemId = itemId;
     document.getElementById('modalItemName').textContent = itemName;
+    document.getElementById('modalCatalogNumber').textContent = catalog || 'N/A';
     document.getElementById('currentQty').value = currentQty;
     document.getElementById('updatedQty').value = '';
     document.getElementById('cycleCountModal').style.display = 'block';
@@ -234,7 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemId = card.getAttribute('data-item-id');
             const itemName = card.querySelector('.field-value').textContent;
             const currentQty = card.getAttribute('data-current-qty');
-            openCycleCountModal(itemId, itemName, currentQty);
+            const catalog = card.getAttribute('data-item-catalog') || '';
+            openCycleCountModal(itemId, itemName, currentQty, catalog);
         });
     });
 
@@ -346,9 +350,10 @@ async function refreshCycleCountCards() {
                             const itemId = card.getAttribute('data-item-id');
                             const itemName = card.querySelector('.field-value').textContent;
                             const currentQty = card.getAttribute('data-current-qty');
-                            openCycleCountModal(itemId, itemName, currentQty);
+                            const catalog = card.getAttribute('data-item-catalog') || '';
+                            openCycleCountModal(itemId, itemName, currentQty, catalog);
                         });
-                        
+
                         console.log('Successfully added new card');
                     } else {
                         console.log('No more items available');
@@ -371,13 +376,14 @@ function createCycleCountCard(item, index) {
     card.setAttribute('data-index', index);
     card.setAttribute('data-item-id', item._id);
     card.setAttribute('data-current-qty', item.currentquantity);
-    
-    const lastCount = item.lastCycleCount 
-        ? new Date(item.lastCycleCount).toLocaleDateString() 
+    card.setAttribute('data-item-catalog', item.catalog || '');
+
+    const lastCount = item.lastCycleCount
+        ? new Date(item.lastCycleCount).toLocaleDateString()
         : 'Never';
-    
+
     const statusBadge = getStatusBadge(item);
-    
+
     card.innerHTML = `
         <div class="card-field">
             <span class="field-label">Item:</span>
@@ -386,6 +392,10 @@ function createCycleCountCard(item, index) {
         <div class="card-field">
             <span class="field-label">Brand:</span>
             <span class="field-value">${escapeHtml(item.brand || 'N/A')}</span>
+        </div>
+        <div class="card-field">
+            <span class="field-label">Catalog #:</span>
+            <span class="field-value">${escapeHtml(item.catalog || 'N/A')}</span>
         </div>
         <div class="card-field">
             <span class="field-label">Last Count:</span>
