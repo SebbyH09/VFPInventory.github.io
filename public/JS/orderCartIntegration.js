@@ -25,14 +25,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const cost = row
                 ? parseFloat(row.getAttribute('data-item-cost')) || cartItem.cost
                 : cartItem.cost;
+            const brand = row ? (row.getAttribute('data-item-brand') || cartItem.brand || '') : (cartItem.brand || '');
+            const vendor = row ? (row.getAttribute('data-item-vendor') || '') : '';
+            const catalog = row ? (row.getAttribute('data-item-catalog') || cartItem.catalog || '') : (cartItem.catalog || '');
+            let alternates = [];
+            if (row) {
+                try { alternates = JSON.parse(row.getAttribute('data-item-alternates') || '[]'); } catch (e) {}
+            }
 
             cart.set(itemId, {
                 itemId: itemId,
                 name: cartItem.name,
-                brand: cartItem.brand || '',
+                brand: brand,
+                vendor: vendor,
+                catalog: catalog,
                 quantity: cartItem.quantity || 1,
                 cost: cost || 0,
-                currentQty: currentQty || 0
+                currentQty: currentQty || 0,
+                alternates: alternates,
+                selectedVariant: {
+                    label: 'Primary',
+                    brand: brand,
+                    vendor: vendor,
+                    catalog: catalog,
+                    isPrimary: true
+                }
             });
             addedCount++;
         });
