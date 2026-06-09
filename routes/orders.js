@@ -348,4 +348,41 @@ router.post('/incoming/:id/submit', requireAuth, async (req, res) => {
     }
 });
 
+// DELETE /orders/:id - delete (cancel) an open order with a required reason
+router.delete('/:id', requireAuth, async (req, res) => {
+    try {
+        const { reason } = req.body;
+
+        if (!reason || !reason.trim()) {
+            return res.status(400).json({ message: 'A reason is required to close an order.' });
+        }
+
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found.' });
+        }
+
+        if (order.status === 'received') {
+            return res.status(400).json({ message: 'Received orders cannot be deleted.' });
+        }
+
+        // Log cancellation to inventory history for each item
+        for (const oi of order.items) {
+            await InventoryHistory.create({
+                itemId: oi.itemId,
+                itemName: oi.itemName,
+                changeType: 'order_cancelled',
+                notes: `Order ${order.orderNumber} cancelled – ${reason.trim()}`,
+                userId: req.session.user?.email || 'unknown'
+            });
+        }
+
+        await Order.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'Order deleted successfully.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting order. Please try again.' });
+    }
+});
+
 module.exports = router;
