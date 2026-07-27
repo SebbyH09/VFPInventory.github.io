@@ -193,6 +193,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ----- Add All Recommended -----
+    // ----- Recommended order collapse/expand -----
+    const recommendedToggleBtn = document.getElementById('recommendedToggleBtn');
+    if (recommendedToggleBtn) {
+        const recommendedSection = recommendedToggleBtn.closest('.recommended-order-section');
+        recommendedToggleBtn.addEventListener('click', function () {
+            const collapsed = recommendedSection.classList.toggle('collapsed');
+            recommendedToggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            recommendedToggleBtn.setAttribute('title', collapsed ? 'Expand recommended order' : 'Collapse recommended order');
+        });
+    }
+
     const addAllRecommendedBtn = document.getElementById('addAllRecommendedBtn');
     if (addAllRecommendedBtn) {
         addAllRecommendedBtn.addEventListener('click', function () {
