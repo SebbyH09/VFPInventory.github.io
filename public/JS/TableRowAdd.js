@@ -83,7 +83,8 @@ function openAddModal() {
         document.getElementById('addCurrentQty').value = '';
         document.getElementById('addMinQty').value = defaultMin;
         document.getElementById('addMaxQty').value = defaultMax;
-        document.getElementById('addLocation').value = '';
+        setLocationInputs('addStoredContainer', []);
+        setLocationInputs('addStockedContainer', []);
         document.getElementById('addType').value = '';
         document.getElementById('addCost').value = '0';
         document.getElementById('addCycleInterval').value = defaultCycleInterval;
@@ -117,20 +118,22 @@ async function submitAddModal() {
 
     // Get all the values from the modal
     const itemData = [
-        document.getElementById('addItem').value.trim(),
-        document.getElementById('addBrand').value.trim(),
-        document.getElementById('addVendor').value.trim(),
-        document.getElementById('addCatalog').value.trim(),
-        document.getElementById('addCurrentQty').value.trim(),
-        document.getElementById('addMinQty').value.trim(),
-        document.getElementById('addMaxQty').value.trim(),
-        document.getElementById('addLocation').value.trim(),
-        document.getElementById('addType').value,
-        document.getElementById('addCost').value.trim() || '0',
-        document.getElementById('addCycleInterval').value.trim() || defaultCycleInterval,
-        defaultOrderFrequency,
-        document.getElementById('addUseCycleCount').checked,
-        alternateItems
+        document.getElementById('addItem').value.trim(),          // 0 item
+        document.getElementById('addBrand').value.trim(),         // 1 brand
+        document.getElementById('addVendor').value.trim(),        // 2 vendor
+        document.getElementById('addCatalog').value.trim(),       // 3 catalog
+        document.getElementById('addCurrentQty').value.trim(),    // 4 currentquantity
+        document.getElementById('addMinQty').value.trim(),        // 5 minimumquantity
+        document.getElementById('addMaxQty').value.trim(),        // 6 maximumquantity
+        collectLocationInputs('addStoredContainer'),              // 7 storedLocations
+        document.getElementById('addType').value,                 // 8 type
+        document.getElementById('addCost').value.trim() || '0',   // 9 cost
+        document.getElementById('addCycleInterval').value.trim() || defaultCycleInterval, // 10 cycleCountInterval
+        defaultOrderFrequency,                                    // 11 orderFrequencyPeriod
+        document.getElementById('addUseCycleCount').checked,      // 12 useCycleCount
+        alternateItems,                                           // 13 alternateItems
+        true,                                                     // 14 isActive
+        collectLocationInputs('addStockedContainer')              // 15 stockedInLocations
     ];
 
     // Validate required field (only item name is required)
@@ -172,6 +175,66 @@ async function submitAddModal() {
         alert("Failed to add item: " + error.message);
     }
 }
+
+// ===== Multi-value location helpers (shared between add and edit modals) =====
+// Each of "Stored" and "Stocked In" can hold several locations; a "+" button
+// adds another input row and each row has an "x" to remove it.
+function createLocationInput(containerId, value) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'location-input-row';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'edit-input location-value';
+    input.placeholder = 'e.g. Room 101, Shelf B';
+    input.value = value || '';
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-location-btn';
+    removeBtn.title = 'Remove';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.addEventListener('click', function() { row.remove(); });
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    container.appendChild(row);
+}
+
+// Reset a location container to the provided list of values (always keeps at
+// least one empty input so the user has somewhere to type).
+function setLocationInputs(containerId, values) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const list = Array.isArray(values)
+        ? values.filter(function(v) { return v && String(v).trim(); })
+        : [];
+    if (list.length === 0) {
+        createLocationInput(containerId, '');
+    } else {
+        list.forEach(function(v) { createLocationInput(containerId, v); });
+    }
+}
+
+function collectLocationInputs(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return [];
+    const values = [];
+    container.querySelectorAll('.location-value').forEach(function(input) {
+        const v = input.value.trim();
+        if (v) values.push(v);
+    });
+    return values;
+}
+
+// Wire up all "+ Add location" buttons via event delegation
+document.addEventListener('click', function(event) {
+    const btn = event.target.closest('.add-location-btn');
+    if (btn) {
+        event.preventDefault();
+        createLocationInput(btn.getAttribute('data-loc-target'), '');
+    }
+});
 
 // Alternate items helpers (shared between add and edit modals)
 var ALTERNATE_ITEMS_MAX = 5;

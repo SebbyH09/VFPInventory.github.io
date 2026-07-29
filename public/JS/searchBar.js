@@ -14,6 +14,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const tbody = table.querySelector('tbody');
 
+    // Collect all locations (stored + stocked-in, with legacy fallback) for an item
+    function getItemLocations(data) {
+        const result = [];
+        const stored = Array.isArray(data.storedLocations) ? data.storedLocations : [];
+        const stocked = Array.isArray(data.stockedInLocations) ? data.stockedInLocations : [];
+        stored.concat(stocked).forEach(loc => {
+            if (loc && loc.trim()) result.push(loc.trim());
+        });
+        if (result.length === 0 && data.location && data.location.trim()) {
+            result.push(data.location.trim());
+        }
+        return result;
+    }
+
     // Populate location filter from existing data
     populateLocationFilter();
 
@@ -69,9 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (originalData) {
                 try {
                     const data = JSON.parse(originalData);
-                    if (data.location && data.location.trim()) {
-                        locations.add(data.location.trim());
-                    }
+                    getItemLocations(data).forEach(loc => locations.add(loc));
                 } catch (e) {
                     // skip invalid data
                 }
@@ -124,10 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Location filter
+            // Location filter (matches either stored or stocked-in locations)
             if (visible && locationValue !== '') {
-                const itemLocation = (originalData.location || '').trim();
-                if (itemLocation !== locationValue) {
+                if (getItemLocations(originalData).indexOf(locationValue) === -1) {
                     visible = false;
                 }
             }

@@ -90,7 +90,8 @@
                         <th>Current Quantity</th>
                         <th>Minimum Quantity</th>
                         <th>Max Quantity</th>
-                        <th>Location</th>
+                        <th>Stored</th>
+                        <th>Stocked In</th>
                         <th>Type</th>
                         <th>Cost per Unit</th>
                         <th>Days Since Last Use</th>
@@ -103,7 +104,12 @@
                 <tbody>
                     <% if (inventoryItems && inventoryItems.length > 0) { %>
                         <% inventoryItems.forEach((item, index) => { %>
-
+                            <%
+                                var storedLocs = (item.storedLocations && item.storedLocations.length)
+                                    ? item.storedLocations
+                                    : (item.location ? [item.location] : []);
+                                var stockedLocs = item.stockedInLocations || [];
+                            %>
                             <tr data-item-id="<%= item._id %>"
                                 data-last-used="<%= item.lastUsedDate ? item.lastUsedDate.toISOString() : '' %>"
                                 data-last-cycle-count="<%= item.lastCycleCount ? item.lastCycleCount.toISOString() : '' %>"
@@ -119,6 +125,8 @@
                                 minimumQuantity: item.minimumquantity,
                                 maxQuantity: item.maximumquantity,
                                 location: item.location,
+                                storedLocations: storedLocs,
+                                stockedInLocations: stockedLocs,
                                 type: item.type,
                                 cost: item.cost || 0,
                                 lastUsedDate: item.lastUsedDate,
@@ -139,7 +147,8 @@
                                 <td><p class="inventoryitem"><%= item.currentquantity %></p></td>
                                 <td><p class="inventoryitem"><%= item.minimumquantity %></p></td>
                                 <td><p class="inventoryitem"><%= item.maximumquantity %></p></td>
-                                <td><p class="inventoryitem"><%= item.location || '' %></p></td>
+                                <td><p class="inventoryitem"><%= storedLocs.join(', ') %></p></td>
+                                <td><p class="inventoryitem"><%= stockedLocs.join(', ') %></p></td>
                                 <td><p class="inventoryitem"><%= item.type || '' %></p></td>
                                 <td><p class="inventoryitem">$<%= (item.cost || 0).toFixed(2) %></p></td>
                                 <td class="days-since-use"><p class="inventoryitem tracking-field">-</p></td>
@@ -228,9 +237,22 @@
                         <label for="addMaxQty">Max Quantity:</label>
                         <input type="number" id="addMaxQty" class="edit-input" value="<%= defaultMaxQty %>">
                     </div>
-                    <div class="form-group">
-                        <label for="addLocation">Location:</label>
-                        <input type="text" id="addLocation" class="edit-input">
+                    <div class="form-group"></div>
+                </div>
+                <div class="locations-section">
+                    <div class="location-group">
+                        <label class="location-group-label">Stored</label>
+                        <div class="location-inputs" id="addStoredContainer"></div>
+                        <button type="button" class="add-location-btn" data-loc-target="addStoredContainer">
+                            <span class="add-location-plus">+</span> Add location
+                        </button>
+                    </div>
+                    <div class="location-group">
+                        <label class="location-group-label">Stocked In</label>
+                        <div class="location-inputs" id="addStockedContainer"></div>
+                        <button type="button" class="add-location-btn" data-loc-target="addStockedContainer">
+                            <span class="add-location-plus">+</span> Add location
+                        </button>
                     </div>
                 </div>
                 <div class="form-row">
@@ -322,9 +344,22 @@
                         <label for="editMaxQty">Max Quantity:</label>
                         <input type="number" id="editMaxQty" class="edit-input">
                     </div>
-                    <div class="form-group">
-                        <label for="editLocation">Location:</label>
-                        <input type="text" id="editLocation" class="edit-input">
+                    <div class="form-group"></div>
+                </div>
+                <div class="locations-section">
+                    <div class="location-group">
+                        <label class="location-group-label">Stored</label>
+                        <div class="location-inputs" id="editStoredContainer"></div>
+                        <button type="button" class="add-location-btn" data-loc-target="editStoredContainer">
+                            <span class="add-location-plus">+</span> Add location
+                        </button>
+                    </div>
+                    <div class="location-group">
+                        <label class="location-group-label">Stocked In</label>
+                        <div class="location-inputs" id="editStockedContainer"></div>
+                        <button type="button" class="add-location-btn" data-loc-target="editStockedContainer">
+                            <span class="add-location-plus">+</span> Add location
+                        </button>
                     </div>
                 </div>
                 <div class="form-row">
@@ -421,18 +456,18 @@
                         <span class="view-value" id="viewMaxQty"></span>
                     </div>
                     <div class="view-field">
-                        <span class="view-label">Location</span>
-                        <span class="view-value" id="viewLocation"></span>
+                        <span class="view-label">Stored</span>
+                        <span class="view-value" id="viewStored"></span>
                     </div>
                 </div>
                 <div class="view-row">
                     <div class="view-field">
-                        <span class="view-label">Type</span>
-                        <span class="view-value" id="viewType"></span>
+                        <span class="view-label">Stocked In</span>
+                        <span class="view-value" id="viewStocked"></span>
                     </div>
                     <div class="view-field">
-                        <span class="view-label">Cost per Unit</span>
-                        <span class="view-value" id="viewCost"></span>
+                        <span class="view-label">Type</span>
+                        <span class="view-value" id="viewType"></span>
                     </div>
                 </div>
                 <div class="view-row">
@@ -459,6 +494,10 @@
                     <div class="view-field">
                         <span class="view-label">Status</span>
                         <span class="view-value" id="viewStatus"></span>
+                    </div>
+                    <div class="view-field">
+                        <span class="view-label">Cost per Unit</span>
+                        <span class="view-value" id="viewCost"></span>
                     </div>
                 </div>
                 <!-- Recommendations Section -->
