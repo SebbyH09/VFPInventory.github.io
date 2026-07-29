@@ -29,15 +29,20 @@
                 <%
                     const unlinkedCount = loc.items.filter(i => !i.inventoryItemId).length;
                 %>
+                <% const linkedItems = loc.linkedItems || []; %>
                 <div class="location-card"
                      data-location-id="<%= loc._id %>"
                      data-location-name="<%= loc.name %>"
                      data-location-description="<%= loc.description || '' %>"
-                     data-location-items="<%= encodeURIComponent(JSON.stringify(loc.items)) %>">
+                     data-location-items="<%= encodeURIComponent(JSON.stringify(loc.items)) %>"
+                     data-location-linked="<%= encodeURIComponent(JSON.stringify(linkedItems)) %>">
                     <p class="location-card-name"><%= loc.name %></p>
                     <p class="location-card-description"><%= loc.description || '' %></p>
                     <div class="location-card-meta">
-                        <span class="location-card-count"><%= loc.items.length %> item<%= loc.items.length !== 1 ? 's' : '' %></span>
+                        <span class="location-card-count"><%= linkedItems.length %> inventory item<%= linkedItems.length !== 1 ? 's' : '' %></span>
+                        <% if (loc.items.length > 0) { %>
+                            <span class="location-card-count location-card-count-secondary"><%= loc.items.length %> directory</span>
+                        <% } %>
                         <% if (unlinkedCount > 0) { %>
                             <span class="location-card-unlinked">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -112,7 +117,25 @@
             </div>
 
             <div class="loc-items-header">
-                <h4>Items at this location</h4>
+                <h4>Inventory items here</h4>
+            </div>
+            <div class="loc-items-table-wrapper">
+                <table class="loc-items-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Assigned As</th>
+                            <th>On Hand</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailLinkedItemsBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="loc-items-header">
+                <h4>Directory items</h4>
                 <button class="btn-secondary" id="addItemToLocationBtn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Add Item

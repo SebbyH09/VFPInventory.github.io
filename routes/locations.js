@@ -8,9 +8,34 @@ router.get('/', requireAuth, async (req, res) => {
     try {
         const locations = await Location.find().sort({ name: 1 }).lean();
         const inventoryItems = await ListedInventoryItem.find({ isActive: { $ne: false } })
-            .select('_id item location')
+            .select('_id item location storedLocations stockedInLocations currentquantity')
             .sort({ item: 1 })
             .lean();
+
+        // Attach the inventory items tied to each location. An item is "tied" to
+        // a location when the location's name appears in the item's stored or
+        // stocked-in location fields (matched case-insensitively). This is what
+        // lets a location auto-populate the items assigned to it.
+        const norm = (s) => (s || '').toString().trim().toLowerCase();
+        locations.forEach(loc => {
+            const target = norm(loc.name);
+            loc.linkedItems = inventoryItems
+                .filter(inv => {
+                    const stored = (inv.storedLocations || []).map(norm);
+                    const stocked = (inv.stockedInLocations || []).map(norm);
+                    return stored.includes(target)
+                        || stocked.includes(target)
+                        || norm(inv.location) === target;
+                })
+                .map(inv => ({
+                    _id: inv._id,
+                    item: inv.item,
+                    currentquantity: inv.currentquantity,
+                    stored: (inv.storedLocations || []).some(l => norm(l) === target)
+                        || norm(inv.location) === target,
+                    stocked: (inv.stockedInLocations || []).some(l => norm(l) === target)
+                }));
+        });
 
         res.render('locations', {
             locations,

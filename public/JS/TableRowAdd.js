@@ -189,6 +189,10 @@ function createLocationInput(containerId, value) {
     input.className = 'edit-input location-value';
     input.placeholder = 'e.g. Room 101, Shelf B';
     input.value = value || '';
+    // Suggest existing locations so items tie back to the Locations page
+    if (document.getElementById('locationDatalist')) {
+        input.setAttribute('list', 'locationDatalist');
+    }
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'remove-location-btn';
