@@ -25,7 +25,8 @@ function openEditModal(itemId) {
     document.getElementById('editCurrentQty').value = originalData.currentQuantity || 0;
     document.getElementById('editMinQty').value = originalData.minimumQuantity || 0;
     document.getElementById('editMaxQty').value = originalData.maxQuantity || 0;
-    document.getElementById('editLocation').value = originalData.location || '';
+    setLocationInputs('editStoredContainer', originalData.storedLocations || []);
+    setLocationInputs('editStockedContainer', originalData.stockedInLocations || []);
     document.getElementById('editType').value = originalData.type || '';
     document.getElementById('editCost').value = originalData.cost || 0;
     document.getElementById('editCycleInterval').value = originalData.cycleCountInterval || 90;
@@ -92,7 +93,8 @@ async function submitEditModal() {
     const newCurrentQty = parseInt(document.getElementById('editCurrentQty').value) || 0;
     const newMinQty = parseInt(document.getElementById('editMinQty').value) || 0;
     const newMaxQty = parseInt(document.getElementById('editMaxQty').value) || 0;
-    const newLocation = document.getElementById('editLocation').value.trim();
+    const newStored = collectLocationInputs('editStoredContainer');
+    const newStocked = collectLocationInputs('editStockedContainer');
     const newType = document.getElementById('editType').value.trim();
     const newCost = parseFloat(document.getElementById('editCost').value) || 0;
     const newCycleInterval = parseInt(document.getElementById('editCycleInterval').value) || 90;
@@ -109,7 +111,8 @@ async function submitEditModal() {
     }
     if (newMinQty !== originalData.minimumQuantity) changes.minimumquantity = newMinQty;
     if (newMaxQty !== originalData.maxQuantity) changes.maximumquantity = newMaxQty;
-    if (newLocation !== originalData.location) changes.location = newLocation;
+    if (JSON.stringify(newStored) !== JSON.stringify(originalData.storedLocations || [])) changes.storedLocations = newStored;
+    if (JSON.stringify(newStocked) !== JSON.stringify(originalData.stockedInLocations || [])) changes.stockedInLocations = newStocked;
     if (newType !== originalData.type) changes.type = newType;
     if (newCost !== originalData.cost) changes.cost = newCost;
     if (newCycleInterval !== originalData.cycleCountInterval) changes.cycleCountInterval = newCycleInterval;
@@ -332,7 +335,10 @@ function openViewModal(row) {
     document.getElementById('viewCurrentQty').textContent = originalData.currentQuantity != null ? originalData.currentQuantity : '-';
     document.getElementById('viewMinQty').textContent = originalData.minimumQuantity != null ? originalData.minimumQuantity : '-';
     document.getElementById('viewMaxQty').textContent = originalData.maxQuantity != null ? originalData.maxQuantity : '-';
-    document.getElementById('viewLocation').textContent = originalData.location || '-';
+    const viewStoredList = originalData.storedLocations || [];
+    const viewStockedList = originalData.stockedInLocations || [];
+    document.getElementById('viewStored').textContent = viewStoredList.length ? viewStoredList.join(', ') : '-';
+    document.getElementById('viewStocked').textContent = viewStockedList.length ? viewStockedList.join(', ') : '-';
     document.getElementById('viewType').textContent = originalData.type || '-';
     document.getElementById('viewCost').textContent = '$' + (originalData.cost || 0).toFixed(2);
 

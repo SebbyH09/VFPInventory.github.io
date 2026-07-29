@@ -1,0 +1,174 @@
+<head>
+    <title>Update</title>
+    <link rel="stylesheet" href="/inventory.css">
+    <link rel="stylesheet" href="/update.css">
+</head>
+
+<% const categoryList = (settings && settings.categories && settings.categories.length > 0) ? settings.categories : []; %>
+
+<div class="update-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title">Update</h1>
+            <p class="page-subtitle">Items with missing information or details that haven't been reviewed recently</p>
+        </div>
+        <div class="page-header-right">
+            <form id="timeframeForm" method="GET" action="/update" class="timeframe-form">
+                <label for="monthsSelect">Not reviewed in:</label>
+                <select id="monthsSelect" name="months" class="timeframe-select">
+                    <% timeframeOptions.forEach(function(opt) { %>
+                        <option value="<%= opt.months %>" <%= opt.months === months ? 'selected' : '' %>><%= opt.label %></option>
+                    <% }); %>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="update-error"><%= error %></div>
+    <% } %>
+
+    <!-- Summary -->
+    <div class="update-summary">
+        <div class="summary-stat">
+            <span class="summary-number"><%= flaggedItems.length %></span>
+            <span class="summary-label">item<%= flaggedItems.length !== 1 ? 's' : '' %> need<%= flaggedItems.length === 1 ? 's' : '' %> attention</span>
+        </div>
+        <div class="summary-stat">
+            <span class="summary-number"><%= flaggedItems.filter(function(i){ return i.missingFields.length > 0; }).length %></span>
+            <span class="summary-label">missing information</span>
+        </div>
+        <div class="summary-stat">
+            <span class="summary-number"><%= flaggedItems.filter(function(i){ return i.isStale; }).length %></span>
+            <span class="summary-label">not reviewed in <%= months %> month<%= months !== 1 ? 's' : '' %></span>
+        </div>
+    </div>
+
+    <% if (flaggedItems && flaggedItems.length > 0) { %>
+        <div class="update-list" id="updateList">
+            <% flaggedItems.forEach(function(item) { %>
+                <%
+                    var itemData = {
+                        id: item._id,
+                        item: item.item,
+                        brand: item.brand,
+                        vendor: item.vendor,
+                        catalog: item.catalog,
+                        type: item.type,
+                        cost: item.cost,
+                        storedLocations: item.storedLocations,
+                        stockedInLocations: item.stockedInLocations,
+                        missingFields: item.missingFields
+                    };
+                %>
+                <div class="update-card" data-item-id="<%= item._id %>" data-item='<%= JSON.stringify(itemData) %>'>
+                    <div class="update-card-main">
+                        <div class="update-card-header">
+                            <h3 class="update-card-title"><%= item.item %></h3>
+                            <div class="update-card-badges">
+                                <% if (item.missingFields.length > 0) { %>
+                                    <span class="badge badge-missing">Missing: <%= item.missingFields.join(', ') %></span>
+                                <% } %>
+                                <% if (item.isStale) { %>
+                                    <span class="badge badge-stale">
+                                        <%= item.daysSince !== null ? ('Not reviewed in ' + item.daysSince + ' days') : 'Never reviewed' %>
+                                    </span>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="update-card-details">
+                            <span class="detail-chip"><span class="detail-key">Brand</span> <%= item.brand || '—' %></span>
+                            <span class="detail-chip"><span class="detail-key">Vendor</span> <%= item.vendor || '—' %></span>
+                            <span class="detail-chip"><span class="detail-key">Catalog</span> <%= item.catalog || '—' %></span>
+                            <span class="detail-chip"><span class="detail-key">Type</span> <%= item.type || '—' %></span>
+                            <span class="detail-chip"><span class="detail-key">Price</span> <%= item.cost > 0 ? ('$' + item.cost.toFixed(2)) : '—' %></span>
+                            <span class="detail-chip"><span class="detail-key">Stored</span> <%= item.storedLocations.length ? item.storedLocations.join(', ') : '—' %></span>
+                            <span class="detail-chip"><span class="detail-key">Stocked In</span> <%= item.stockedInLocations.length ? item.stockedInLocations.join(', ') : '—' %></span>
+                        </div>
+                    </div>
+                    <div class="update-card-actions">
+                        <button class="update-btn update-btn-edit" data-action="edit">Update Info</button>
+                        <button class="update-btn update-btn-ok" data-action="ok">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            OK
+                        </button>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% } else { %>
+        <div class="update-empty">
+            <div class="update-empty-icon">
+                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <h3 class="update-empty-title">Everything's up to date</h3>
+            <p class="update-empty-text">No items are missing information or overdue for review in the selected timeframe.</p>
+        </div>
+    <% } %>
+</div>
+
+<!-- Update Info Modal -->
+<div id="updateInfoModal" class="edit-modal">
+    <div class="edit-modal-content">
+        <span class="close-modal" id="updateModalClose">&times;</span>
+        <h2>Update Item Info</h2>
+        <p class="update-modal-item" id="updateModalItemName"></p>
+        <div class="edit-modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="upBrand">Brand:</label>
+                    <input type="text" id="upBrand" class="edit-input">
+                </div>
+                <div class="form-group">
+                    <label for="upVendor">Vendor:</label>
+                    <input type="text" id="upVendor" class="edit-input">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="upCatalog">Catalog #:</label>
+                    <input type="text" id="upCatalog" class="edit-input">
+                </div>
+                <div class="form-group">
+                    <label for="upType">Type:</label>
+                    <select id="upType" class="edit-input">
+                        <option value="">Select Type</option>
+                        <% categoryList.forEach(function(cat) { %>
+                            <option value="<%= cat.value %>"><%= cat.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="upCost">Cost per Unit:</label>
+                    <input type="number" id="upCost" class="edit-input" step="0.01" min="0">
+                </div>
+                <div class="form-group"></div>
+            </div>
+            <div class="locations-section">
+                <div class="location-group">
+                    <label class="location-group-label">Stored</label>
+                    <div class="location-inputs" id="upStoredContainer"></div>
+                    <button type="button" class="add-location-btn" data-loc-target="upStoredContainer">
+                        <span class="add-location-plus">+</span> Add location
+                    </button>
+                </div>
+                <div class="location-group">
+                    <label class="location-group-label">Stocked In</label>
+                    <div class="location-inputs" id="upStockedContainer"></div>
+                    <button type="button" class="add-location-btn" data-loc-target="upStockedContainer">
+                        <span class="add-location-plus">+</span> Add location
+                    </button>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-submit" id="updateModalSave">Save Changes</button>
+                <button class="btn-cancel" id="updateModalCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/updatePage.js"></script>

@@ -72,6 +72,10 @@ router.post("/", requireAuth, async (req, res) => {
         
         // Handle new items
         if (newItems && newItems.length > 0) {
+            const cleanLocations = (val) => Array.isArray(val)
+                ? val.map(l => (l || '').toString().trim()).filter(Boolean)
+                : [];
+
             const itemsToInsert = newItems.map(row => {
                 const itemData = {
                     item: row[0],
@@ -81,13 +85,15 @@ router.post("/", requireAuth, async (req, res) => {
                     currentquantity: parseInt(row[4]) || 0,
                     minimumquantity: parseInt(row[5]) || 0,
                     maximumquantity: parseInt(row[6]) || 0,
-                    location: row[7],
+                    storedLocations: cleanLocations(row[7]),
                     type: row[8],
                     cost: parseFloat(row[9]) || 0,
                     cycleCountInterval: parseInt(row[10]) || 90,
                     orderFrequencyPeriod: parseInt(row[11]) || 30,
                     useCycleCount: row[12] !== undefined ? row[12] : true,
-                    isActive: row[14] !== undefined ? row[14] : true
+                    isActive: row[14] !== undefined ? row[14] : true,
+                    stockedInLocations: cleanLocations(row[15]),
+                    lastReviewedDate: new Date()
                 };
                 if (row[13] && Array.isArray(row[13])) {
                     itemData.alternateItems = row[13];
@@ -114,9 +120,19 @@ router.post("/", requireAuth, async (req, res) => {
         
         // Handle updated items
         if (updatedItems && updatedItems.length > 0) {
+            // Fields whose edit counts as "reviewing" the item's details
+            // (excludes cycle counts and inventory quantity numbers).
+            const detailFields = ['item', 'brand', 'vendor', 'catalog',
+                'storedLocations', 'stockedInLocations', 'type', 'cost', 'alternateItems'];
+
             for (const update of updatedItems) {
                 // Get the item before update to track changes
                 const oldItem = await inventory.findById(update.id);
+
+                // Touching any detail field means the item was just reviewed
+                if (update.changes && detailFields.some(f => f in update.changes)) {
+                    update.changes.lastReviewedDate = new Date();
+                }
 
                 const updatedItem = await inventory.findByIdAndUpdate(
                     update.id,

@@ -39,6 +39,16 @@ const InventorySchema = new Schema({
         type: String,
         trim: true
     },
+    // Where the bulk / backstock of the item is kept
+    storedLocations: [{
+        type: String,
+        trim: true
+    }],
+    // Where the item is stocked for point-of-use
+    stockedInLocations: [{
+        type: String,
+        trim: true
+    }],
     type: {
         type: String,
         trim: true
@@ -56,6 +66,12 @@ const InventorySchema = new Schema({
         type: Date
     }],
     lastCycleCount: {
+        type: Date,
+        default: null
+    },
+    // Last time the item's details (not cycle counts / quantities) were
+    // reviewed or confirmed as up to date. Drives the Update page.
+    lastReviewedDate: {
         type: Date,
         default: null
     },

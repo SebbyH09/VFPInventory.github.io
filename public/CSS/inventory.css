@@ -753,6 +753,100 @@ body.edit-mode .cycle-count-btn {
     background-color: #2563eb;
 }
 
+/* ===== Multi-value Locations (Stored / Stocked In) ===== */
+.locations-section {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.location-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 0;
+}
+
+.location-group-label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #374151;
+    font-size: 13px;
+}
+
+.location-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.location-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.location-input-row .edit-input {
+    flex: 1;
+    min-width: 0;
+    background-color: #ffffff;
+}
+
+.remove-location-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.remove-location-btn:hover {
+    background-color: #dc2626;
+}
+
+.add-location-btn {
+    margin-top: 10px;
+    align-self: flex-start;
+    padding: 5px 12px;
+    font-size: 13px;
+    background-color: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.add-location-btn:hover {
+    background-color: #dbeafe;
+}
+
+.add-location-plus {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+@media (max-width: 640px) {
+    .locations-section {
+        flex-direction: column;
+    }
+}
+
 /* View Alternate Items */
 .view-alternate-items-section {
     margin-top: 20px;
