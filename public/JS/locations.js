@@ -31,17 +31,20 @@
     // ===== Render location card =====
     function buildLocationCard(loc) {
         const unlinkedCount = loc.items.filter(i => !i.inventoryItemId).length;
+        const linkedItems = loc.linkedItems || [];
         const div = document.createElement('div');
         div.className = 'location-card';
         div.dataset.locationId = loc._id;
         div.dataset.locationName = loc.name;
         div.dataset.locationDescription = loc.description || '';
         div.dataset.locationItems = encodeURIComponent(JSON.stringify(loc.items));
+        div.dataset.locationLinked = encodeURIComponent(JSON.stringify(linkedItems));
         div.innerHTML = `
             <p class="location-card-name">${escHtml(loc.name)}</p>
             <p class="location-card-description">${escHtml(loc.description || '')}</p>
             <div class="location-card-meta">
-                <span class="location-card-count">${loc.items.length} item${loc.items.length !== 1 ? 's' : ''}</span>
+                <span class="location-card-count">${linkedItems.length} inventory item${linkedItems.length !== 1 ? 's' : ''}</span>
+                ${loc.items.length > 0 ? `<span class="location-card-count location-card-count-secondary">${loc.items.length} directory</span>` : ''}
                 ${unlinkedCount > 0 ? `<span class="location-card-unlinked">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     ${unlinkedCount} not in inventory
@@ -94,6 +97,31 @@
         `).join('');
     }
 
+    // ===== Render linked inventory items table =====
+    function renderLinkedItemsTable(items) {
+        const tbody = document.getElementById('detailLinkedItemsBody');
+        if (!items || items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="loc-items-empty">No inventory items are assigned to this location yet. Set this location as an item's "Stored" or "Stocked In" location on the Inventory page.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = items.map(item => {
+            const tags = [];
+            if (item.stored) tags.push('<span class="loc-assign-tag loc-assign-stored">Stored</span>');
+            if (item.stocked) tags.push('<span class="loc-assign-tag loc-assign-stocked">Stocked In</span>');
+            return `
+            <tr data-item-id="${item._id}">
+                <td>${escHtml(item.item)}</td>
+                <td>${tags.join(' ') || '—'}</td>
+                <td>${item.currentquantity != null ? item.currentquantity : '—'}</td>
+                <td>
+                    <a class="btn-icon btn-icon-edit" title="View on Inventory page" href="/entry">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    </a>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
     // ===== Open location detail =====
     function openLocationDetail(loc) {
         currentLocationId = loc._id;
@@ -103,6 +131,7 @@
         document.getElementById('detailLocationNameSub').textContent = loc.name;
         document.getElementById('detailLocationDesc').textContent = loc.description || '';
 
+        renderLinkedItemsTable(loc.linkedItems || []);
         renderItemsTable(loc.items);
         openOverlay('locationDetailOverlay');
     }
@@ -111,6 +140,11 @@
     function refreshGrid(loc) {
         const grid = document.getElementById('locationsGrid');
         const existing = grid.querySelector(`[data-location-id="${loc._id}"]`);
+        // API responses for save/update don't recompute the linked inventory
+        // items, so carry the existing linked data over to keep the count right.
+        if (loc.linkedItems === undefined && existing && existing.dataset.locationLinked) {
+            loc.linkedItems = JSON.parse(decodeURIComponent(existing.dataset.locationLinked));
+        }
         const newCard = buildLocationCard(loc);
         if (existing) {
             grid.replaceChild(newCard, existing);
@@ -298,7 +332,10 @@
             _id: card.dataset.locationId,
             name: card.dataset.locationName,
             description: card.dataset.locationDescription,
-            items: JSON.parse(decodeURIComponent(card.dataset.locationItems))
+            items: JSON.parse(decodeURIComponent(card.dataset.locationItems)),
+            linkedItems: card.dataset.locationLinked
+                ? JSON.parse(decodeURIComponent(card.dataset.locationLinked))
+                : []
         };
         openLocationDetail(loc);
     });

@@ -31,7 +31,7 @@ router.get('/', requireAuth, async (req, res) => {
 
         const settings = await Settings.getSettings();
 
-        const allLocations = await Location.find().lean();
+        const allLocations = await Location.find().sort({ name: 1 }).lean();
         let unlinkedLocationCount = 0;
         allLocations.forEach(loc => {
             loc.items.forEach(item => {
@@ -39,12 +39,18 @@ router.get('/', requireAuth, async (req, res) => {
             });
         });
 
+        // Names of defined locations, offered as suggestions when assigning an
+        // item's Stored / Stocked In locations so items link back to the
+        // Locations page.
+        const locationNames = allLocations.map(loc => loc.name);
+
         res.render('entry', {
             inventoryItems: inventoryItems,
             orderCountMap: orderCountMap,
             settings: settings,
             user: req.session.user,
-            unlinkedLocationCount: unlinkedLocationCount
+            unlinkedLocationCount: unlinkedLocationCount,
+            locationNames: locationNames
         });
     } catch (error) {
         res.render('entry', {
@@ -53,6 +59,7 @@ router.get('/', requireAuth, async (req, res) => {
             settings: null,
             user: req.session.user,
             unlinkedLocationCount: 0,
+            locationNames: [],
             error: 'Failed to load inventory data'
         });
     }

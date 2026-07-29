@@ -5,6 +5,13 @@
     <link rel="stylesheet" href="/inventory.css">
 </head>
 <body>
+    <!-- Suggestions for Stored / Stocked In inputs, drawn from defined Locations -->
+    <datalist id="locationDatalist">
+        <% (typeof locationNames !== 'undefined' ? locationNames : []).forEach(function(name) { %>
+            <option value="<%= name %>"></option>
+        <% }); %>
+    </datalist>
+
     <div class="inventory-container">
         <% if (typeof unlinkedLocationCount !== 'undefined' && unlinkedLocationCount > 0) { %>
         <div style="display:flex;align-items:center;gap:12px;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:14px;color:#92400e;">
