@@ -178,28 +178,65 @@ async function submitAddModal() {
 
 // ===== Multi-value location helpers (shared between add and edit modals) =====
 // Each of "Stored" and "Stocked In" can hold several locations; a "+" button
-// adds another input row and each row has an "x" to remove it.
+// adds another location row and each row has an "x" to remove it.
+
+// The list of defined locations, read from the datalist rendered on the page.
+// Choosing from these exact names is what ties an item back to the matching
+// entry on the Locations page.
+function getDefinedLocations() {
+    const names = [];
+    const datalist = document.getElementById('locationDatalist');
+    if (datalist) {
+        datalist.querySelectorAll('option').forEach(function(opt) {
+            const v = (opt.value || '').trim();
+            if (v) names.push(v);
+        });
+    }
+    return names;
+}
+
 function createLocationInput(containerId, value) {
     const container = document.getElementById(containerId);
     if (!container) return;
     const row = document.createElement('div');
     row.className = 'location-input-row';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'edit-input location-value';
-    input.placeholder = 'e.g. Room 101, Shelf B';
-    input.value = value || '';
-    // Suggest existing locations so items tie back to the Locations page
-    if (document.getElementById('locationDatalist')) {
-        input.setAttribute('list', 'locationDatalist');
+
+    // Locations are picked from a dropdown of the locations defined on the
+    // Locations page so the selection references back to that specific location.
+    const names = getDefinedLocations();
+    const select = document.createElement('select');
+    select.className = 'edit-input location-value';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = names.length ? 'Select location' : 'No locations defined';
+    select.appendChild(placeholder);
+
+    names.forEach(function(name) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+    });
+
+    // Preserve any pre-existing value that isn't among the defined locations
+    // (e.g. legacy free-text entries) so editing an item never silently drops it.
+    const val = (value || '').trim();
+    if (val && names.indexOf(val) === -1) {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val + ' (custom)';
+        select.appendChild(opt);
     }
+    select.value = val;
+
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'remove-location-btn';
     removeBtn.title = 'Remove';
     removeBtn.innerHTML = '&times;';
     removeBtn.addEventListener('click', function() { row.remove(); });
-    row.appendChild(input);
+    row.appendChild(select);
     row.appendChild(removeBtn);
     container.appendChild(row);
 }

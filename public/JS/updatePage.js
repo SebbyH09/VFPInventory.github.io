@@ -8,23 +8,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ===== Multi-value location input helpers =====
+    // Defined locations, read from the datalist rendered on the page. Picking
+    // an exact name ties the item back to that location on the Locations page.
+    function getDefinedLocations() {
+        const names = [];
+        const datalist = document.getElementById('locationDatalist');
+        if (datalist) {
+            datalist.querySelectorAll('option').forEach(function(opt) {
+                const v = (opt.value || '').trim();
+                if (v) names.push(v);
+            });
+        }
+        return names;
+    }
+
     function createLocationInput(containerId, value) {
         const container = document.getElementById(containerId);
         if (!container) return;
         const row = document.createElement('div');
         row.className = 'location-input-row';
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'edit-input location-value';
-        input.placeholder = 'e.g. Room 101, Shelf B';
-        input.value = value || '';
+
+        const names = getDefinedLocations();
+        const select = document.createElement('select');
+        select.className = 'edit-input location-value';
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = names.length ? 'Select location' : 'No locations defined';
+        select.appendChild(placeholder);
+
+        names.forEach(function(name) {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+
+        // Keep any pre-existing value that isn't a defined location so legacy
+        // free-text entries are never silently dropped on edit.
+        const val = (value || '').trim();
+        if (val && names.indexOf(val) === -1) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val + ' (custom)';
+            select.appendChild(opt);
+        }
+        select.value = val;
+
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'remove-location-btn';
         removeBtn.title = 'Remove';
         removeBtn.innerHTML = '&times;';
         removeBtn.addEventListener('click', function() { row.remove(); });
-        row.appendChild(input);
+        row.appendChild(select);
         row.appendChild(removeBtn);
         container.appendChild(row);
     }
