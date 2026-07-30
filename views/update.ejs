@@ -6,6 +6,13 @@
 
 <% const categoryList = (settings && settings.categories && settings.categories.length > 0) ? settings.categories : []; %>
 
+<!-- Defined Locations, used to populate the Stored / Stocked In dropdowns -->
+<datalist id="locationDatalist">
+    <% (typeof locationNames !== 'undefined' ? locationNames : []).forEach(function(name) { %>
+        <option value="<%= name %>"></option>
+    <% }); %>
+</datalist>
+
 <div class="update-container">
     <!-- Page Header -->
     <div class="page-header">

@@ -4,6 +4,7 @@ const requireAuth = require('../Middleware/auth');
 const inventory = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
 const Settings = require('../models/Settings');
+const Location = require('../models/Location');
 
 // Selectable timeframes for the "not updated in..." filter
 const TIMEFRAME_OPTIONS = [
@@ -48,6 +49,12 @@ router.get('/', requireAuth, async (req, res) => {
 
         const settings = await Settings.getSettings();
         const items = await inventory.find({ isActive: { $ne: false } }).lean();
+
+        // Names of defined locations, offered as dropdown choices when editing
+        // an item's Stored / Stocked In locations so items link to the
+        // Locations page.
+        const allLocations = await Location.find().sort({ name: 1 }).lean();
+        const locationNames = allLocations.map(loc => loc.name);
 
         const flaggedItems = [];
         items.forEach(item => {
@@ -94,7 +101,8 @@ router.get('/', requireAuth, async (req, res) => {
             months,
             timeframeOptions: TIMEFRAME_OPTIONS,
             settings,
-            totalActive: items.length
+            totalActive: items.length,
+            locationNames
         });
     } catch (error) {
         console.error('Update page error:', error);
@@ -105,6 +113,7 @@ router.get('/', requireAuth, async (req, res) => {
             timeframeOptions: TIMEFRAME_OPTIONS,
             settings: null,
             totalActive: 0,
+            locationNames: [],
             error: 'Failed to load update data'
         });
     }
