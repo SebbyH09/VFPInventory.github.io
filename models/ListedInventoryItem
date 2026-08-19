@@ -97,21 +97,7 @@ const InventorySchema = new Schema({
         brand: { type: String, trim: true, default: '' },
         vendor: { type: String, trim: true, default: '' },
         catalogNumber: { type: String, trim: true, default: '' }
-    }],
-    // The vendor quote currently tied to this item (set when a quote line item
-    // is approved on the Quotes page). Drives the quote/pricing display on the
-    // Inventory page and the "quotes expiring soon" alert on the dashboard.
-    activeQuote: {
-        quoteId:        { type: mongoose.Schema.Types.ObjectId, ref: 'Quote', default: null },
-        quoteNumber:    { type: String, trim: true, default: null },
-        vendor:         { type: String, trim: true, default: null },
-        // New price the vendor quoted
-        quotedPrice:    { type: Number, default: null },
-        // Item's cost at the time the quote was approved (for comparison)
-        originalPrice:  { type: Number, default: null },
-        expirationDate: { type: Date, default: null },
-        approvedAt:     { type: Date, default: null }
-    }
+    }]
 }, {
     timestamps: true
 });

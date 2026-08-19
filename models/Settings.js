@@ -37,13 +37,6 @@ const settingsSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    // Show a dashboard alert when a vendor quote is within this many days of
-    // expiring (0 disables the alert).
-    quoteExpiryAlertDays: {
-        type: Number,
-        default: 30,
-        min: 0
-    },
     // Default values for new items
     defaultMinQuantity: {
         type: Number,
