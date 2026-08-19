@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vendor Quotes</title>
+    <link rel="stylesheet" href="/quotes.css">
+</head>
+<body>
+<div class="quotes-container">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title">Vendor Quotes</h1>
+            <p class="page-subtitle">Upload a quote PDF, review the parsed items, and tie them to inventory</p>
+        </div>
+    </div>
+
+    <% if (message) { %>
+        <div class="quote-alert quote-alert-<%= message.type %>"><%= message.text %></div>
+    <% } %>
+
+    <!-- Upload card -->
+    <div class="quote-upload-card">
+        <form action="/quotes/upload" method="POST" enctype="multipart/form-data" id="quoteUploadForm">
+            <div class="upload-dropzone" id="quoteDropzone">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.6">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <p class="dropzone-title">Drop a vendor quote PDF here, or click to browse</p>
+                <p class="dropzone-sub" id="quoteFileName">PDF files up to 15&nbsp;MB</p>
+                <input type="file" name="quoteFile" id="quoteFileInput" accept="application/pdf,.pdf" hidden>
+            </div>
+            <div class="upload-actions">
+                <button type="submit" class="btn-primary" id="quoteUploadBtn" disabled>
+                    <span class="btn-label">Upload &amp; Parse</span>
+                    <span class="btn-spinner" hidden></span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quotes list -->
+    <div class="quotes-list-header">
+        <h2 class="section-title">Uploaded Quotes</h2>
+    </div>
+
+    <% if (quotes && quotes.length > 0) { %>
+        <div class="table-wrapper">
+            <table class="quotes-table">
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>Quote #</th>
+                        <th>Quote Date</th>
+                        <th>Expires</th>
+                        <th>Items</th>
+                        <th>Status</th>
+                        <th>Uploaded</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% quotes.forEach(function(q) {
+                        var total = (q.lineItems || []).length;
+                        var approved = (q.lineItems || []).filter(function(li){ return li.approvalStatus === 'approved'; }).length;
+                        var exp = q.expirationDate ? new Date(q.expirationDate) : null;
+                        var daysLeft = exp ? Math.ceil((exp - new Date()) / (1000*60*60*24)) : null;
+                        var expClass = '';
+                        if (daysLeft !== null) {
+                            if (daysLeft < 0) expClass = 'exp-expired';
+                            else if (daysLeft <= 30) expClass = 'exp-soon';
+                        }
+                    %>
+                        <tr class="quote-row" data-quote-id="<%= q._id %>">
+                            <td><a class="quote-link" href="/quotes/<%= q._id %>"><%= q.vendor || 'Unknown vendor' %></a></td>
+                            <td><%= q.quoteNumber || '—' %></td>
+                            <td><%= q.quoteDate || '—' %></td>
+                            <td class="<%= expClass %>">
+                                <% if (exp) { %>
+                                    <%= exp.toLocaleDateString() %>
+                                    <% if (daysLeft < 0) { %><span class="pill pill-red">Expired</span>
+                                    <% } else if (daysLeft <= 30) { %><span class="pill pill-amber"><%= daysLeft %>d left</span><% } %>
+                                <% } else { %>—<% } %>
+                            </td>
+                            <td><%= approved %>/<%= total %> approved</td>
+                            <td>
+                                <% if (q.status === 'reviewed') { %>
+                                    <span class="status-badge status-reviewed">Reviewed</span>
+                                <% } else { %>
+                                    <span class="status-badge status-pending">Pending Review</span>
+                                <% } %>
+                            </td>
+                            <td><%= q.createdAt ? new Date(q.createdAt).toLocaleDateString() : '' %></td>
+                            <td class="row-actions">
+                                <a class="btn-mini" href="/quotes/<%= q._id %>">Review</a>
+                                <button class="btn-mini btn-danger quote-delete-btn" data-quote-id="<%= q._id %>">Delete</button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <div class="empty-state">
+            <p>No quotes uploaded yet. Upload a vendor quote PDF above to get started.</p>
+        </div>
+    <% } %>
+</div>
+
+<script src="/quotes.js"></script>
+</body>
+</html>
