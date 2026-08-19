@@ -72,6 +72,7 @@ router.patch('/timeframes', requireAuth, async (req, res) => {
             'recommendationLookbackDays',
             'leadTimeDays',
             'lowStockAlertEnabled',
+            'quoteExpiryAlertDays',
             'defaultMinQuantity',
             'defaultMaxQuantity'
         ];
