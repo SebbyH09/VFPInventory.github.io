@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var data = {
                 defaultMinQuantity: parseInt(document.getElementById('defaultMinQuantity').value) || 0,
                 defaultMaxQuantity: parseInt(document.getElementById('defaultMaxQuantity').value) || 0,
-                lowStockAlertEnabled: document.getElementById('lowStockAlertEnabled').checked
+                lowStockAlertEnabled: document.getElementById('lowStockAlertEnabled').checked,
+                quoteExpiryAlertDays: parseInt(document.getElementById('quoteExpiryAlertDays').value) || 0
             };
 
             fetch('/settings/timeframes', {

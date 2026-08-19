@@ -101,6 +101,7 @@
                         <th>Stocked In</th>
                         <th>Type</th>
                         <th>Cost per Unit</th>
+                        <th>Quote</th>
                         <th>Days Since Last Use</th>
                         <th>Open Orders</th>
                         <th>Last Cycle Count</th>
@@ -158,6 +159,31 @@
                                 <td><p class="inventoryitem"><%= stockedLocs.join(', ') %></p></td>
                                 <td><p class="inventoryitem"><%= item.type || '' %></p></td>
                                 <td><p class="inventoryitem">$<%= (item.cost || 0).toFixed(2) %></p></td>
+                                <td class="quote-cell">
+                                    <% if (item.activeQuote && item.activeQuote.quoteId) {
+                                        var aq = item.activeQuote;
+                                        var qExp = aq.expirationDate ? new Date(aq.expirationDate) : null;
+                                        var qDaysLeft = qExp ? Math.ceil((qExp - new Date()) / (1000*60*60*24)) : null;
+                                        var qExpClass = qDaysLeft === null ? '' : (qDaysLeft < 0 ? 'quote-expired' : (qDaysLeft <= 30 ? 'quote-soon' : ''));
+                                    %>
+                                        <a class="quote-tag <%= qExpClass %>" href="/quotes/<%= aq.quoteId %>" title="View quote">
+                                            <span class="quote-tag-number">#<%= aq.quoteNumber || 'Quote' %></span>
+                                            <span class="quote-tag-prices">
+                                                <% if (aq.quotedPrice != null) { %>
+                                                    <span class="quote-new">$<%= Number(aq.quotedPrice).toFixed(2) %></span>
+                                                <% } %>
+                                                <% if (aq.originalPrice != null && aq.originalPrice !== aq.quotedPrice) { %>
+                                                    <span class="quote-orig">$<%= Number(aq.originalPrice).toFixed(2) %></span>
+                                                <% } %>
+                                            </span>
+                                            <% if (qExp) { %>
+                                                <span class="quote-exp">exp <%= qExp.toLocaleDateString() %><% if (qDaysLeft !== null && qDaysLeft < 0) { %> (expired)<% } else if (qDaysLeft !== null && qDaysLeft <= 30) { %> (<%= qDaysLeft %>d)<% } %></span>
+                                            <% } %>
+                                        </a>
+                                    <% } else { %>
+                                        <span class="quote-none">—</span>
+                                    <% } %>
+                                </td>
                                 <td class="days-since-use"><p class="inventoryitem tracking-field">-</p></td>
                                 <td class="order-frequency"><p class="inventoryitem tracking-field"><%= (orderCountMap && orderCountMap[item._id.toString()]) || 0 %></p></td>
                                 <td class="last-cycle-count"><p class="inventoryitem tracking-field"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></p></td>
