@@ -6,7 +6,6 @@ const InventoryHistory = require('../models/InventoryHistory');
 const Order = require('../models/Order');
 const Settings = require('../models/Settings');
 const Location = require('../models/Location');
-const Quote = require('../models/Quote');
 
 router.get('/', async (req, res) => {
     if (req.session.isLoggedIn) {
@@ -104,31 +103,6 @@ router.get('/', async (req, res) => {
                 });
             });
 
-            // Quotes expiring soon (within the configured alert window).
-            const quoteExpiryAlertDays = settings.quoteExpiryAlertDays != null ? settings.quoteExpiryAlertDays : 30;
-            let expiringQuotes = [];
-            if (quoteExpiryAlertDays > 0) {
-                const alertCutoff = new Date();
-                alertCutoff.setDate(alertCutoff.getDate() + quoteExpiryAlertDays);
-                const rawExpiring = await Quote.find({
-                    expirationDate: { $ne: null, $lte: alertCutoff }
-                }).sort({ expirationDate: 1 }).lean();
-
-                expiringQuotes = rawExpiring.map(q => {
-                    const exp = new Date(q.expirationDate);
-                    const daysLeft = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
-                    const approvedCount = (q.lineItems || []).filter(li => li.approvalStatus === 'approved').length;
-                    return {
-                        _id: q._id,
-                        vendor: q.vendor,
-                        quoteNumber: q.quoteNumber,
-                        expirationDate: q.expirationDate,
-                        daysLeft,
-                        approvedCount
-                    };
-                });
-            }
-
             res.render('dashboard', {
                 user: req.session.user,
                 lowInventoryItems: lowInventoryItems,
@@ -137,8 +111,7 @@ router.get('/', async (req, res) => {
                 totalCycleCountsDue: dueItems.length,
                 recentOrders: recentOrders,
                 onOrderMap: onOrderMap,
-                unlinkedLocationItems: unlinkedLocationItems,
-                expiringQuotes: expiringQuotes
+                unlinkedLocationItems: unlinkedLocationItems
             });
         } catch (error) {
             console.error('Dashboard error:', error);
@@ -150,7 +123,6 @@ router.get('/', async (req, res) => {
                 recentOrders: [],
                 onOrderMap: {},
                 unlinkedLocationItems: [],
-                expiringQuotes: [],
                 error: 'Failed to load dashboard data'
             });
         }

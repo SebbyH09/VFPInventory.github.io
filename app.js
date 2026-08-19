@@ -107,7 +107,6 @@ const purchaseOrderRoutes = require('./routes/purchaseOrders')
 const settingsRouter = require('./routes/settings')
 const locationsRouter = require('./routes/locations')
 const updateRouter = require('./routes/update')
-const quotesRouter = require('./routes/quotes')
 
 
 app.use((req, res, next) => {
@@ -165,7 +164,6 @@ app.use('/purchase-orders', requireAuth, purchaseOrderRoutes);
 app.use('/settings', requireAuth, settingsRouter);
 app.use('/locations', requireAuth, locationsRouter);
 app.use('/update', requireAuth, updateRouter);
-app.use('/quotes', requireAuth, quotesRouter);
 app.use('/', homeRouter);
 
 
