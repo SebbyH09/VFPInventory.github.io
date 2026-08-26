@@ -171,18 +171,42 @@
         if (!select) return;
 
         var options = select.querySelectorAll('option');
+
+        // Fuzzy matcher over each option's name/brand/catalog/vendor, keyed by
+        // option value. Built once per select and cached. Falls back to
+        // substring matching if unavailable.
+        var matchSet = null;
+        if (query && typeof window.createFuzzyFilter === 'function') {
+            if (!select._fuzzyMatcher) {
+                var records = [];
+                options.forEach(function (opt) {
+                    if (!opt.value) return;
+                    var text = [opt.dataset.name, opt.dataset.brand, opt.dataset.catalog, opt.dataset.vendor]
+                        .filter(Boolean).join(' ');
+                    records.push({ key: opt.value, text: text });
+                });
+                select._fuzzyMatcher = window.createFuzzyFilter(records);
+            }
+            matchSet = select._fuzzyMatcher(query);
+        }
+
         options.forEach(function (opt) {
             if (!opt.value) return; // keep placeholder
             if (!query) {
                 opt.style.display = '';
                 return;
             }
-            var name    = (opt.dataset.name    || '').toLowerCase();
-            var brand   = (opt.dataset.brand   || '').toLowerCase();
-            var catalog = (opt.dataset.catalog || '').toLowerCase();
-            var vendor  = (opt.dataset.vendor  || '').toLowerCase();
-            var visible = name.includes(query) || brand.includes(query) ||
+            var visible;
+            if (matchSet) {
+                visible = matchSet.has(opt.value);
+            } else {
+                var name    = (opt.dataset.name    || '').toLowerCase();
+                var brand   = (opt.dataset.brand   || '').toLowerCase();
+                var catalog = (opt.dataset.catalog || '').toLowerCase();
+                var vendor  = (opt.dataset.vendor  || '').toLowerCase();
+                visible = name.includes(query) || brand.includes(query) ||
                           catalog.includes(query) || vendor.includes(query);
+            }
             opt.style.display = visible ? '' : 'none';
         });
 

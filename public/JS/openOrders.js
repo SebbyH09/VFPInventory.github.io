@@ -10,27 +10,51 @@ document.addEventListener('DOMContentLoaded', function () {
         return Array.from(document.querySelectorAll('.order-card'));
     }
 
+    // Fuzzy matcher over order number, creator and item names, keyed by
+    // order id. Built once (cards are static after render). Falls back to
+    // substring matching if unavailable.
+    let orderMatcher = null;
+    function ensureOrderMatcher() {
+        if (orderMatcher) return orderMatcher;
+        if (typeof window.createFuzzyFilter !== 'function') return null;
+        const records = getOrderCards().map(card => {
+            const itemNames = Array.from(card.querySelectorAll('.order-items-table tbody td:first-child'))
+                .map(td => td.textContent);
+            const text = [card.dataset.orderNumber, card.dataset.createdBy]
+                .concat(itemNames).filter(Boolean).join(' ');
+            return { key: card.dataset.orderId, text: text };
+        });
+        orderMatcher = window.createFuzzyFilter(records);
+        return orderMatcher;
+    }
+
     function applyFilterAndSort() {
         const query = (filterInput.value || '').toLowerCase().trim();
         const statusVal = statusFilter.value;
         const field = sortField.value;
 
         const cards = getOrderCards();
+        const matcher = query ? ensureOrderMatcher() : null;
+        const matchSet = matcher ? matcher(query) : null;
 
         // Filter
         cards.forEach(card => {
-            const orderNum = (card.dataset.orderNumber || '').toLowerCase();
-            const createdBy = (card.dataset.createdBy || '').toLowerCase();
             const status = card.dataset.status;
 
-            // Check item names in the table rows
-            const itemNames = Array.from(card.querySelectorAll('.order-items-table tbody td:first-child'))
-                .map(td => td.textContent.toLowerCase());
-
-            const matchesQuery = !query ||
-                orderNum.includes(query) ||
-                createdBy.includes(query) ||
-                itemNames.some(name => name.includes(query));
+            let matchesQuery;
+            if (!query) {
+                matchesQuery = true;
+            } else if (matchSet) {
+                matchesQuery = matchSet.has(card.dataset.orderId);
+            } else {
+                const orderNum = (card.dataset.orderNumber || '').toLowerCase();
+                const createdBy = (card.dataset.createdBy || '').toLowerCase();
+                const itemNames = Array.from(card.querySelectorAll('.order-items-table tbody td:first-child'))
+                    .map(td => td.textContent.toLowerCase());
+                matchesQuery = orderNum.includes(query) ||
+                    createdBy.includes(query) ||
+                    itemNames.some(name => name.includes(query));
+            }
 
             const matchesStatus = statusVal === 'all' || status === statusVal;
 

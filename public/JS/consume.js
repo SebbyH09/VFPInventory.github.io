@@ -58,22 +58,47 @@ function setupSearchFunctionality() {
     clearButton.addEventListener('click', clearSearch);
 }
 
+// Fuzzy matcher over name/brand/catalog, keyed by row index. Built once
+// (rows are static after render). Falls back to substring matching.
+let consumeMatcher = null;
+function ensureConsumeMatcher() {
+    if (consumeMatcher) return consumeMatcher;
+    if (typeof window.createFuzzyFilter !== 'function') return null;
+    const table = document.getElementById('inventoryTable');
+    if (!table) return null;
+    const records = [];
+    table.querySelectorAll('tbody tr').forEach((row, index) => {
+        const name = row.querySelector('td:nth-child(1)')?.textContent || '';
+        const brand = row.querySelector('td:nth-child(2)')?.textContent || '';
+        const catalog = row.querySelector('td:nth-child(3)')?.textContent || '';
+        records.push({ key: index, text: name + ' ' + brand + ' ' + catalog });
+    });
+    consumeMatcher = window.createFuzzyFilter(records);
+    return consumeMatcher;
+}
+
 function performSearch() {
     const searchBar = document.getElementById('consumeSearchBar');
     const searchTerm = searchBar.value.toLowerCase().trim();
     const table = document.getElementById('inventoryTable');
     const rows = table.querySelectorAll('tbody tr');
 
-    rows.forEach(row => {
-        const itemName = row.querySelector('td:nth-child(1)')?.textContent.toLowerCase() || '';
-        const itemBrand = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
-        const itemCatalog = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+    const matcher = searchTerm !== '' ? ensureConsumeMatcher() : null;
+    const matchSet = matcher ? matcher(searchTerm) : null;
 
-        if (itemName.includes(searchTerm) || itemBrand.includes(searchTerm) || itemCatalog.includes(searchTerm)) {
-            row.style.display = '';
+    rows.forEach((row, index) => {
+        let matched;
+        if (searchTerm === '') {
+            matched = true;
+        } else if (matchSet) {
+            matched = matchSet.has(index);
         } else {
-            row.style.display = 'none';
+            const itemName = row.querySelector('td:nth-child(1)')?.textContent.toLowerCase() || '';
+            const itemBrand = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+            const itemCatalog = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+            matched = itemName.includes(searchTerm) || itemBrand.includes(searchTerm) || itemCatalog.includes(searchTerm);
         }
+        row.style.display = matched ? '' : 'none';
     });
 }
 

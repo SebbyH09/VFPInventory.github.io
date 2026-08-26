@@ -14,6 +14,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const tbody = table.querySelector('tbody');
 
+    // Fuzzy matcher over full row text (rows are static after render). Built
+    // lazily on first use. Falls back to substring matching if unavailable.
+    let rowTextMatcher = null;
+    function ensureRowMatcher() {
+        if (rowTextMatcher) return rowTextMatcher;
+        if (typeof window.createFuzzyFilter !== 'function') return null;
+        const records = [];
+        tbody.querySelectorAll('tr').forEach((row, index) => {
+            records.push({ key: index, text: row.textContent });
+        });
+        rowTextMatcher = window.createFuzzyFilter(records);
+        return rowTextMatcher;
+    }
+
     // Collect all locations (stored + stocked-in, with legacy fallback) for an item
     function getItemLocations(data) {
         const result = [];
@@ -109,13 +123,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const stockValue = filterStock ? filterStock.value : '';
         const rows = tbody.querySelectorAll('tr');
 
-        rows.forEach(row => {
+        // Compute the set of fuzzily-matching rows once per query, keyed by
+        // row index (matches ensureRowMatcher's ordering).
+        const matcher = searchTerm !== '' ? ensureRowMatcher() : null;
+        const matchSet = matcher ? matcher(searchTerm) : null;
+
+        rows.forEach((row, index) => {
             let visible = true;
 
-            // Text search filter
+            // Text search filter (fuzzy, with substring fallback)
             if (searchTerm !== '') {
-                const rowText = row.textContent.toLowerCase();
-                if (!rowText.includes(searchTerm)) {
+                const matched = matchSet
+                    ? matchSet.has(index)
+                    : row.textContent.toLowerCase().includes(searchTerm);
+                if (!matched) {
                     visible = false;
                 }
             }

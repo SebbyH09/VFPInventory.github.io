@@ -232,15 +232,41 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ----- Search -----
+    // Fuzzy matcher over name/brand/catalog, keyed by itemId. Built once
+    // (rows are static after render). Falls back to substring matching.
+    let itemMatcher = null;
+    function ensureItemMatcher() {
+        if (itemMatcher) return itemMatcher;
+        if (typeof window.createFuzzyFilter !== 'function') return null;
+        const records = [];
+        document.querySelectorAll('#inventoryTable tbody tr').forEach(row => {
+            if (!row.dataset.itemId) return;
+            const text = [row.dataset.itemName, row.dataset.itemBrand, row.dataset.itemCatalog]
+                .filter(Boolean).join(' ');
+            records.push({ key: row.dataset.itemId, text: text });
+        });
+        itemMatcher = window.createFuzzyFilter(records);
+        return itemMatcher;
+    }
+
     function filterTable() {
         const query = searchBar.value.toLowerCase().trim();
         const rows = document.querySelectorAll('#inventoryTable tbody tr');
+        const matcher = query !== '' ? ensureItemMatcher() : null;
+        const matchSet = matcher ? matcher(query) : null;
         rows.forEach(row => {
             if (!row.dataset.itemId) { row.style.display = ''; return; }
-            const name = (row.dataset.itemName || '').toLowerCase();
-            const brand = (row.dataset.itemBrand || '').toLowerCase();
-            const catalog = (row.dataset.itemCatalog || '').toLowerCase();
-            row.style.display = (name.includes(query) || brand.includes(query) || catalog.includes(query)) ? '' : 'none';
+            if (query === '') { row.style.display = ''; return; }
+            let matched;
+            if (matchSet) {
+                matched = matchSet.has(row.dataset.itemId);
+            } else {
+                const name = (row.dataset.itemName || '').toLowerCase();
+                const brand = (row.dataset.itemBrand || '').toLowerCase();
+                const catalog = (row.dataset.itemCatalog || '').toLowerCase();
+                matched = name.includes(query) || brand.includes(query) || catalog.includes(query);
+            }
+            row.style.display = matched ? '' : 'none';
         });
     }
 
