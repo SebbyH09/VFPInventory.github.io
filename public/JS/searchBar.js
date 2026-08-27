@@ -14,18 +14,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const tbody = table.querySelector('tbody');
 
-    // Fuzzy matcher over full row text (rows are static after render). Built
-    // lazily on first use. Falls back to substring matching if unavailable.
+    // Capture the original row order so it can be restored when the search box
+    // is cleared, and give each row a stable key for relevance ranking.
+    const originalOrder = Array.from(tbody.querySelectorAll('tr'));
+    originalOrder.forEach((row, index) => { row.dataset.fuzzyKey = String(index); });
+
+    // Ranked fuzzy matcher over full row text (rows are static after render).
+    // Built lazily on first use. Falls back to substring matching if the
+    // ranked helper is unavailable.
     let rowTextMatcher = null;
     function ensureRowMatcher() {
         if (rowTextMatcher) return rowTextMatcher;
-        if (typeof window.createFuzzyFilter !== 'function') return null;
-        const records = [];
-        tbody.querySelectorAll('tr').forEach((row, index) => {
-            records.push({ key: index, text: row.textContent });
-        });
-        rowTextMatcher = window.createFuzzyFilter(records);
+        if (typeof window.createRankedFuzzyFilter !== 'function') return null;
+        const records = originalOrder.map((row, index) => ({ key: index, text: row.textContent }));
+        rowTextMatcher = window.createRankedFuzzyFilter(records);
         return rowTextMatcher;
+    }
+
+    // Reorder rows: matched rows first in relevance order while searching;
+    // original order when the query is cleared.
+    function reorderRows(ranked) {
+        const byKey = new Map(originalOrder.map(r => [Number(r.dataset.fuzzyKey), r]));
+        if (ranked) {
+            const placed = new Set();
+            ranked.order.forEach(key => {
+                const row = byKey.get(key);
+                if (row && row.style.display !== 'none') { tbody.appendChild(row); placed.add(key); }
+            });
+            originalOrder.forEach(row => {
+                if (!placed.has(Number(row.dataset.fuzzyKey))) tbody.appendChild(row);
+            });
+        } else {
+            originalOrder.forEach(row => tbody.appendChild(row));
+        }
     }
 
     // Collect all locations (stored + stocked-in, with legacy fallback) for an item
@@ -123,18 +144,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const stockValue = filterStock ? filterStock.value : '';
         const rows = tbody.querySelectorAll('tr');
 
-        // Compute the set of fuzzily-matching rows once per query, keyed by
-        // row index (matches ensureRowMatcher's ordering).
+        // Ranked matches (best-first) for the current query, or null when the
+        // query is empty. `.set` gives membership, `.order` gives relevance.
         const matcher = searchTerm !== '' ? ensureRowMatcher() : null;
-        const matchSet = matcher ? matcher(searchTerm) : null;
+        const ranked = matcher ? matcher(searchTerm) : null;
 
-        rows.forEach((row, index) => {
+        rows.forEach(row => {
+            const key = Number(row.dataset.fuzzyKey);
             let visible = true;
 
             // Text search filter (fuzzy, with substring fallback)
             if (searchTerm !== '') {
-                const matched = matchSet
-                    ? matchSet.has(index)
+                const matched = ranked
+                    ? ranked.set.has(key)
                     : row.textContent.toLowerCase().includes(searchTerm);
                 if (!matched) {
                     visible = false;
@@ -195,5 +217,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             row.style.display = visible ? '' : 'none';
         });
+
+        // Float best matches to the top while searching; restore order when cleared.
+        reorderRows(ranked);
     }
 });

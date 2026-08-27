@@ -10,13 +10,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return Array.from(document.querySelectorAll('.order-card'));
     }
 
-    // Fuzzy matcher over order number, creator and item names, keyed by
-    // order id. Built once (cards are static after render). Falls back to
+    // Ranked fuzzy matcher over order number, creator and item names, keyed
+    // by order id. Built once (cards are static after render). Falls back to
     // substring matching if unavailable.
     let orderMatcher = null;
     function ensureOrderMatcher() {
         if (orderMatcher) return orderMatcher;
-        if (typeof window.createFuzzyFilter !== 'function') return null;
+        if (typeof window.createRankedFuzzyFilter !== 'function') return null;
         const records = getOrderCards().map(card => {
             const itemNames = Array.from(card.querySelectorAll('.order-items-table tbody td:first-child'))
                 .map(td => td.textContent);
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .concat(itemNames).filter(Boolean).join(' ');
             return { key: card.dataset.orderId, text: text };
         });
-        orderMatcher = window.createFuzzyFilter(records);
+        orderMatcher = window.createRankedFuzzyFilter(records);
         return orderMatcher;
     }
 
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const cards = getOrderCards();
         const matcher = query ? ensureOrderMatcher() : null;
-        const matchSet = matcher ? matcher(query) : null;
+        const ranked = matcher ? matcher(query) : null;
 
         // Filter
         cards.forEach(card => {
@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', function () {
             let matchesQuery;
             if (!query) {
                 matchesQuery = true;
-            } else if (matchSet) {
-                matchesQuery = matchSet.has(card.dataset.orderId);
+            } else if (ranked) {
+                matchesQuery = ranked.set.has(card.dataset.orderId);
             } else {
                 const orderNum = (card.dataset.orderNumber || '').toLowerCase();
                 const createdBy = (card.dataset.createdBy || '').toLowerCase();
@@ -61,8 +61,21 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.display = (matchesQuery && matchesStatus) ? '' : 'none';
         });
 
-        // Sort visible cards
+        // Sort visible cards. While searching, order by relevance (best match
+        // first); otherwise use the selected sort field/direction.
         const visibleCards = cards.filter(c => c.style.display !== 'none');
+        if (ranked) {
+            const rankOf = new Map();
+            ranked.order.forEach((id, i) => rankOf.set(id, i));
+            visibleCards.sort((a, b) => {
+                const ra = rankOf.has(a.dataset.orderId) ? rankOf.get(a.dataset.orderId) : Infinity;
+                const rb = rankOf.has(b.dataset.orderId) ? rankOf.get(b.dataset.orderId) : Infinity;
+                return ra - rb;
+            });
+            const list = document.getElementById('ordersList');
+            visibleCards.forEach(card => list.appendChild(card));
+            return;
+        }
         visibleCards.sort((a, b) => {
             let valA, valB;
             switch (field) {

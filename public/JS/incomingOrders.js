@@ -172,11 +172,17 @@
 
         var options = select.querySelectorAll('option');
 
-        // Fuzzy matcher over each option's name/brand/catalog/vendor, keyed by
-        // option value. Built once per select and cached. Falls back to
-        // substring matching if unavailable.
-        var matchSet = null;
-        if (query && typeof window.createFuzzyFilter === 'function') {
+        // Capture the original option order once so it can be restored when
+        // the query is cleared.
+        if (!select._originalOptions) {
+            select._originalOptions = Array.prototype.slice.call(options);
+        }
+
+        // Ranked fuzzy matcher over each option's name/brand/catalog/vendor,
+        // keyed by option value. Built once per select and cached. Falls back
+        // to substring matching if unavailable.
+        var ranked = null;
+        if (query && typeof window.createRankedFuzzyFilter === 'function') {
             if (!select._fuzzyMatcher) {
                 var records = [];
                 options.forEach(function (opt) {
@@ -185,9 +191,9 @@
                         .filter(Boolean).join(' ');
                     records.push({ key: opt.value, text: text });
                 });
-                select._fuzzyMatcher = window.createFuzzyFilter(records);
+                select._fuzzyMatcher = window.createRankedFuzzyFilter(records);
             }
-            matchSet = select._fuzzyMatcher(query);
+            ranked = select._fuzzyMatcher(query);
         }
 
         options.forEach(function (opt) {
@@ -197,8 +203,8 @@
                 return;
             }
             var visible;
-            if (matchSet) {
-                visible = matchSet.has(opt.value);
+            if (ranked) {
+                visible = ranked.set.has(opt.value);
             } else {
                 var name    = (opt.dataset.name    || '').toLowerCase();
                 var brand   = (opt.dataset.brand   || '').toLowerCase();
@@ -209,6 +215,25 @@
             }
             opt.style.display = visible ? '' : 'none';
         });
+
+        // Reorder options: best matches first (after the placeholder) while
+        // searching; original order when the query is cleared.
+        var original = select._originalOptions;
+        if (ranked) {
+            var byValue = {};
+            original.forEach(function (opt) { if (opt.value) byValue[opt.value] = opt; });
+            var placed = {};
+            original.forEach(function (opt) { if (!opt.value) select.appendChild(opt); }); // placeholder(s) first
+            ranked.order.forEach(function (value) {
+                var opt = byValue[value];
+                if (opt && opt.style.display !== 'none') { select.appendChild(opt); placed[value] = true; }
+            });
+            original.forEach(function (opt) {
+                if (opt.value && !placed[opt.value]) select.appendChild(opt);
+            });
+        } else {
+            original.forEach(function (opt) { select.appendChild(opt); });
+        }
 
         // Clear selection if currently selected option is now hidden
         var chosen = select.options[select.selectedIndex];
