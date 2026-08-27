@@ -62,5 +62,69 @@
         };
     }
 
+    // Build a reusable *ranked* matcher over a fixed set of records.
+    // Same inputs as createFuzzyFilter, but the returned function reports
+    // matches best-first so callers can reorder results by relevance.
+    //   returns: function(query) -> null for an empty query (meaning "no
+    //            ranking; show everything in original order"), otherwise
+    //            { order: [keys best-first], set: Set(matching keys) }.
+    //
+    // Ranking: exact substring hits rank ahead of fuzzy-only hits; among
+    // substring hits, an earlier match position wins; among fuzzy hits, the
+    // lower Fuse score (closer match) wins.
+    function createRankedFuzzyFilter(records, options) {
+        var list = (records || []).map(function (r) {
+            return { key: r.key, text: normalize(r.text) };
+        });
+        var threshold = (options && typeof options.threshold === 'number')
+            ? options.threshold
+            : DEFAULT_THRESHOLD;
+
+        var fuse = (typeof global.Fuse === 'function')
+            ? new global.Fuse(list, {
+                keys: ['text'],
+                threshold: threshold,
+                ignoreLocation: true,
+                minMatchCharLength: 1,
+                includeScore: true
+            })
+            : null;
+
+        return function search(query) {
+            var q = normalize(query);
+            if (q === '') return null;
+
+            var ranked = [];
+            var seen = new Set();
+
+            // Substring hits first, scored below zero so they always outrank
+            // fuzzy-only hits; earlier match position ranks higher.
+            list.forEach(function (r) {
+                var pos = r.text.indexOf(q);
+                if (pos !== -1) {
+                    ranked.push({ key: r.key, score: -1 + Math.min(pos, 9999) / 10000 });
+                    seen.add(r.key);
+                }
+            });
+
+            // Fuzzy hits fill in the typo-tolerant matches, by Fuse score.
+            if (fuse) {
+                fuse.search(q).forEach(function (hit) {
+                    if (!seen.has(hit.item.key)) {
+                        ranked.push({ key: hit.item.key, score: hit.score });
+                        seen.add(hit.item.key);
+                    }
+                });
+            }
+
+            ranked.sort(function (a, b) { return a.score - b.score; });
+            return {
+                order: ranked.map(function (x) { return x.key; }),
+                set: seen
+            };
+        };
+    }
+
     global.createFuzzyFilter = createFuzzyFilter;
+    global.createRankedFuzzyFilter = createRankedFuzzyFilter;
 })(window);

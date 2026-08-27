@@ -58,22 +58,24 @@ function setupSearchFunctionality() {
     clearButton.addEventListener('click', clearSearch);
 }
 
-// Fuzzy matcher over name/brand/catalog, keyed by row index. Built once
-// (rows are static after render). Falls back to substring matching.
+// Ranked fuzzy matcher over name/brand/catalog, keyed by a stable row key.
+// Built once (rows are static after render). Falls back to substring matching.
 let consumeMatcher = null;
+let consumeOriginalRows = [];
 function ensureConsumeMatcher() {
     if (consumeMatcher) return consumeMatcher;
-    if (typeof window.createFuzzyFilter !== 'function') return null;
+    if (typeof window.createRankedFuzzyFilter !== 'function') return null;
     const table = document.getElementById('inventoryTable');
     if (!table) return null;
-    const records = [];
-    table.querySelectorAll('tbody tr').forEach((row, index) => {
+    consumeOriginalRows = Array.from(table.querySelectorAll('tbody tr'));
+    const records = consumeOriginalRows.map((row, index) => {
+        row.dataset.fuzzyKey = String(index);
         const name = row.querySelector('td:nth-child(1)')?.textContent || '';
         const brand = row.querySelector('td:nth-child(2)')?.textContent || '';
         const catalog = row.querySelector('td:nth-child(3)')?.textContent || '';
-        records.push({ key: index, text: name + ' ' + brand + ' ' + catalog });
+        return { key: index, text: name + ' ' + brand + ' ' + catalog };
     });
-    consumeMatcher = window.createFuzzyFilter(records);
+    consumeMatcher = window.createRankedFuzzyFilter(records);
     return consumeMatcher;
 }
 
@@ -81,17 +83,19 @@ function performSearch() {
     const searchBar = document.getElementById('consumeSearchBar');
     const searchTerm = searchBar.value.toLowerCase().trim();
     const table = document.getElementById('inventoryTable');
+    const tbody = table.querySelector('tbody');
     const rows = table.querySelectorAll('tbody tr');
 
     const matcher = searchTerm !== '' ? ensureConsumeMatcher() : null;
-    const matchSet = matcher ? matcher(searchTerm) : null;
+    const ranked = matcher ? matcher(searchTerm) : null;
 
     rows.forEach((row, index) => {
+        const key = row.dataset.fuzzyKey !== undefined ? Number(row.dataset.fuzzyKey) : index;
         let matched;
         if (searchTerm === '') {
             matched = true;
-        } else if (matchSet) {
-            matched = matchSet.has(index);
+        } else if (ranked) {
+            matched = ranked.set.has(key);
         } else {
             const itemName = row.querySelector('td:nth-child(1)')?.textContent.toLowerCase() || '';
             const itemBrand = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
@@ -100,18 +104,31 @@ function performSearch() {
         }
         row.style.display = matched ? '' : 'none';
     });
+
+    // Float best matches to the top while searching; restore when cleared.
+    if (tbody && consumeOriginalRows.length) {
+        if (ranked) {
+            const byKey = new Map(consumeOriginalRows.map(r => [Number(r.dataset.fuzzyKey), r]));
+            const placed = new Set();
+            ranked.order.forEach(k => {
+                const row = byKey.get(k);
+                if (row && row.style.display !== 'none') { tbody.appendChild(row); placed.add(k); }
+            });
+            consumeOriginalRows.forEach(row => {
+                if (!placed.has(Number(row.dataset.fuzzyKey))) tbody.appendChild(row);
+            });
+        } else {
+            consumeOriginalRows.forEach(row => tbody.appendChild(row));
+        }
+    }
 }
 
 function clearSearch() {
     const searchBar = document.getElementById('consumeSearchBar');
     searchBar.value = '';
-
-    const table = document.getElementById('inventoryTable');
-    const rows = table.querySelectorAll('tbody tr');
-
-    rows.forEach(row => {
-        row.style.display = '';
-    });
+    // Show all rows and restore the original order via performSearch's
+    // empty-query path.
+    performSearch();
 }
 
 function setupAddItemsButton() {

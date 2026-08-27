@@ -232,34 +232,38 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ----- Search -----
-    // Fuzzy matcher over name/brand/catalog, keyed by itemId. Built once
-    // (rows are static after render). Falls back to substring matching.
+    const inventoryBody = document.querySelector('#inventoryTable tbody');
+    // Capture original row order to restore when the query is cleared.
+    const originalRows = inventoryBody ? Array.from(inventoryBody.querySelectorAll('tr')) : [];
+
+    // Ranked fuzzy matcher over name/brand/catalog, keyed by itemId. Built
+    // once (rows are static after render). Falls back to substring matching.
     let itemMatcher = null;
     function ensureItemMatcher() {
         if (itemMatcher) return itemMatcher;
-        if (typeof window.createFuzzyFilter !== 'function') return null;
+        if (typeof window.createRankedFuzzyFilter !== 'function') return null;
         const records = [];
-        document.querySelectorAll('#inventoryTable tbody tr').forEach(row => {
+        originalRows.forEach(row => {
             if (!row.dataset.itemId) return;
             const text = [row.dataset.itemName, row.dataset.itemBrand, row.dataset.itemCatalog]
                 .filter(Boolean).join(' ');
             records.push({ key: row.dataset.itemId, text: text });
         });
-        itemMatcher = window.createFuzzyFilter(records);
+        itemMatcher = window.createRankedFuzzyFilter(records);
         return itemMatcher;
     }
 
     function filterTable() {
         const query = searchBar.value.toLowerCase().trim();
-        const rows = document.querySelectorAll('#inventoryTable tbody tr');
         const matcher = query !== '' ? ensureItemMatcher() : null;
-        const matchSet = matcher ? matcher(query) : null;
-        rows.forEach(row => {
+        const ranked = matcher ? matcher(query) : null;
+
+        originalRows.forEach(row => {
             if (!row.dataset.itemId) { row.style.display = ''; return; }
             if (query === '') { row.style.display = ''; return; }
             let matched;
-            if (matchSet) {
-                matched = matchSet.has(row.dataset.itemId);
+            if (ranked) {
+                matched = ranked.set.has(row.dataset.itemId);
             } else {
                 const name = (row.dataset.itemName || '').toLowerCase();
                 const brand = (row.dataset.itemBrand || '').toLowerCase();
@@ -268,6 +272,24 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             row.style.display = matched ? '' : 'none';
         });
+
+        // Float best matches to the top while searching; restore when cleared.
+        if (inventoryBody) {
+            if (ranked) {
+                const byKey = new Map(originalRows.filter(r => r.dataset.itemId)
+                    .map(r => [r.dataset.itemId, r]));
+                const placed = new Set();
+                ranked.order.forEach(id => {
+                    const row = byKey.get(id);
+                    if (row && row.style.display !== 'none') { inventoryBody.appendChild(row); placed.add(id); }
+                });
+                originalRows.forEach(row => {
+                    if (!placed.has(row.dataset.itemId)) inventoryBody.appendChild(row);
+                });
+            } else {
+                originalRows.forEach(row => inventoryBody.appendChild(row));
+            }
+        }
     }
 
     searchButton.addEventListener('click', filterTable);
