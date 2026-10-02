@@ -2,7 +2,7 @@
  * quotes.js — client logic for the Quotes pages.
  *
  * Two pages share this file:
- *   - /quotes           (list + upload): dropzone, delete
+ *   - /quotes           (list + upload): dropzone, delete, prepaid deliveries
  *   - /quotes/:id        (review): edit header, edit line items, approve/reject
  * Each block guards on the presence of its elements so nothing runs on the
  * wrong page.
@@ -81,6 +81,140 @@
       }
     });
   });
+
+  // ─────────────────────────────────────────────
+  // Prepaid monthly deliveries (list page)
+  // ─────────────────────────────────────────────
+  const ppCard = document.getElementById('prepaidFormCard');
+  const ppForm = document.getElementById('prepaidForm');
+  if (ppCard && ppForm) {
+    const toggleBtn = document.getElementById('prepaidToggleBtn');
+    const cancelBtn = document.getElementById('prepaidCancelBtn');
+    const titleEl = document.getElementById('prepaidFormTitle');
+    const submitBtn = document.getElementById('prepaidSubmitBtn');
+    const invSelect = document.getElementById('ppInventoryItem');
+    const summaryEl = document.getElementById('prepaidSummary');
+
+    // Form field id → data-* attribute on the Edit button
+    const fieldMap = {
+      ppVendor: 'vendor', ppItem: 'item', ppCatalog: 'catalogNumber', ppRef: 'referenceNumber',
+      ppInventoryItem: 'inventoryItemId', ppQty: 'quantityPerMonth', ppUnit: 'unit',
+      ppUnitPrice: 'unitPrice', ppAmountPaid: 'amountPaid', ppStart: 'startDate',
+      ppEnd: 'endDate', ppDay: 'deliveryDay', ppNotes: 'notes'
+    };
+
+    function openForm(editBtn) {
+      ppForm.reset();
+      if (editBtn) {
+        Object.keys(fieldMap).forEach((id) => {
+          document.getElementById(id).value = editBtn.dataset[fieldMap[id]] || '';
+        });
+        ppForm.action = '/quotes/prepaid/' + editBtn.dataset.prepaidId;
+        titleEl.textContent = 'Edit Prepaid Delivery';
+        submitBtn.textContent = 'Save Changes';
+      } else {
+        ppForm.action = ppForm.dataset.createAction;
+        titleEl.textContent = 'New Prepaid Delivery';
+        submitBtn.textContent = 'Save Prepaid Delivery';
+      }
+      ppCard.hidden = false;
+      updateSummary();
+      ppCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('ppVendor').focus({ preventScroll: true });
+    }
+
+    function closeForm() {
+      ppForm.reset();
+      ppCard.hidden = true;
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', () => (ppCard.hidden ? openForm(null) : closeForm()));
+    if (cancelBtn) cancelBtn.addEventListener('click', closeForm);
+    document.querySelectorAll('.prepaid-edit-btn').forEach((btn) => {
+      btn.addEventListener('click', () => openForm(btn));
+    });
+
+    // Picking an inventory item pre-fills blank item / vendor / catalog fields.
+    if (invSelect) {
+      invSelect.addEventListener('change', () => {
+        const opt = invSelect.selectedOptions[0];
+        if (!opt || !opt.value) return;
+        const fill = (id, v) => { const el = document.getElementById(id); if (el && !el.value && v) el.value = v; };
+        fill('ppItem', opt.dataset.name);
+        fill('ppVendor', opt.dataset.vendor);
+        fill('ppCatalog', opt.dataset.catalog);
+      });
+    }
+
+    // Live "N months · $X/month · $Y total" summary under the form.
+    function updateSummary() {
+      if (!summaryEl) return;
+      const start = val('ppStart'), end = val('ppEnd');
+      const qty = parseFloat(val('ppQty')), price = parseFloat(val('ppUnitPrice'));
+      const parts = [];
+      let months = 0;
+      if (start && end && end >= start) {
+        const s = start.split('-').map(Number), e = end.split('-').map(Number);
+        months = (e[0] - s[0]) * 12 + (e[1] - s[1]) + 1;
+        parts.push(months + ' monthly deliver' + (months === 1 ? 'y' : 'ies'));
+      }
+      if (!isNaN(qty) && !isNaN(price)) {
+        const monthly = qty * price;
+        parts.push(money(monthly) + ' / month');
+        if (months) parts.push(money(monthly * months) + ' total');
+      }
+      summaryEl.textContent = parts.join(' · ');
+    }
+    ['ppStart', 'ppEnd', 'ppQty', 'ppUnitPrice'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateSummary);
+    });
+
+    ppForm.addEventListener('submit', (e) => {
+      if (!val('ppItem') && !val('ppInventoryItem')) {
+        e.preventDefault();
+        alert('Enter an item description or link an inventory item.');
+        return;
+      }
+      if (val('ppStart') && val('ppEnd') && val('ppEnd') < val('ppStart')) {
+        e.preventDefault();
+        alert('End date must be on or after the start date.');
+      }
+    });
+
+    async function prepaidAction(btn, url, method, confirmMsg) {
+      if (confirmMsg && !confirm(confirmMsg)) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(url, { method });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert(data.message || 'Action failed.');
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alert('Action failed.');
+        btn.disabled = false;
+      }
+    }
+
+    document.querySelectorAll('.prepaid-received-btn').forEach((btn) => {
+      btn.addEventListener('click', () =>
+        prepaidAction(btn, '/quotes/prepaid/' + btn.dataset.prepaidId + '/received', 'POST'));
+    });
+    document.querySelectorAll('.prepaid-undo-btn').forEach((btn) => {
+      btn.addEventListener('click', () =>
+        prepaidAction(btn, '/quotes/prepaid/' + btn.dataset.prepaidId + '/undo-received', 'POST',
+          'Remove the most recently logged delivery?'));
+    });
+    document.querySelectorAll('.prepaid-delete-btn').forEach((btn) => {
+      btn.addEventListener('click', () =>
+        prepaidAction(btn, '/quotes/prepaid/' + btn.dataset.prepaidId, 'DELETE',
+          'Delete this prepaid delivery and its received log?'));
+    });
+  }
 
   // ─────────────────────────────────────────────
   // REVIEW PAGE
@@ -185,6 +319,9 @@
   function val(id) {
     const el = document.getElementById(id);
     return el ? el.value.trim() : '';
+  }
+  function money(n) {
+    return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
   function fieldVal(card, field) {
     const el = card.querySelector('.li-input[data-field="' + field + '"]');
