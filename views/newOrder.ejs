@@ -5,187 +5,127 @@
     <link rel="stylesheet" href="/orders.css">
 </head>
 <body>
-    <div class="order-container">
-        <div class="order-page-header">
+    <% const items = inventoryItems || []; %>
+    <% const lowCount = items.filter(item => item.minimumquantity > 0 && item.currentquantity <= item.minimumquantity).length; %>
+    <div class="order-container shop-page">
+        <div class="order-page-header shop-header">
             <div class="order-page-header-left">
                 <h1 class="page-title">New Order</h1>
-                <p class="page-subtitle">Build a purchase order from current inventory</p>
+                <p class="page-subtitle">Browse inventory and add what you need to your cart</p>
             </div>
+            <a href="/orders/cart" class="shop-cart-btn" id="shopCartBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                <span class="shop-cart-btn-text">
+                    <span class="shop-cart-btn-label">View Cart</span>
+                    <span class="shop-cart-btn-total" id="shopCartTotal">$0.00</span>
+                </span>
+                <span class="shop-cart-btn-count" data-order-cart-count>0</span>
+            </a>
         </div>
 
-        <!-- Recommended Order Section -->
-        <% const recommendedItems = inventoryItems ? inventoryItems.filter(item => item.minimumquantity > 0 && item.currentquantity <= item.minimumquantity) : []; %>
-        <% if (recommendedItems.length > 0) { %>
-        <div class="recommended-order-section">
-            <div class="recommended-header">
-                <button id="recommendedToggleBtn" class="recommended-toggle" type="button" aria-expanded="true" aria-controls="recommendedTableWrapper" title="Collapse recommended order">
-                    <svg class="recommended-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <h3>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    Recommended Order
-                </h3>
-                <span class="recommended-count"><%= recommendedItems.length %> item<%= recommendedItems.length !== 1 ? 's' : '' %> at or below minimum</span>
-                <button id="addAllRecommendedBtn" class="add-recommended-btn">Add All to Order</button>
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="shop-error"><%= error %></div>
+        <% } %>
+
+        <% if (lowCount > 0) { %>
+        <div class="shop-restock-banner">
+            <div class="shop-restock-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
-            <div id="recommendedTableWrapper" class="recommended-table-wrapper">
-                <table class="recommended-table">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Brand</th>
-                            <th>Catalog #</th>
-                            <th>Current Qty</th>
-                            <th>Min Qty</th>
-                            <th>Cost</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% recommendedItems.forEach(item => { %>
-                            <tr data-item-id="<%= item._id %>"
-                                data-item-name="<%= item.item %>"
-                                data-item-brand="<%= item.brand || '' %>"
-                                data-item-vendor="<%= item.vendor || '' %>"
-                                data-item-catalog="<%= item.catalog || '' %>"
-                                data-item-quantity="<%= item.currentquantity %>"
-                                data-item-min="<%= item.minimumquantity %>"
-                                data-item-cost="<%= (item.cost || 0).toFixed(2) %>"
-                                data-item-alternates='<%= JSON.stringify(item.alternateItems || []) %>'>
-                                <td><%= item.item %></td>
-                                <td><%= item.brand || '' %></td>
-                                <td><%= item.catalog || '' %></td>
-                                <td class="qty-low"><%= item.currentquantity %></td>
-                                <td><%= item.minimumquantity %></td>
-                                <td>$<%= (item.cost || 0).toFixed(2) %></td>
-                            </tr>
-                        <% }); %>
-                    </tbody>
-                </table>
+            <div class="shop-restock-text">
+                <strong>Time to restock</strong>
+                <span><%= lowCount %> item<%= lowCount !== 1 ? 's are' : ' is' %> at or below minimum quantity</span>
+            </div>
+            <div class="shop-restock-actions">
+                <button type="button" id="showLowStockBtn" class="shop-btn shop-btn-ghost">Show items</button>
+                <button type="button" id="addAllRecommendedBtn" class="shop-btn shop-btn-warning">Add all to cart</button>
             </div>
         </div>
         <% } %>
 
-        <!-- Mobile Tab Bar -->
-        <div class="mobile-tabs">
-            <button class="mobile-tab active" data-tab="inventory">Inventory</button>
-            <button class="mobile-tab" data-tab="cart">Cart</button>
+        <div class="shop-toolbar">
+            <div class="shop-search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="search" id="orderSearchBar" placeholder="Search items, brand, vendor or catalog #..." autocomplete="off">
+            </div>
+            <div class="shop-filters" role="group" aria-label="Filter products">
+                <button type="button" class="shop-chip active" data-filter="all">All <span class="shop-chip-count"><%= items.length %></span></button>
+                <button type="button" class="shop-chip" data-filter="low">Low stock <span class="shop-chip-count"><%= lowCount %></span></button>
+                <button type="button" class="shop-chip" data-filter="incart">In cart <span class="shop-chip-count" data-order-cart-count>0</span></button>
+            </div>
+            <label class="shop-sort">
+                <span>Sort</span>
+                <select id="shopSort">
+                    <option value="name">Name (A–Z)</option>
+                    <option value="stock">Lowest stock first</option>
+                    <option value="price-asc">Price: low to high</option>
+                    <option value="price-desc">Price: high to low</option>
+                </select>
+            </label>
         </div>
 
-        <div class="order-layout">
-            <!-- Left Side: Inventory List -->
-            <div class="left-panel" data-panel="inventory">
-                <h3 class="panel-title">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                    Available Inventory
-                </h3>
-                <div class="search-section">
-                    <input type="text" id="orderSearchBar" placeholder="Search items, brand or catalog...">
-                    <div class="search-buttons">
-                        <button id="searchButton" class="search-btn">Search</button>
-                        <button id="clearButton" class="clear-btn">Clear</button>
+        <p class="shop-results-count" id="shopResultsCount"></p>
+
+        <div class="product-grid" id="productGrid">
+            <% items.forEach((item) => { %>
+                <%
+                    const cur = item.currentquantity || 0;
+                    const min = item.minimumquantity || 0;
+                    const altCount = (item.alternateItems || []).length;
+                    let stockClass = 'stock-ok', stockLabel = 'In stock';
+                    if (cur <= 0) { stockClass = 'stock-out'; stockLabel = 'Out of stock'; }
+                    else if (min > 0 && cur <= min) { stockClass = 'stock-low'; stockLabel = 'Low stock'; }
+                %>
+                <article class="product-card"
+                    data-item-id="<%= item._id %>"
+                    data-item-name="<%= item.item %>"
+                    data-item-brand="<%= item.brand || '' %>"
+                    data-item-vendor="<%= item.vendor || '' %>"
+                    data-item-catalog="<%= item.catalog || '' %>"
+                    data-item-quantity="<%= cur %>"
+                    data-item-min="<%= min %>"
+                    data-item-max="<%= item.maximumquantity || 0 %>"
+                    data-item-cost="<%= (item.cost || 0).toFixed(2) %>"
+                    data-low="<%= (min > 0 && cur <= min) ? '1' : '0' %>"
+                    data-item-alternates='<%= JSON.stringify(item.alternateItems || []) %>'>
+                    <div class="product-card-top">
+                        <span class="stock-pill <%= stockClass %>"><%= stockLabel %></span>
+                        <% if (altCount > 0) { %>
+                            <span class="has-alternates-badge" title="Has alternate product options"><%= altCount %> alt</span>
+                        <% } %>
                     </div>
-                </div>
+                    <h3 class="product-name"><%= item.item %></h3>
+                    <div class="product-meta">
+                        <% if (item.brand) { %><span><%= item.brand %></span><% } %>
+                        <% if (item.catalog) { %><span class="product-catalog">#<%= item.catalog %></span><% } %>
+                    </div>
+                    <% if (item.vendor) { %><div class="product-vendor"><%= item.vendor %></div><% } %>
+                    <div class="product-stock">
+                        <span><strong><%= cur %></strong> on hand</span>
+                        <% if (min > 0) { %><span>Min <%= min %></span><% } %>
+                    </div>
+                    <div class="product-footer">
+                        <span class="product-price">$<%= (item.cost || 0).toFixed(2) %></span>
+                        <div class="product-actions"></div>
+                    </div>
+                </article>
+            <% }); %>
+        </div>
 
-                <div class="table-wrapper">
-                    <table id="inventoryTable">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Brand</th>
-                                <th>Catalog #</th>
-                                <th>Current</th>
-                                <th>Min</th>
-                                <th>Cost</th>
-                                <th>Select</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if (inventoryItems && inventoryItems.length > 0) { %>
-                                <% inventoryItems.forEach((item) => { %>
-                                    <% const altCount = (item.alternateItems || []).length; %>
-                                    <tr data-item-id="<%= item._id %>"
-                                        data-item-name="<%= item.item %>"
-                                        data-item-brand="<%= item.brand || '' %>"
-                                        data-item-vendor="<%= item.vendor || '' %>"
-                                        data-item-catalog="<%= item.catalog || '' %>"
-                                        data-item-quantity="<%= item.currentquantity %>"
-                                        data-item-min="<%= item.minimumquantity %>"
-                                        data-item-cost="<%= (item.cost || 0).toFixed(2) %>"
-                                        data-item-alternates='<%= JSON.stringify(item.alternateItems || []) %>'>
-                                        <td>
-                                            <%= item.item %>
-                                            <% if (altCount > 0) { %>
-                                                <span class="has-alternates-badge" title="Has alternate options"><%= altCount %> alt</span>
-                                            <% } %>
-                                        </td>
-                                        <td><%= item.brand || '' %></td>
-                                        <td><%= item.catalog || '' %></td>
-                                        <td><%= item.currentquantity %></td>
-                                        <td><%= item.minimumquantity %></td>
-                                        <td>$<%= (item.cost || 0).toFixed(2) %></td>
-                                        <td>
-                                            <input type="checkbox" class="item-checkbox" data-item-id="<%= item._id %>">
-                                        </td>
-                                    </tr>
-                                <% }); %>
-                            <% } else { %>
-                                <tr>
-                                    <td colspan="7" style="text-align: center; color: #9ca3af;">No inventory items available</td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
-                </div>
-
-                <button id="addToCartBtn" class="add-to-cart-btn">Add to Order</button>
-            </div>
-
-            <!-- Right Side: Cart -->
-            <div class="right-panel" data-panel="cart">
-                <div class="cart-header">
-                    <h3>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                        Order Cart
-                    </h3>
-                    <button id="submitOrderBtn" class="submit-order-btn">Submit Order</button>
-                </div>
-
-                <div class="notes-section">
-                    <input type="text" id="orderNotes" placeholder="Order notes (optional)...">
-                </div>
-
-                <div id="cartContainer" class="cart-container">
-                    <p class="empty-message">No items in cart. Select items from the left and click "Add to Order".</p>
-                </div>
-            </div>
+        <div class="shop-empty" id="shopEmpty" <%= items.length > 0 ? 'hidden' : '' %>>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <p id="shopEmptyText"><%= items.length > 0 ? 'No items match your search.' : 'No inventory items available.' %></p>
         </div>
     </div>
 
-    <!-- Alternate Item Selection Modal -->
-    <div id="alternateItemsModal" class="alt-items-modal" aria-hidden="true" role="dialog">
-        <div class="alt-items-modal-content">
-            <div class="alt-items-modal-header">
-                <div class="alt-items-modal-header-text">
-                    <h3 id="altModalTitle">Choose product variant</h3>
-                    <p>This item has alternate options. Pick which one you're ordering.</p>
-                </div>
-                <button type="button" class="alt-items-modal-close" id="altModalCloseBtn" aria-label="Close">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </div>
-            <div class="alt-items-modal-body">
-                <div id="altOptionsList" class="alt-items-list"></div>
-            </div>
-            <div class="alt-items-modal-footer">
-                <button type="button" class="alt-modal-btn alt-modal-btn-cancel" id="altModalCancelBtn">Cancel</button>
-                <button type="button" class="alt-modal-btn alt-modal-btn-confirm" id="altModalConfirmBtn">Add to Order</button>
-            </div>
-        </div>
-    </div>
+    <a href="/orders/cart" class="shop-mobile-cart-bar" id="shopMobileCartBar" hidden>
+        <span><span data-order-cart-count>0</span> item(s) in cart · <span id="shopMobileCartTotal">$0.00</span></span>
+        <span class="shop-mobile-cart-bar-cta">View cart →</span>
+    </a>
 
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
     <script src="/fuzzySearch.js"></script>
+    <script src="/orderVariantPicker.js"></script>
     <script defer src="/newOrder.js"></script>
-    <script defer src="/orderCartIntegration.js"></script>
 </body>
 </html>

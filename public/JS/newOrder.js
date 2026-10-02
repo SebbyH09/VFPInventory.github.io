@@ -1,481 +1,269 @@
+// New Order (shop) page: browse inventory as product cards and add items to
+// the shared order cart (CartManager, localStorage). The cart itself lives on
+// its own page at /orders/cart.
 document.addEventListener('DOMContentLoaded', function () {
-    window._orderCart = new Map(); // exposed for cart integration
-    const cart = window._orderCart;
-    // Cart entries:
-    // { itemId, name, brand, vendor, catalog, quantity, cost, currentQty,
-    //   alternates: [...], selectedVariant: { label, brand, vendor, catalog, isPrimary } }
+    if (!window.CartManager) return;
 
+    const grid = document.getElementById('productGrid');
+    const cards = grid ? Array.from(grid.querySelectorAll('.product-card')) : [];
     const searchBar = document.getElementById('orderSearchBar');
-    const searchButton = document.getElementById('searchButton');
-    const clearButton = document.getElementById('clearButton');
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const submitOrderBtn = document.getElementById('submitOrderBtn');
-    const cartContainer = document.getElementById('cartContainer');
-    const orderNotes = document.getElementById('orderNotes');
+    const sortSelect = document.getElementById('shopSort');
+    const chips = document.querySelectorAll('.shop-chip');
+    const resultsCount = document.getElementById('shopResultsCount');
+    const emptyState = document.getElementById('shopEmpty');
+    const emptyText = document.getElementById('shopEmptyText');
+    const cartTotalEl = document.getElementById('shopCartTotal');
+    const mobileCartBar = document.getElementById('shopMobileCartBar');
+    const mobileCartTotal = document.getElementById('shopMobileCartTotal');
 
-    // ----- Mobile tabs -----
-    (function setupMobileTabs() {
-        const tabs = document.querySelectorAll('.mobile-tab');
-        const panels = document.querySelectorAll('.order-layout > [data-panel]');
-        if (!tabs.length) return;
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const target = this.dataset.tab;
-                tabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                panels.forEach(panel => {
-                    if (panel.dataset.panel === target) {
-                        panel.classList.remove('mobile-hidden');
-                    } else {
-                        panel.classList.add('mobile-hidden');
-                    }
-                });
-            });
-        });
-
-        const activeTab = document.querySelector('.mobile-tab.active');
-        if (activeTab) activeTab.click();
-    })();
+    let activeFilter = 'all';
 
     // ----- Helpers -----
-    function parseAlternates(row) {
-        const raw = row.dataset.itemAlternates;
-        if (!raw) return [];
+    function parseAlternates(card) {
         try {
-            const arr = JSON.parse(raw);
+            const arr = JSON.parse(card.dataset.itemAlternates || '[]');
             return Array.isArray(arr) ? arr : [];
         } catch (e) {
             return [];
         }
     }
 
-    function rowToBaseItem(row) {
+    function cardToItem(card) {
         return {
-            itemId: row.dataset.itemId,
-            name: row.dataset.itemName,
-            brand: row.dataset.itemBrand || '',
-            vendor: row.dataset.itemVendor || '',
-            catalog: row.dataset.itemCatalog || '',
+            itemId: card.dataset.itemId,
+            name: card.dataset.itemName,
+            brand: card.dataset.itemBrand || '',
+            vendor: card.dataset.itemVendor || '',
+            catalog: card.dataset.itemCatalog || '',
             quantity: 1,
-            cost: parseFloat(row.dataset.itemCost) || 0,
-            currentQty: parseInt(row.dataset.itemQuantity, 10) || 0,
-            alternates: parseAlternates(row)
+            cost: parseFloat(card.dataset.itemCost) || 0,
+            currentQty: parseInt(card.dataset.itemQuantity, 10) || 0,
+            minQty: parseInt(card.dataset.itemMin, 10) || 0,
+            maxQty: parseInt(card.dataset.itemMax, 10) || 0,
+            alternates: parseAlternates(card)
         };
     }
 
-    function addToCart(baseItem, variant) {
-        if (cart.has(baseItem.itemId)) return;
-        cart.set(baseItem.itemId, {
-            ...baseItem,
-            selectedVariant: variant || {
-                label: 'Primary',
-                brand: baseItem.brand,
-                vendor: baseItem.vendor,
-                catalog: baseItem.catalog,
-                isPrimary: true
+    function formatMoney(n) {
+        return '$' + (Number(n) || 0).toFixed(2);
+    }
+
+    // ----- Card action area (Add button or in-cart stepper) -----
+    function renderCardActions(card, cart) {
+        const actions = card.querySelector('.product-actions');
+        const entry = cart[card.dataset.itemId];
+        card.classList.toggle('in-cart', !!entry);
+
+        if (!entry) {
+            actions.innerHTML =
+                '<button type="button" class="product-add-btn" data-action="add">' +
+                    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+                    'Add to cart' +
+                '</button>';
+            return;
+        }
+
+        const variant = entry.selectedVariant;
+        const variantNote = variant && !variant.isPrimary
+            ? '<span class="product-variant-note">' + escapeHtml(variant.label) + '</span>'
+            : '';
+        actions.innerHTML =
+            '<div class="product-in-cart">' +
+                '<span class="product-in-cart-label">' +
+                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' +
+                    'In cart' + variantNote +
+                '</span>' +
+                '<div class="qty-stepper">' +
+                    '<button type="button" data-action="dec" aria-label="Decrease quantity">−</button>' +
+                    '<input type="number" min="1" value="' + entry.quantity + '" data-action="qty" aria-label="Quantity">' +
+                    '<button type="button" data-action="inc" aria-label="Increase quantity">+</button>' +
+                '</div>' +
+            '</div>';
+    }
+
+    function refreshCartState() {
+        const cart = CartManager.getOrderCart();
+        cards.forEach(card => renderCardActions(card, cart));
+
+        let total = 0;
+        let count = 0;
+        Object.values(cart).forEach(entry => {
+            total += (entry.cost || 0) * (entry.quantity || 0);
+            count++;
+        });
+        if (cartTotalEl) cartTotalEl.textContent = formatMoney(total);
+        if (mobileCartTotal) mobileCartTotal.textContent = formatMoney(total);
+        if (mobileCartBar) mobileCartBar.hidden = count === 0;
+        CartManager.updateCartBadges();
+        if (activeFilter === 'incart') applyView();
+    }
+
+    function bumpCartButton() {
+        const btn = document.getElementById('shopCartBtn');
+        if (!btn) return;
+        btn.classList.remove('bump');
+        void btn.offsetWidth; // restart animation
+        btn.classList.add('bump');
+    }
+
+    // Adds items to the cart, asking for a variant where alternates exist.
+    async function addItems(items) {
+        const toAdd = [];
+        const needChoice = [];
+        const cart = CartManager.getOrderCart();
+        items.forEach(item => {
+            if (cart[item.itemId]) return;
+            if (item.alternates.length > 0) needChoice.push(item);
+            else toAdd.push({ baseItem: item, variant: null });
+        });
+        if (needChoice.length > 0) {
+            toAdd.push(...await OrderVariantPicker.chooseMany(needChoice));
+        }
+        toAdd.forEach(({ baseItem, variant }) => {
+            CartManager.addToOrderCart(Object.assign({}, baseItem, {
+                selectedVariant: variant || OrderVariantPicker.primaryVariant(baseItem)
+            }));
+        });
+        if (toAdd.length > 0) {
+            CartManager.showToast(toAdd.length === 1
+                ? toAdd[0].baseItem.name + ' added to cart'
+                : toAdd.length + ' items added to cart');
+            bumpCartButton();
+        }
+        refreshCartState();
+    }
+
+    function setQuantity(itemId, qty) {
+        if (qty <= 0) {
+            CartManager.removeFromOrderCart(itemId);
+        } else {
+            CartManager.updateOrderCartItem(itemId, { quantity: qty });
+        }
+        refreshCartState();
+    }
+
+    if (grid) {
+        grid.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-action]');
+            if (!btn || btn.tagName === 'INPUT') return;
+            const card = btn.closest('.product-card');
+            const itemId = card.dataset.itemId;
+            const entry = CartManager.getOrderCart()[itemId];
+            if (btn.dataset.action === 'add') {
+                addItems([cardToItem(card)]);
+            } else if (btn.dataset.action === 'inc' && entry) {
+                setQuantity(itemId, (entry.quantity || 1) + 1);
+            } else if (btn.dataset.action === 'dec' && entry) {
+                setQuantity(itemId, (entry.quantity || 1) - 1);
             }
         });
-    }
-
-    // ----- Alternate Items Modal -----
-    const altModal = document.getElementById('alternateItemsModal');
-    const altList = document.getElementById('altOptionsList');
-    const altTitle = document.getElementById('altModalTitle');
-    const altConfirmBtn = document.getElementById('altModalConfirmBtn');
-    const altCancelBtn = document.getElementById('altModalCancelBtn');
-    const altCloseBtn = document.getElementById('altModalCloseBtn');
-
-    // Modal state: queue of { baseItem } to process, current selection
-    const altQueue = [];
-    let altCurrent = null;
-    let altSelectedIdx = 0; // 0 = primary, 1..N = alternates
-
-    function openAltModal() {
-        if (!altModal || altQueue.length === 0) return;
-        altCurrent = altQueue.shift();
-        altSelectedIdx = 0;
-        renderAltOptions();
-        altTitle.textContent = 'Choose variant for "' + altCurrent.baseItem.name + '"';
-        altModal.classList.add('show');
-        altModal.setAttribute('aria-hidden', 'false');
-    }
-
-    function closeAltModal(skipRemaining) {
-        altModal.classList.remove('show');
-        altModal.setAttribute('aria-hidden', 'true');
-        altCurrent = null;
-        if (skipRemaining) {
-            altQueue.length = 0;
-        } else if (altQueue.length > 0) {
-            setTimeout(openAltModal, 60);
-        } else {
-            renderCart();
-            const cartTab = document.querySelector('.mobile-tab[data-tab="cart"]');
-            if (cartTab && window.innerWidth <= 768) cartTab.click();
-        }
-    }
-
-    function renderAltOptions() {
-        if (!altCurrent || !altList) return;
-        const base = altCurrent.baseItem;
-        const options = buildVariantOptions(base);
-
-        let html = '';
-        options.forEach((opt, idx) => {
-            const selected = idx === altSelectedIdx;
-            html +=
-                '<div class="alt-option-card' + (opt.isPrimary ? ' primary' : '') + (selected ? ' selected' : '') + '" data-idx="' + idx + '">' +
-                    '<div class="alt-option-header">' +
-                        '<span class="alt-option-label">' + escapeHtml(opt.label) + '</span>' +
-                        '<span class="alt-option-indicator"></span>' +
-                    '</div>' +
-                    '<div class="alt-option-fields">' +
-                        fieldHtml('Brand', opt.brand) +
-                        fieldHtml('Vendor', opt.vendor) +
-                        fieldHtml('Catalog #', opt.catalog) +
-                    '</div>' +
-                '</div>';
-        });
-        altList.innerHTML = html;
-
-        altList.querySelectorAll('.alt-option-card').forEach(card => {
-            card.addEventListener('click', function() {
-                altSelectedIdx = parseInt(this.dataset.idx, 10);
-                renderAltOptions();
-            });
+        grid.addEventListener('change', function (e) {
+            if (e.target.dataset.action !== 'qty') return;
+            const itemId = e.target.closest('.product-card').dataset.itemId;
+            const val = parseInt(e.target.value, 10);
+            if (val > 0) setQuantity(itemId, val);
+            else refreshCartState();
         });
     }
 
-    function fieldHtml(label, value) {
-        return '<div class="alt-option-field">' +
-            '<span class="alt-option-field-label">' + escapeHtml(label) + '</span>' +
-            '<span class="alt-option-field-value">' + escapeHtml(value || '—') + '</span>' +
-        '</div>';
-    }
-
-    function buildVariantOptions(base) {
-        const opts = [{
-            label: 'Primary',
-            brand: base.brand,
-            vendor: base.vendor,
-            catalog: base.catalog,
-            isPrimary: true
-        }];
-        (base.alternates || []).forEach((alt, i) => {
-            opts.push({
-                label: 'Alternate ' + (i + 1),
-                brand: alt.brand || '',
-                vendor: alt.vendor || '',
-                catalog: alt.catalogNumber || '',
-                isPrimary: false
-            });
-        });
-        return opts;
-    }
-
-    if (altConfirmBtn) {
-        altConfirmBtn.addEventListener('click', function() {
-            if (!altCurrent) return;
-            const options = buildVariantOptions(altCurrent.baseItem);
-            const chosen = options[altSelectedIdx] || options[0];
-            addToCart(altCurrent.baseItem, chosen);
-            closeAltModal(false);
-        });
-    }
-
-    if (altCancelBtn) altCancelBtn.addEventListener('click', function() { closeAltModal(true); });
-    if (altCloseBtn) altCloseBtn.addEventListener('click', function() { closeAltModal(true); });
-    if (altModal) {
-        altModal.addEventListener('click', function(e) {
-            if (e.target === altModal) closeAltModal(true);
-        });
-    }
-
-    // ----- Add All Recommended -----
-    // ----- Recommended order collapse/expand -----
-    const recommendedToggleBtn = document.getElementById('recommendedToggleBtn');
-    if (recommendedToggleBtn) {
-        const recommendedSection = recommendedToggleBtn.closest('.recommended-order-section');
-        recommendedToggleBtn.addEventListener('click', function () {
-            const collapsed = recommendedSection.classList.toggle('collapsed');
-            recommendedToggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-            recommendedToggleBtn.setAttribute('title', collapsed ? 'Expand recommended order' : 'Collapse recommended order');
-        });
-    }
-
+    // ----- Restock banner -----
     const addAllRecommendedBtn = document.getElementById('addAllRecommendedBtn');
     if (addAllRecommendedBtn) {
         addAllRecommendedBtn.addEventListener('click', function () {
-            const recommendedRows = document.querySelectorAll('.recommended-table tbody tr');
-            const itemsNeedingChoice = [];
-            recommendedRows.forEach(row => {
-                if (cart.has(row.dataset.itemId)) return;
-                const base = rowToBaseItem(row);
-                if (base.alternates.length > 0) {
-                    itemsNeedingChoice.push({ baseItem: base });
-                } else {
-                    addToCart(base, null);
-                }
-            });
-
-            if (itemsNeedingChoice.length > 0) {
-                altQueue.push(...itemsNeedingChoice);
-                renderCart();
-                openAltModal();
-            } else {
-                renderCart();
-                const cartTab = document.querySelector('.mobile-tab[data-tab="cart"]');
-                if (cartTab && window.innerWidth <= 768) cartTab.click();
-            }
+            addItems(cards.filter(c => c.dataset.low === '1').map(cardToItem));
+        });
+    }
+    const showLowStockBtn = document.getElementById('showLowStockBtn');
+    if (showLowStockBtn) {
+        showLowStockBtn.addEventListener('click', function () {
+            setFilter('low');
+            if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     }
 
-    // ----- Search -----
-    const inventoryBody = document.querySelector('#inventoryTable tbody');
-    // Capture original row order to restore when the query is cleared.
-    const originalRows = inventoryBody ? Array.from(inventoryBody.querySelectorAll('tr')) : [];
-
-    // Ranked fuzzy matcher over name/brand/catalog, keyed by itemId. Built
-    // once (rows are static after render). Falls back to substring matching.
+    // ----- Search, filter, sort -----
+    // Ranked fuzzy matcher over name/brand/vendor/catalog, keyed by itemId.
+    // Falls back to substring matching if Fuse isn't available.
     let itemMatcher = null;
     function ensureItemMatcher() {
         if (itemMatcher) return itemMatcher;
         if (typeof window.createRankedFuzzyFilter !== 'function') return null;
-        const records = [];
-        originalRows.forEach(row => {
-            if (!row.dataset.itemId) return;
-            const text = [row.dataset.itemName, row.dataset.itemBrand, row.dataset.itemCatalog]
-                .filter(Boolean).join(' ');
-            records.push({ key: row.dataset.itemId, text: text });
-        });
-        itemMatcher = window.createRankedFuzzyFilter(records);
+        itemMatcher = window.createRankedFuzzyFilter(cards.map(card => ({
+            key: card.dataset.itemId,
+            text: [card.dataset.itemName, card.dataset.itemBrand, card.dataset.itemVendor, card.dataset.itemCatalog]
+                .filter(Boolean).join(' ')
+        })));
         return itemMatcher;
     }
 
-    function filterTable() {
-        const query = searchBar.value.toLowerCase().trim();
-        const matcher = query !== '' ? ensureItemMatcher() : null;
+    const sorters = {
+        name: (a, b) => a.dataset.itemName.localeCompare(b.dataset.itemName, undefined, { sensitivity: 'base' }),
+        stock: (a, b) => stockRatio(a) - stockRatio(b) || sorters.name(a, b),
+        'price-asc': (a, b) => parseFloat(a.dataset.itemCost) - parseFloat(b.dataset.itemCost) || sorters.name(a, b),
+        'price-desc': (a, b) => parseFloat(b.dataset.itemCost) - parseFloat(a.dataset.itemCost) || sorters.name(a, b)
+    };
+
+    // How well stocked an item is relative to its minimum (lower = more urgent).
+    function stockRatio(card) {
+        const cur = parseInt(card.dataset.itemQuantity, 10) || 0;
+        const min = parseInt(card.dataset.itemMin, 10) || 0;
+        return min > 0 ? cur / min : cur + 1000;
+    }
+
+    function applyView() {
+        if (!grid) return;
+        const query = searchBar.value.trim().toLowerCase();
+        const cart = CartManager.getOrderCart();
+        const matcher = query ? ensureItemMatcher() : null;
         const ranked = matcher ? matcher(query) : null;
 
-        originalRows.forEach(row => {
-            if (!row.dataset.itemId) { row.style.display = ''; return; }
-            if (query === '') { row.style.display = ''; return; }
-            let matched;
-            if (ranked) {
-                matched = ranked.set.has(row.dataset.itemId);
-            } else {
-                const name = (row.dataset.itemName || '').toLowerCase();
-                const brand = (row.dataset.itemBrand || '').toLowerCase();
-                const catalog = (row.dataset.itemCatalog || '').toLowerCase();
-                matched = name.includes(query) || brand.includes(query) || catalog.includes(query);
-            }
-            row.style.display = matched ? '' : 'none';
+        let visible = cards.filter(card => {
+            if (activeFilter === 'low' && card.dataset.low !== '1') return false;
+            if (activeFilter === 'incart' && !cart[card.dataset.itemId]) return false;
+            if (!query) return true;
+            if (ranked) return ranked.set.has(card.dataset.itemId);
+            return [card.dataset.itemName, card.dataset.itemBrand, card.dataset.itemVendor, card.dataset.itemCatalog]
+                .some(v => (v || '').toLowerCase().includes(query));
         });
 
-        // Float best matches to the top while searching; restore when cleared.
-        if (inventoryBody) {
-            if (ranked) {
-                const byKey = new Map(originalRows.filter(r => r.dataset.itemId)
-                    .map(r => [r.dataset.itemId, r]));
-                const placed = new Set();
-                ranked.order.forEach(id => {
-                    const row = byKey.get(id);
-                    if (row && row.style.display !== 'none') { inventoryBody.appendChild(row); placed.add(id); }
-                });
-                originalRows.forEach(row => {
-                    if (!placed.has(row.dataset.itemId)) inventoryBody.appendChild(row);
-                });
-            } else {
-                originalRows.forEach(row => inventoryBody.appendChild(row));
-            }
-        }
-    }
-
-    searchButton.addEventListener('click', filterTable);
-    searchBar.addEventListener('keyup', function (e) {
-        if (e.key === 'Enter') filterTable();
-    });
-    clearButton.addEventListener('click', function () {
-        searchBar.value = '';
-        filterTable();
-    });
-
-    // ----- Row click toggles checkbox -----
-    document.querySelectorAll('#inventoryTable tbody tr').forEach(row => {
-        row.addEventListener('click', function(event) {
-            if (event.target.classList.contains('item-checkbox')) return;
-            const checkbox = row.querySelector('.item-checkbox');
-            if (!checkbox) return;
-            checkbox.checked = !checkbox.checked;
-        });
-    });
-
-    // ----- Add checked items to cart -----
-    addToCartBtn.addEventListener('click', function () {
-        const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-        if (checkboxes.length === 0) return;
-
-        const itemsNeedingChoice = [];
-
-        checkboxes.forEach(cb => {
-            const row = cb.closest('tr');
-            cb.checked = false;
-            if (cart.has(row.dataset.itemId)) return;
-            const base = rowToBaseItem(row);
-            if (base.alternates.length > 0) {
-                itemsNeedingChoice.push({ baseItem: base });
-            } else {
-                addToCart(base, null);
-            }
-        });
-
-        if (itemsNeedingChoice.length > 0) {
-            altQueue.push(...itemsNeedingChoice);
-            renderCart();
-            openAltModal();
+        if (ranked) {
+            const rank = new Map(ranked.order.map((id, i) => [id, i]));
+            visible.sort((a, b) => rank.get(a.dataset.itemId) - rank.get(b.dataset.itemId));
         } else {
-            renderCart();
-            const cartTab = document.querySelector('.mobile-tab[data-tab="cart"]');
-            if (cartTab && window.innerWidth <= 768) cartTab.click();
-        }
-    });
-
-    // ----- Cart rendering -----
-    window._renderOrderCart = renderCart;
-    function renderCart() {
-        if (cart.size === 0) {
-            cartContainer.innerHTML = '<p class="empty-message">No items in cart. Select items from the left and click "Add to Order".</p>';
-            return;
+            visible.sort(sorters[sortSelect.value] || sorters.name);
         }
 
-        let html = '';
-        cart.forEach((item, itemId) => {
-            const variant = item.selectedVariant || {};
-            const variantTag = variant.isPrimary
-                ? ''
-                : '<span class="cart-item-variant-tag">' + escapeHtml(variant.label || 'Alternate') + '</span>';
-            const changeBtn = (item.alternates && item.alternates.length > 0)
-                ? '<button class="change-variant-btn" data-item-id="' + escapeAttr(itemId) + '">Change variant</button>'
-                : '';
+        const visibleSet = new Set(visible);
+        cards.forEach(card => { card.hidden = !visibleSet.has(card); });
+        visible.forEach(card => grid.appendChild(card));
 
-            html += '' +
-                '<div class="cart-item-card" data-item-id="' + escapeAttr(itemId) + '">' +
-                    '<div class="cart-item-header">' +
-                        '<div class="cart-item-title">' +
-                            escapeHtml(item.name) +
-                            (variantTag ? '<br>' + variantTag : '') +
-                        '</div>' +
-                        '<button class="remove-cart-item-btn" data-item-id="' + escapeAttr(itemId) + '">Remove</button>' +
-                    '</div>' +
-                    '<div class="cart-item-body">' +
-                        '<div class="cart-item-detail"><span class="cart-item-label">Brand:</span><span>' + escapeHtml(variant.brand || '—') + '</span></div>' +
-                        '<div class="cart-item-detail"><span class="cart-item-label">Vendor:</span><span>' + escapeHtml(variant.vendor || '—') + '</span></div>' +
-                        '<div class="cart-item-detail"><span class="cart-item-label">Catalog #:</span><span>' + escapeHtml(variant.catalog || '—') + '</span></div>' +
-                        '<div class="cart-item-detail"><span class="cart-item-label">Current Stock:</span><span>' + item.currentQty + '</span></div>' +
-                        '<div class="cart-item-detail"><span class="cart-item-label">Cost/Unit:</span><span>$' + item.cost.toFixed(2) + '</span></div>' +
-                        '<div class="cart-quantity-section">' +
-                            '<label>Order Qty:</label>' +
-                            '<input type="number" class="cart-quantity-input" data-item-id="' + escapeAttr(itemId) + '" value="' + item.quantity + '" min="1">' +
-                            changeBtn +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
-        });
-
-        cartContainer.innerHTML = html;
-
-        cartContainer.querySelectorAll('.cart-quantity-input').forEach(input => {
-            input.addEventListener('change', function () {
-                const id = this.dataset.itemId;
-                const val = parseInt(this.value, 10);
-                if (val > 0 && cart.has(id)) {
-                    cart.get(id).quantity = val;
-                } else {
-                    this.value = cart.get(id)?.quantity || 1;
-                }
-            });
-        });
-
-        cartContainer.querySelectorAll('.remove-cart-item-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                cart.delete(this.dataset.itemId);
-                renderCart();
-            });
-        });
-
-        cartContainer.querySelectorAll('.change-variant-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const id = this.dataset.itemId;
-                const existing = cart.get(id);
-                if (!existing) return;
-                cart.delete(id);
-                renderCart();
-                altQueue.push({ baseItem: {
-                    itemId: existing.itemId,
-                    name: existing.name,
-                    brand: existing.brand,
-                    vendor: existing.vendor,
-                    catalog: existing.catalog,
-                    quantity: existing.quantity,
-                    cost: existing.cost,
-                    currentQty: existing.currentQty,
-                    alternates: existing.alternates || []
-                }});
-                openAltModal();
-            });
-        });
+        if (cards.length > 0) {
+            emptyState.hidden = visible.length > 0;
+            if (activeFilter === 'incart' && !query) emptyText.textContent = 'Your cart is empty.';
+            else emptyText.textContent = 'No items match your search.';
+        }
+        resultsCount.textContent = cards.length
+            ? 'Showing ' + visible.length + ' of ' + cards.length + ' item' + (cards.length !== 1 ? 's' : '')
+            : '';
     }
 
-    // ----- Submit order -----
-    submitOrderBtn.addEventListener('click', async function () {
-        if (cart.size === 0) {
-            alert('Add items to the order before submitting.');
-            return;
-        }
+    function setFilter(filter) {
+        activeFilter = filter;
+        chips.forEach(chip => chip.classList.toggle('active', chip.dataset.filter === filter));
+        applyView();
+    }
 
-        const items = [];
-        cart.forEach(item => {
-            const variant = item.selectedVariant || {};
-            items.push({
-                itemId: item.itemId,
-                quantity: item.quantity,
-                variant: {
-                    label: variant.label || 'Primary',
-                    brand: variant.brand || '',
-                    vendor: variant.vendor || '',
-                    catalog: variant.catalog || '',
-                    isPrimary: variant.isPrimary !== false
-                }
-            });
-        });
+    chips.forEach(chip => chip.addEventListener('click', () => setFilter(chip.dataset.filter)));
+    sortSelect.addEventListener('change', applyView);
+    let searchTimer = null;
+    searchBar.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(applyView, 120);
+    });
 
-        submitOrderBtn.disabled = true;
-        submitOrderBtn.textContent = 'Submitting...';
-
-        try {
-            const response = await fetch('/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: items, notes: orderNotes.value.trim() })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert('Order ' + result.orderNumber + ' created successfully!');
-                cart.clear();
-                renderCart();
-                orderNotes.value = '';
-            } else {
-                alert('Error: ' + (result.message || 'Failed to create order'));
-            }
-        } catch (error) {
-            alert('Network error. Please try again.');
-        } finally {
-            submitOrderBtn.disabled = false;
-            submitOrderBtn.textContent = 'Submit Order';
-        }
+    // Keep in sync if the cart changes in another tab (e.g. the cart page).
+    window.addEventListener('storage', function (e) {
+        if (e.key === 'vfp_orderCart') refreshCartState();
     });
 
     function escapeHtml(str) {
@@ -485,7 +273,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return div.innerHTML;
     }
 
-    function escapeAttr(str) {
-        return escapeHtml(str).replace(/"/g, '&quot;');
-    }
+    refreshCartState();
+    applyView();
 });

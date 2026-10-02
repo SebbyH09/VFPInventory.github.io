@@ -18,6 +18,10 @@ window.CartManager = (function() {
     }
 
     // Order Cart
+    // Entries: { itemId, name, brand, vendor, catalog, quantity, cost,
+    //   currentQty, minQty, maxQty, alternates: [...],
+    //   selectedVariant: { label, brand, vendor, catalog, isPrimary } | undefined }
+    // A missing selectedVariant means the primary product.
     function addToOrderCart(item) {
         const cart = getCart(ORDER_CART_KEY);
         if (!cart[item.itemId]) {
@@ -25,14 +29,26 @@ window.CartManager = (function() {
                 itemId: item.itemId,
                 name: item.name,
                 brand: item.brand || '',
+                vendor: item.vendor || '',
                 catalog: item.catalog || '',
                 quantity: item.quantity || 1,
                 cost: item.cost || 0,
                 currentQty: item.currentQty || 0,
                 minQty: item.minQty || 0,
-                maxQty: item.maxQty || 0
+                maxQty: item.maxQty || 0,
+                alternates: item.alternates || [],
+                selectedVariant: item.selectedVariant || undefined
             };
         }
+        saveCart(ORDER_CART_KEY, cart);
+        return true;
+    }
+
+    // Merge fields into an existing order cart entry (e.g. quantity, variant).
+    function updateOrderCartItem(itemId, changes) {
+        const cart = getCart(ORDER_CART_KEY);
+        if (!cart[itemId]) return false;
+        Object.assign(cart[itemId], changes);
         saveCart(ORDER_CART_KEY, cart);
         return true;
     }
@@ -108,6 +124,11 @@ window.CartManager = (function() {
             consumeBadge.style.display = consumeCount > 0 ? 'flex' : 'none';
         }
 
+        // Any other order cart counters on the page (e.g. shop header button)
+        document.querySelectorAll('[data-order-cart-count]').forEach(el => {
+            el.textContent = orderCount;
+        });
+
         // Show/hide the floating widget
         const widget = document.getElementById('floatingCartWidget');
         if (widget) {
@@ -134,6 +155,7 @@ window.CartManager = (function() {
 
     return {
         addToOrderCart,
+        updateOrderCartItem,
         removeFromOrderCart,
         getOrderCart,
         clearOrderCart,

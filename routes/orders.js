@@ -44,6 +44,42 @@ router.get('/new', requireAuth, async (req, res) => {
     }
 });
 
+// GET /orders/cart - render the order cart page. The cart itself lives in the
+// browser (localStorage); current inventory data is sent along so the page can
+// show fresh stock, cost and alternate options for each cart line.
+router.get('/cart', requireAuth, async (req, res) => {
+    let inventoryIndex = {};
+    try {
+        const inventoryItems = await inventory.find({ isActive: { $ne: false } })
+            .select('item brand vendor catalog currentquantity minimumquantity maximumquantity cost alternateItems')
+            .lean();
+        inventoryItems.forEach(it => {
+            inventoryIndex[it._id] = {
+                name: it.item,
+                brand: it.brand || '',
+                vendor: it.vendor || '',
+                catalog: it.catalog || '',
+                currentQty: it.currentquantity || 0,
+                minQty: it.minimumquantity || 0,
+                maxQty: it.maximumquantity || 0,
+                cost: it.cost || 0,
+                alternates: (it.alternateItems || []).map(a => ({
+                    brand: a.brand || '',
+                    vendor: a.vendor || '',
+                    catalogNumber: a.catalogNumber || ''
+                }))
+            };
+        });
+        res.render('orderCart', { inventoryIndex, user: req.session.user });
+    } catch (error) {
+        res.render('orderCart', {
+            inventoryIndex: null,
+            user: req.session.user,
+            error: 'Failed to load current inventory data'
+        });
+    }
+});
+
 // POST /orders - create a new order
 router.post('/', requireAuth, async (req, res) => {
     try {
