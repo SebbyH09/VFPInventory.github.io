@@ -101,6 +101,7 @@ const registrationRouter = require('./routes/registration')
 const homeRouter = require('./routes/home')
 const uploadRouter = require('./routes/upload')
 const historyRouter = require('./routes/history')
+const analyticsRouter = require('./routes/analytics')
 const consumeRouter = require('./routes/consume')
 const ordersRouter = require('./routes/orders')
 const purchaseOrderRoutes = require('./routes/purchaseOrders')
@@ -159,6 +160,7 @@ app.use('/login', authLimiter, loginRouter);
 app.use('/entry', requireAuth, entryRouter);
 app.use('/upload', requireAuth, uploadRouter);
 app.use('/history', requireAuth, historyRouter);
+app.use('/analytics', requireAuth, analyticsRouter);
 app.use('/consume', requireAuth, consumeRouter);
 app.use('/orders', requireAuth, ordersRouter);
 app.use('/purchase-orders', requireAuth, purchaseOrderRoutes);

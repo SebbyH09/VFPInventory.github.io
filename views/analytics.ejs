@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytics</title>
+    <link rel="stylesheet" href="/analytics.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="analytics-page">
+        <div class="an-header">
+            <div>
+                <h1 class="an-title">Analytics</h1>
+                <p class="an-subtitle" id="periodLabel">Loading…</p>
+            </div>
+            <div class="an-header-actions">
+                <a href="/history" class="an-btn an-btn-ghost">View history log</a>
+                <button type="button" id="exportExcel" class="an-btn an-btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export to Excel
+                </button>
+            </div>
+        </div>
+
+        <% if (error) { %>
+            <div class="an-error"><%= error %></div>
+        <% } %>
+
+        <!-- Filters: every change refreshes the dashboard -->
+        <section class="an-filters" aria-label="Filters">
+            <div class="an-filter-row">
+                <div class="an-presets" role="group" aria-label="Date range">
+                    <button type="button" class="an-preset" data-preset="7d">7 days</button>
+                    <button type="button" class="an-preset" data-preset="30d">30 days</button>
+                    <button type="button" class="an-preset" data-preset="90d">90 days</button>
+                    <button type="button" class="an-preset" data-preset="month">This month</button>
+                    <button type="button" class="an-preset" data-preset="lastmonth">Last month</button>
+                    <button type="button" class="an-preset" data-preset="ytd">Year to date</button>
+                    <button type="button" class="an-preset" data-preset="12m">12 months</button>
+                </div>
+                <div class="an-dates">
+                    <label>From <input type="date" id="startDate"></label>
+                    <label>To <input type="date" id="endDate"></label>
+                </div>
+            </div>
+            <div class="an-filter-row">
+                <div class="an-multiselect" data-filter="items" data-all-label="All items" data-noun="items"></div>
+                <div class="an-multiselect" data-filter="categories" data-all-label="All categories" data-noun="categories"></div>
+                <div class="an-multiselect" data-filter="vendors" data-all-label="All vendors" data-noun="vendors"></div>
+                <div class="an-multiselect" data-filter="users" data-all-label="All users" data-noun="users"></div>
+                <label class="an-budget">
+                    <span>Monthly budget</span>
+                    <span class="an-budget-input"><span>$</span><input type="number" id="monthlyBudget" min="0" step="100" placeholder="0"></span>
+                </label>
+                <button type="button" id="resetFilters" class="an-btn an-btn-link">Reset filters</button>
+            </div>
+            <div class="an-active-filters" id="activeFilters"></div>
+        </section>
+
+        <nav class="an-section-nav" aria-label="Sections">
+            <a href="#overview">Overview</a>
+            <a href="#spending">Spending</a>
+            <a href="#consumption">Consumption</a>
+            <a href="#inventory">Inventory health</a>
+            <a href="#cycle">Cycle counts &amp; ordering</a>
+        </nav>
+
+        <div class="an-status" id="anStatus" hidden></div>
+
+        <div id="dashboard" class="an-dashboard is-loading">
+            <section id="overview" class="an-section">
+                <div class="an-kpis" id="kpis"></div>
+            </section>
+
+            <section id="spending" class="an-section">
+                <h2 class="an-section-title">Spending</h2>
+                <div class="an-grid">
+                    <div class="an-tile an-tile-wide" data-tile="spendTrend"></div>
+                    <div class="an-tile" data-tile="spendByCategory"></div>
+                    <div class="an-tile" data-tile="spendByVendor"></div>
+                    <div class="an-tile" data-tile="topSpendItems"></div>
+                    <div class="an-tile" data-tile="budgetVsActual"></div>
+                    <div class="an-tile an-tile-wide" data-tile="costPerUnit"></div>
+                </div>
+            </section>
+
+            <section id="consumption" class="an-section">
+                <h2 class="an-section-title">Consumption</h2>
+                <div class="an-grid">
+                    <div class="an-tile an-tile-wide" data-tile="usageTrends"></div>
+                    <div class="an-tile" data-tile="topConsumed"></div>
+                    <div class="an-tile" data-tile="consumptionByUser"></div>
+                    <div class="an-tile an-tile-wide" data-tile="consumptionRate"></div>
+                </div>
+            </section>
+
+            <section id="inventory" class="an-section">
+                <h2 class="an-section-title">Inventory health</h2>
+                <div class="an-grid">
+                    <div class="an-tile" data-tile="daysOfSupply"></div>
+                    <div class="an-tile" data-tile="quantityDeficit"></div>
+                    <div class="an-tile an-tile-wide" data-tile="reorderForecast"></div>
+                </div>
+            </section>
+
+            <section id="cycle" class="an-section">
+                <h2 class="an-section-title">Cycle counts &amp; ordering</h2>
+                <div class="an-grid">
+                    <div class="an-tile" data-tile="cycleOverdue"></div>
+                    <div class="an-tile" data-tile="avgReorderTime"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        window.__ANALYTICS_FILTER_OPTIONS__ = <%- JSON.stringify(filterOptions).replace(/</g, '\\u003c') %>;
+    </script>
+    <script src="/analytics.js"></script>
+</body>
+</html>

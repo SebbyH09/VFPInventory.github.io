@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Cart</title>
+    <link rel="stylesheet" href="/orders.css">
+</head>
+<body>
+    <div class="order-container cart-page">
+        <div class="order-page-header">
+            <div class="order-page-header-left">
+                <a href="/orders/new" class="cart-back-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    Continue shopping
+                </a>
+                <h1 class="page-title">Order Cart</h1>
+                <p class="page-subtitle">Review quantities and variants, then submit your order</p>
+            </div>
+        </div>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="shop-error"><%= error %></div>
+        <% } %>
+
+        <div class="cart-success" id="cartSuccess" hidden>
+            <div class="cart-success-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h2>Order submitted</h2>
+            <p>Order <strong id="cartSuccessNumber"></strong> was created successfully.</p>
+            <div class="cart-success-actions">
+                <a href="/orders/open" class="shop-btn shop-btn-ghost">View open orders</a>
+                <a href="/orders/new" class="shop-btn shop-btn-primary">Start a new order</a>
+            </div>
+        </div>
+
+        <div class="cart-empty" id="cartEmpty" hidden>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <h2>Your cart is empty</h2>
+            <p>Browse inventory and add the items you need to order.</p>
+            <a href="/orders/new" class="shop-btn shop-btn-primary">Browse items</a>
+        </div>
+
+        <div class="cart-layout" id="cartLayout" hidden>
+            <section class="cart-lines" id="cartLines" aria-label="Cart items"></section>
+
+            <aside class="cart-summary">
+                <h2>Order summary</h2>
+                <dl class="cart-summary-rows">
+                    <div><dt>Items</dt><dd id="summaryItems">0</dd></div>
+                    <div><dt>Total units</dt><dd id="summaryUnits">0</dd></div>
+                    <div><dt>Vendors</dt><dd id="summaryVendors">0</dd></div>
+                    <div class="cart-summary-total"><dt>Estimated total</dt><dd id="summaryTotal">$0.00</dd></div>
+                </dl>
+                <label class="cart-notes">
+                    <span>Order notes</span>
+                    <textarea id="orderNotes" rows="3" placeholder="Optional notes for this order..."></textarea>
+                </label>
+                <button type="button" id="submitOrderBtn" class="submit-order-btn cart-submit-btn">Submit Order</button>
+                <button type="button" id="clearCartBtn" class="cart-clear-btn">Clear cart</button>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        window.__INVENTORY_INDEX__ = <%- JSON.stringify(inventoryIndex || null).replace(/</g, '\\u003c') %>;
+    </script>
+    <script src="/orderVariantPicker.js"></script>
+    <script defer src="/orderCart.js"></script>
+</body>
+</html>
