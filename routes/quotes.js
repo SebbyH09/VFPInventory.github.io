@@ -17,6 +17,7 @@ const router = express.Router();
 const multer = require('multer');
 
 const Quote = require('../models/Quote');
+const PrepaidDelivery = require('../models/PrepaidDelivery');
 const inventory = require('../models/ListedInventoryItem');
 const InventoryHistory = require('../models/InventoryHistory');
 const requireAuth = require('../Middleware/auth');
@@ -41,22 +42,41 @@ const upload = multer({
 // ─────────────────────────────────────────────
 
 router.get('/', requireAuth, async (req, res) => {
+  const flash = req.session.quotesFlash || null;
+  delete req.session.quotesFlash;
+  await renderList(req, res, flash);
+});
+
+/**
+ * Render the Quotes list page (uploaded quotes + prepaid monthly deliveries).
+ */
+async function renderList(req, res, message, status = 200) {
   try {
-    const quotes = await Quote.find({}).sort({ createdAt: -1 }).limit(200).lean();
-    res.render('quotes', {
+    const [quotes, prepaid, inventoryItems] = await Promise.all([
+      Quote.find({}).sort({ createdAt: -1 }).limit(200).lean(),
+      PrepaidDelivery.find({}).sort({ endDate: 1 }).lean(),
+      inventory.find({ isActive: { $ne: false } }).select('item vendor catalog').sort({ item: 1 }).lean()
+    ]);
+    res.status(status).render('quotes', {
       user: req.session.user,
       quotes,
-      message: null
+      prepaid,
+      inventoryItems,
+      countMonths: PrepaidDelivery.countMonths,
+      message
     });
   } catch (err) {
     console.error('[quotes] List error:', err.message);
-    res.render('quotes', {
+    res.status(500).render('quotes', {
       user: req.session.user,
       quotes: [],
+      prepaid: [],
+      inventoryItems: [],
+      countMonths: PrepaidDelivery.countMonths,
       message: { type: 'error', text: 'Failed to load quotes.' }
     });
   }
-});
+}
 
 // ─────────────────────────────────────────────
 // UPLOAD + PARSE A QUOTE PDF
@@ -65,22 +85,12 @@ router.get('/', requireAuth, async (req, res) => {
 router.post('/upload', requireAuth, (req, res) => {
   upload.single('quoteFile')(req, res, async (uploadErr) => {
     if (uploadErr) {
-      const quotes = await Quote.find({}).sort({ createdAt: -1 }).limit(200).lean();
-      return res.render('quotes', {
-        user: req.session.user,
-        quotes,
-        message: { type: 'error', text: uploadErr.message }
-      });
+      return renderList(req, res, { type: 'error', text: uploadErr.message });
     }
 
     try {
       if (!req.file) {
-        const quotes = await Quote.find({}).sort({ createdAt: -1 }).limit(200).lean();
-        return res.render('quotes', {
-          user: req.session.user,
-          quotes,
-          message: { type: 'error', text: 'Please choose a PDF file to upload.' }
-        });
+        return renderList(req, res, { type: 'error', text: 'Please choose a PDF file to upload.' });
       }
 
       const rawText = await extractTextFromPDF(req.file.buffer);
@@ -104,14 +114,161 @@ router.post('/upload', requireAuth, (req, res) => {
       return res.redirect('/quotes/' + quote._id);
     } catch (err) {
       console.error('[quotes] Upload/parse error:', err.message);
-      const quotes = await Quote.find({}).sort({ createdAt: -1 }).limit(200).lean();
-      return res.render('quotes', {
-        user: req.session.user,
-        quotes,
-        message: { type: 'error', text: 'Could not read that PDF. Please try a different file.' }
-      });
+      return renderList(req, res, { type: 'error', text: 'Could not read that PDF. Please try a different file.' });
     }
   });
+});
+
+// ─────────────────────────────────────────────
+// PREPAID MONTHLY DELIVERIES
+// (registered before /:id so "prepaid" isn't treated as a quote id)
+// ─────────────────────────────────────────────
+
+/**
+ * Validate + normalise the prepaid delivery form. Returns { data } or { error }.
+ */
+async function readPrepaidForm(body) {
+  const str = (v) => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null);
+  const num = (v) => {
+    if (v === undefined || v === null || String(v).trim() === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : NaN;
+  };
+  const date = (v) => (str(v) ? new Date(str(v) + 'T00:00:00Z') : null);  // stored as UTC midnight
+
+  const data = {
+    vendor:           str(body.vendor),
+    item:             str(body.item),
+    catalogNumber:    str(body.catalogNumber),
+    referenceNumber:  str(body.referenceNumber),
+    quantityPerMonth: num(body.quantityPerMonth),
+    unit:             str(body.unit),
+    unitPrice:        num(body.unitPrice),
+    amountPaid:       num(body.amountPaid),
+    startDate:        date(body.startDate),
+    endDate:          date(body.endDate),
+    deliveryDay:      num(body.deliveryDay),
+    notes:            str(body.notes),
+    inventoryItemId:  null,
+    inventoryItemName: null
+  };
+
+  if (!data.vendor) return { error: 'Vendor is required.' };
+  if (!data.item && !str(body.inventoryItemId)) return { error: 'Item is required.' };
+  if (data.quantityPerMonth === null || Number.isNaN(data.quantityPerMonth) || data.quantityPerMonth < 0) {
+    return { error: 'Quantity per month must be a number of 0 or more.' };
+  }
+  for (const f of ['unitPrice', 'amountPaid']) {
+    if (Number.isNaN(data[f]) || (data[f] !== null && data[f] < 0)) return { error: 'Prices must be positive numbers.' };
+  }
+  if (data.deliveryDay !== null &&
+      (Number.isNaN(data.deliveryDay) || !Number.isInteger(data.deliveryDay) || data.deliveryDay < 1 || data.deliveryDay > 31)) {
+    return { error: 'Delivery day must be a whole number from 1 to 31.' };
+  }
+  if (!data.startDate || isNaN(data.startDate) || !data.endDate || isNaN(data.endDate)) {
+    return { error: 'Start and end dates are required.' };
+  }
+  if (data.endDate < data.startDate) return { error: 'End date must be on or after the start date.' };
+
+  const invId = str(body.inventoryItemId);
+  if (invId) {
+    const item = await inventory.findById(invId).select('item').lean().catch(() => null);
+    if (!item) return { error: 'Linked inventory item not found.' };
+    data.inventoryItemId = item._id;
+    data.inventoryItemName = item.item;
+    if (!data.item) data.item = item.item;
+  }
+
+  return { data };
+}
+
+function setFlash(req, type, text) {
+  req.session.quotesFlash = { type, text };
+}
+
+// Add a prepaid delivery
+router.post('/prepaid', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await readPrepaidForm(req.body);
+    if (error) {
+      setFlash(req, 'error', error);
+      return res.redirect('/quotes#prepaid');
+    }
+    data.createdBy = req.session.user?.email || 'unknown';
+    await PrepaidDelivery.create(data);
+    setFlash(req, 'success', `Prepaid delivery for ${data.item} added.`);
+  } catch (err) {
+    console.error('[quotes] Prepaid create error:', err.message);
+    setFlash(req, 'error', 'Failed to add prepaid delivery.');
+  }
+  res.redirect('/quotes#prepaid');
+});
+
+// Edit a prepaid delivery
+router.post('/prepaid/:id', requireAuth, async (req, res) => {
+  try {
+    const prepaid = await PrepaidDelivery.findById(req.params.id);
+    if (!prepaid) {
+      setFlash(req, 'error', 'Prepaid delivery not found.');
+      return res.redirect('/quotes#prepaid');
+    }
+    const { data, error } = await readPrepaidForm(req.body);
+    if (error) {
+      setFlash(req, 'error', error);
+      return res.redirect('/quotes#prepaid');
+    }
+    prepaid.set(data);
+    await prepaid.save();
+    setFlash(req, 'success', `Prepaid delivery for ${prepaid.item} updated.`);
+  } catch (err) {
+    console.error('[quotes] Prepaid update error:', err.message);
+    setFlash(req, 'error', 'Failed to update prepaid delivery.');
+  }
+  res.redirect('/quotes#prepaid');
+});
+
+// Log that this month's delivery arrived
+router.post('/prepaid/:id/received', requireAuth, async (req, res) => {
+  try {
+    const prepaid = await PrepaidDelivery.findById(req.params.id);
+    if (!prepaid) return res.status(404).json({ message: 'Prepaid delivery not found.' });
+    prepaid.deliveries.push({
+      receivedAt: new Date(),
+      quantity: prepaid.quantityPerMonth,
+      loggedBy: req.session.user?.email || 'unknown'
+    });
+    await prepaid.save();
+    res.json({ message: 'Delivery logged.', received: prepaid.deliveries.length });
+  } catch (err) {
+    console.error('[quotes] Prepaid log error:', err.message);
+    res.status(500).json({ message: 'Failed to log delivery.' });
+  }
+});
+
+// Undo the most recent logged delivery
+router.post('/prepaid/:id/undo-received', requireAuth, async (req, res) => {
+  try {
+    const prepaid = await PrepaidDelivery.findById(req.params.id);
+    if (!prepaid) return res.status(404).json({ message: 'Prepaid delivery not found.' });
+    prepaid.deliveries.pop();
+    await prepaid.save();
+    res.json({ message: 'Last delivery removed.', received: prepaid.deliveries.length });
+  } catch (err) {
+    console.error('[quotes] Prepaid undo error:', err.message);
+    res.status(500).json({ message: 'Failed to undo delivery.' });
+  }
+});
+
+// Delete a prepaid delivery
+router.delete('/prepaid/:id', requireAuth, async (req, res) => {
+  try {
+    const prepaid = await PrepaidDelivery.findByIdAndDelete(req.params.id);
+    if (!prepaid) return res.status(404).json({ message: 'Prepaid delivery not found.' });
+    res.json({ message: 'Prepaid delivery deleted.' });
+  } catch (err) {
+    console.error('[quotes] Prepaid delete error:', err.message);
+    res.status(500).json({ message: 'Failed to delete prepaid delivery.' });
+  }
 });
 
 // ─────────────────────────────────────────────
@@ -121,11 +278,7 @@ router.post('/upload', requireAuth, (req, res) => {
 router.get('/:id', requireAuth, async (req, res) => {
   try {
     const quote = await Quote.findById(req.params.id).lean();
-    if (!quote) return res.status(404).render('quotes', {
-      user: req.session.user,
-      quotes: await Quote.find({}).sort({ createdAt: -1 }).limit(200).lean(),
-      message: { type: 'error', text: 'Quote not found.' }
-    });
+    if (!quote) return renderList(req, res, { type: 'error', text: 'Quote not found.' }, 404);
 
     // Inventory items offered in the "tie to item" dropdown.
     const inventoryItems = await inventory.find({ isActive: { $ne: false } })

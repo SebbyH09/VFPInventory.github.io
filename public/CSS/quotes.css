@@ -151,3 +151,35 @@
     .qh-grid { grid-template-columns: 1fr; }
     .li-fields { grid-template-columns: 1fr; }
 }
+
+/* Prepaid monthly deliveries */
+.prepaid-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 34px 0 12px; flex-wrap: wrap; }
+.prepaid-header .section-title { margin-top: 0; }
+.prepaid-header .section-sub { margin-bottom: 0; }
+.prepaid-form-title { font-size: 16px; font-weight: 700; margin: 0 0 14px; }
+.prepaid-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.prepaid-notes { grid-column: span 4; }
+.prepaid-summary { margin-top: 14px; font-size: 13px; font-weight: 600; color: #2563eb; min-height: 18px; }
+.prepaid-actions { gap: 10px; align-items: center; }
+.prepaid-item { font-weight: 600; }
+.prepaid-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+.prepaid-notes-text { font-style: italic; }
+.prepaid-received-count { font-weight: 600; }
+.prepaid-status-active { background: #dcfce7; color: #166534; }
+.prepaid-status-upcoming { background: #dbeafe; color: #1e40af; }
+.prepaid-status-ended { background: #e2e8f0; color: #475569; }
+.pill-blue { background: #dbeafe; color: #1e40af; }
+.btn-mini:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 860px) {
+    .prepaid-grid { grid-template-columns: repeat(2, 1fr); }
+    .prepaid-notes { grid-column: span 2; }
+}
+@media (max-width: 520px) {
+    .prepaid-grid { grid-template-columns: 1fr; }
+    .prepaid-notes { grid-column: span 1; }
+}
+.prepaid-table td:first-child { min-width: 170px; }
+.prepaid-table .prepaid-term { white-space: nowrap; }
+.prepaid-table .row-actions { display: grid; grid-template-columns: auto auto; gap: 6px; }
+.prepaid-table .row-actions .btn-mini { justify-content: center; }

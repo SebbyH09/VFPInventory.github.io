@@ -103,6 +103,178 @@
             <p>No quotes uploaded yet. Upload a vendor quote PDF above to get started.</p>
         </div>
     <% } %>
+
+    <!-- Prepaid monthly deliveries -->
+    <div class="quotes-list-header prepaid-header" id="prepaid">
+        <div>
+            <h2 class="section-title">Prepaid Monthly Deliveries</h2>
+            <p class="section-sub">Standing orders paid up front that arrive every month</p>
+        </div>
+        <button type="button" class="btn-primary" id="prepaidToggleBtn">+ Add Prepaid Delivery</button>
+    </div>
+
+    <div class="quote-upload-card prepaid-form-card" id="prepaidFormCard" hidden>
+        <form action="/quotes/prepaid" method="POST" id="prepaidForm" data-create-action="/quotes/prepaid">
+            <h3 class="prepaid-form-title" id="prepaidFormTitle">New Prepaid Delivery</h3>
+            <div class="prepaid-grid">
+                <div class="form-group">
+                    <label for="ppVendor">Vendor *</label>
+                    <input type="text" id="ppVendor" name="vendor" required>
+                </div>
+                <div class="form-group">
+                    <label for="ppInventoryItem">Inventory Item (optional)</label>
+                    <select id="ppInventoryItem" name="inventoryItemId">
+                        <option value="">— Not linked —</option>
+                        <% (inventoryItems || []).forEach(function(it) { %>
+                            <option value="<%= it._id %>" data-name="<%= it.item %>" data-vendor="<%= it.vendor || '' %>" data-catalog="<%= it.catalog || '' %>"><%= it.item %><%= it.vendor ? ' — ' + it.vendor : '' %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ppItem">Item / Description *</label>
+                    <input type="text" id="ppItem" name="item">
+                </div>
+                <div class="form-group">
+                    <label for="ppCatalog">Catalog #</label>
+                    <input type="text" id="ppCatalog" name="catalogNumber">
+                </div>
+                <div class="form-group">
+                    <label for="ppQty">Qty / Month *</label>
+                    <input type="number" id="ppQty" name="quantityPerMonth" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="ppUnit">Unit</label>
+                    <input type="text" id="ppUnit" name="unit" placeholder="e.g. case, box">
+                </div>
+                <div class="form-group">
+                    <label for="ppUnitPrice">Unit Price ($)</label>
+                    <input type="number" id="ppUnitPrice" name="unitPrice" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="ppAmountPaid">Total Prepaid ($)</label>
+                    <input type="number" id="ppAmountPaid" name="amountPaid" min="0" step="0.01" placeholder="Auto if blank">
+                </div>
+                <div class="form-group">
+                    <label for="ppStart">Start Date *</label>
+                    <input type="date" id="ppStart" name="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="ppEnd">End Date *</label>
+                    <input type="date" id="ppEnd" name="endDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="ppDay">Delivery Day of Month</label>
+                    <input type="number" id="ppDay" name="deliveryDay" min="1" max="31" step="1" placeholder="1–31">
+                </div>
+                <div class="form-group">
+                    <label for="ppRef">PO / Quote #</label>
+                    <input type="text" id="ppRef" name="referenceNumber">
+                </div>
+                <div class="form-group prepaid-notes">
+                    <label for="ppNotes">Notes</label>
+                    <input type="text" id="ppNotes" name="notes">
+                </div>
+            </div>
+            <div class="prepaid-summary" id="prepaidSummary"></div>
+            <div class="upload-actions prepaid-actions">
+                <button type="button" class="btn-mini" id="prepaidCancelBtn">Cancel</button>
+                <button type="submit" class="btn-primary" id="prepaidSubmitBtn">Save Prepaid Delivery</button>
+            </div>
+        </form>
+    </div>
+
+    <% if (prepaid && prepaid.length > 0) { %>
+        <div class="table-wrapper">
+            <table class="quotes-table prepaid-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Vendor</th>
+                        <th>Qty / Month</th>
+                        <th>Cost</th>
+                        <th>Term</th>
+                        <th>Received</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% var today = new Date(); today.setHours(0,0,0,0);
+                       var fmtMoney = function(n) { return '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+                       var isoDate = function(d) { return d ? new Date(d).toISOString().slice(0, 10) : ''; };
+                       var showDate = function(d) { return d ? new Date(d).toLocaleDateString(undefined, { timeZone: 'UTC' }) : '—'; };
+                       prepaid.forEach(function(p) {
+                        var months = countMonths(p.startDate, p.endDate);
+                        var monthly = (p.unitPrice != null) ? p.unitPrice * p.quantityPerMonth : null;
+                        var total = (p.amountPaid != null) ? p.amountPaid : (monthly != null ? monthly * months : null);
+                        var received = (p.deliveries || []).length;
+                        var start = new Date(p.startDate), end = new Date(p.endDate);
+                        var status = 'active', statusLabel = 'Active';
+                        if (start > today) { status = 'upcoming'; statusLabel = 'Upcoming'; }
+                        else if (end < today) { status = 'ended'; statusLabel = 'Ended'; }
+                        var daysLeft = Math.ceil((end - today) / (1000*60*60*24));
+                        var lastReceived = received ? p.deliveries[received - 1].receivedAt : null;
+                    %>
+                        <tr class="prepaid-row" data-prepaid-id="<%= p._id %>">
+                            <td>
+                                <div class="prepaid-item"><%= p.item %></div>
+                                <div class="prepaid-meta">
+                                    <% if (p.catalogNumber) { %>Cat# <%= p.catalogNumber %><% } %>
+                                    <% if (p.referenceNumber) { %><%= p.catalogNumber ? ' · ' : '' %>Ref <%= p.referenceNumber %><% } %>
+                                    <% if (p.inventoryItemName) { %><span class="pill pill-blue">Linked</span><% } %>
+                                </div>
+                                <% if (p.notes) { %><div class="prepaid-meta prepaid-notes-text"><%= p.notes %></div><% } %>
+                            </td>
+                            <td><%= p.vendor %></td>
+                            <td><%= p.quantityPerMonth %><%= p.unit ? ' ' + p.unit : '' %></td>
+                            <td class="prepaid-term">
+                                <%= monthly != null ? fmtMoney(monthly) + ' / mo' : '—' %>
+                                <% if (total != null) { %><div class="prepaid-meta"><%= fmtMoney(total) %> prepaid</div><% } %>
+                            </td>
+                            <td class="prepaid-term">
+                                <%= showDate(p.startDate) %> – <%= showDate(p.endDate) %>
+                                <div class="prepaid-meta"><%= months %> month<%= months === 1 ? '' : 's' %><%= p.deliveryDay ? ' · arrives ~day ' + p.deliveryDay : '' %></div>
+                            </td>
+                            <td>
+                                <span class="prepaid-received-count"><%= received %>/<%= months %></span>
+                                <% if (lastReceived) { %><div class="prepaid-meta">Last: <%= new Date(lastReceived).toLocaleDateString() %></div><% } %>
+                            </td>
+                            <td>
+                                <span class="status-badge prepaid-status-<%= status %>"><%= statusLabel %></span>
+                                <% if (status === 'active' && daysLeft <= 30) { %><span class="pill pill-amber"><%= daysLeft %>d left</span><% } %>
+                            </td>
+                            <td class="row-actions">
+                                <button class="btn-mini prepaid-received-btn" data-prepaid-id="<%= p._id %>" <%= received >= months ? 'disabled' : '' %>>Log Received</button>
+                                <% if (received > 0) { %>
+                                    <button class="btn-mini prepaid-undo-btn" data-prepaid-id="<%= p._id %>" title="Remove last logged delivery">Undo</button>
+                                <% } %>
+                                <button class="btn-mini prepaid-edit-btn"
+                                    data-prepaid-id="<%= p._id %>"
+                                    data-vendor="<%= p.vendor %>"
+                                    data-item="<%= p.item %>"
+                                    data-catalog-number="<%= p.catalogNumber || '' %>"
+                                    data-reference-number="<%= p.referenceNumber || '' %>"
+                                    data-inventory-item-id="<%= p.inventoryItemId || '' %>"
+                                    data-quantity-per-month="<%= p.quantityPerMonth %>"
+                                    data-unit="<%= p.unit || '' %>"
+                                    data-unit-price="<%= p.unitPrice != null ? p.unitPrice : '' %>"
+                                    data-amount-paid="<%= p.amountPaid != null ? p.amountPaid : '' %>"
+                                    data-start-date="<%= isoDate(p.startDate) %>"
+                                    data-end-date="<%= isoDate(p.endDate) %>"
+                                    data-delivery-day="<%= p.deliveryDay || '' %>"
+                                    data-notes="<%= p.notes || '' %>">Edit</button>
+                                <button class="btn-mini btn-danger prepaid-delete-btn" data-prepaid-id="<%= p._id %>">Delete</button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <div class="empty-state" id="prepaidEmpty">
+            <p>No prepaid monthly deliveries yet. Click “Add Prepaid Delivery” to track one.</p>
+        </div>
+    <% } %>
 </div>
 
 <script src="/quotes.js"></script>
