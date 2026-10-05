@@ -1,0 +1,201 @@
+/* ===== Cycle Counts page (builds on dashboardstyle.css tokens) ===== */
+
+.kpi-static:hover {
+    border-color: var(--dash-border);
+    box-shadow: none;
+}
+
+.cc-done {
+    margin-top: 16px;
+}
+
+.cc-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.cc-tab-count {
+    display: inline-block;
+    min-width: 18px;
+    margin-left: 4px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, 0.07);
+    font-size: 11px;
+    text-align: center;
+}
+
+.cc-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cc-filters input[type="search"],
+.cc-filters select {
+    padding: 7px 10px;
+    border: 1px solid var(--dash-border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    background: var(--dash-surface);
+}
+
+.cc-filters input[type="search"] {
+    width: 240px;
+}
+
+.cc-filters input:focus,
+.cc-filters select:focus {
+    outline: none;
+    border-color: var(--dash-accent);
+}
+
+.cc-table-wrap {
+    overflow-x: auto;
+}
+
+.cc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.cc-table th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dash-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--dash-border);
+    white-space: nowrap;
+}
+
+.cc-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--dash-border-soft);
+    vertical-align: middle;
+}
+
+.cc-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.cc-item,
+.cc-last {
+    display: block;
+}
+
+.cc-item {
+    font-weight: 600;
+}
+
+.cc-sub {
+    display: block;
+    font-size: 12px;
+    color: var(--dash-muted);
+}
+
+.cc-row-done {
+    background: #f0fdf4;
+}
+
+.cc-count-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cc-input {
+    width: 84px;
+    padding: 6px 8px;
+    border: 1px solid var(--dash-border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.cc-input:focus {
+    outline: none;
+    border-color: var(--dash-accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.cc-input-error {
+    border-color: var(--dash-critical);
+}
+
+.cc-variance {
+    min-width: 44px;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .cc-filters,
+    .cc-filters input[type="search"],
+    .cc-filters select {
+        width: 100%;
+    }
+
+    /* Stack table rows into cards on small screens */
+    .cc-table thead {
+        display: none;
+    }
+
+    .cc-table,
+    .cc-table tbody,
+    .cc-table tr,
+    .cc-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .cc-table tr {
+        border-bottom: 1px solid var(--dash-border);
+        padding: 8px 0;
+    }
+
+    .cc-table tr[hidden] {
+        display: none;
+    }
+
+    .cc-table td {
+        border: none;
+        padding: 4px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        text-align: right;
+    }
+
+    .cc-table td::before {
+        content: attr(data-label);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--dash-muted);
+        text-align: left;
+    }
+
+    .cc-table td .cc-sub,
+    .cc-table td .cc-item,
+    .cc-table td .cc-last {
+        text-align: right;
+    }
+
+    .cc-count-form {
+        justify-content: flex-end;
+    }
+
+    .cc-input {
+        width: 100px;
+        min-height: 40px;
+    }
+}

@@ -71,6 +71,12 @@ const OrderSchema = new Schema({
         type: String,
         trim: true,
         default: ''
+    },
+    // When the order is expected to arrive. Null means unknown; the dashboard
+    // then estimates it from the order date plus the configured lead time.
+    expectedDeliveryDate: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true

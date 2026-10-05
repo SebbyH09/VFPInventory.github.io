@@ -27,6 +27,15 @@ async function generateOrderNumber() {
     return prefix + String(seq).padStart(4, '0');
 }
 
+// Parse a YYYY-MM-DD string into a Date at midday, so it shows as the same
+// calendar day in any US time zone. Returns null when missing/invalid.
+function parseDeliveryDate(value) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value || '').trim());
+    if (!m) return null;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12);
+    return isNaN(d) || d.getDate() !== Number(m[3]) ? null : d;
+}
+
 // GET /orders/new - render new order page
 router.get('/new', requireAuth, async (req, res) => {
     try {
@@ -356,7 +365,8 @@ router.post('/incoming/:id/submit', requireAuth, async (req, res) => {
             status: 'open',
             items: orderItems,
             createdBy: req.session.user?.email || 'unknown',
-            notes: notes || ('From PO: ' + poNumber)
+            notes: notes || ('From PO: ' + poNumber),
+            expectedDeliveryDate: parseDeliveryDate(po.parsedData && po.parsedData.deliveryDate)
         });
 
         for (const oi of orderItems) {
@@ -381,6 +391,33 @@ router.post('/incoming/:id/submit', requireAuth, async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: 'Error creating order. Please try again.' });
+    }
+});
+
+// PATCH /orders/:id/expected-delivery - set or clear an order's expected delivery date
+router.patch('/:id/expected-delivery', requireAuth, async (req, res) => {
+    try {
+        const raw = req.body.expectedDeliveryDate;
+        let date = null;
+        if (raw) {
+            date = parseDeliveryDate(raw);
+            if (!date) {
+                return res.status(400).json({ message: 'Expected delivery date must be YYYY-MM-DD.' });
+            }
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { $set: { expectedDeliveryDate: date } },
+            { new: true }
+        );
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found.' });
+        }
+
+        res.json({ message: 'Expected delivery updated.', expectedDeliveryDate: order.expectedDeliveryDate });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating expected delivery. Please try again.' });
     }
 });
 

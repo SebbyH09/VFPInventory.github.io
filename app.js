@@ -109,6 +109,7 @@ const settingsRouter = require('./routes/settings')
 const locationsRouter = require('./routes/locations')
 const updateRouter = require('./routes/update')
 const quotesRouter = require('./routes/quotes')
+const cycleCountsRouter = require('./routes/cycleCounts')
 
 
 app.use((req, res, next) => {
@@ -168,6 +169,7 @@ app.use('/settings', requireAuth, settingsRouter);
 app.use('/locations', requireAuth, locationsRouter);
 app.use('/update', requireAuth, updateRouter);
 app.use('/quotes', requireAuth, quotesRouter);
+app.use('/cycle-counts', requireAuth, cycleCountsRouter);
 app.use('/', homeRouter);
 
 

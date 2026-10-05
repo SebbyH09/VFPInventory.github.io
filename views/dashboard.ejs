@@ -1,277 +1,345 @@
-
 <head>
     <link rel="stylesheet" href="/dashboardstyle.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script defer src="/dashboard.js"></script>
 </head>
+<%
+    const fmtShort = d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const deliveriesThisWeek = upcomingDeliveries.filter(d => d.daysUntil <= 7).length;
+    const lateDeliveries = upcomingDeliveries.filter(d => d.daysUntil < 0).length;
+    const lowOnOrder = lowInventoryItems.filter(i => (onOrderMap[i._id.toString()] || []).length > 0).length;
+    const openRecent = recentOrders.filter(o => o.status !== 'received').length;
+    const relDay = n => n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : n < 0 ? Math.abs(n) + 'd late' : 'in ' + n + 'd';
+%>
 
-<div class="dashboard-container">
-    <% if (typeof expiringQuotes !== 'undefined' && expiringQuotes && expiringQuotes.length > 0) { %>
-    <div class="card-wrapper" id="expiringQuotesCardWrapper" style="grid-column: 1 / 3;">
-        <div class="card-header-controls">
-            <h2 class="card-title" style="color:#b45309;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Quotes Expiring Soon
-            </h2>
-            <a href="/quotes" style="font-size:13px;color:#3b82f6;text-decoration:none;font-weight:600;">View all Quotes →</a>
+<div class="dash">
+    <header class="dash-header">
+        <div>
+            <h1 class="dash-title">Dashboard</h1>
+            <p class="dash-subtitle"><%= new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) %></p>
         </div>
-        <div class="cards-grid">
-            <% expiringQuotes.forEach(function(q) {
-                var expired = q.daysLeft < 0;
-                var borderColor = expired ? '#ef4444' : '#f59e0b';
-            %>
-                <a href="/quotes/<%= q._id %>" class="card clickable-card" style="border-left:3px solid <%= borderColor %>;text-decoration:none;color:inherit;display:block;">
-                    <div class="card-field">
-                        <span class="field-label">Vendor:</span>
-                        <span class="field-value"><%= q.vendor || 'Unknown' %></span>
-                    </div>
-                    <div class="card-field">
-                        <span class="field-label">Quote #:</span>
-                        <span class="field-value"><%= q.quoteNumber || 'N/A' %></span>
-                    </div>
-                    <div class="card-field">
-                        <span class="field-label">Expires:</span>
-                        <span class="field-value"><%= new Date(q.expirationDate).toLocaleDateString() %></span>
-                    </div>
-                    <div class="card-field">
-                        <span class="field-label">Status:</span>
-                        <span class="field-value">
-                            <% if (expired) { %>
-                                <span class="status-badge status-overdue">Expired <%= Math.abs(q.daysLeft) %>d ago</span>
-                            <% } else { %>
-                                <span class="status-badge status-due"><%= q.daysLeft %> day<%= q.daysLeft === 1 ? '' : 's' %> left</span>
-                            <% } %>
-                        </span>
-                    </div>
-                    <div class="card-field">
-                        <span class="field-label">Tied Items:</span>
-                        <span class="field-value"><%= q.approvedCount %></span>
-                    </div>
-                </a>
-            <% }); %>
+        <div class="dash-header-actions">
+            <a href="/cycle-counts" class="dash-btn dash-btn-ghost">Cycle counts</a>
+            <a href="/orders/new" class="dash-btn dash-btn-primary">New order</a>
         </div>
-    </div>
+    </header>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="dash-error"><%= error %></div>
     <% } %>
 
-    <div class="card-wrapper" id="ordersCardWrapper">
-        <div class="card-header-controls">
-            <h2 class="card-title">Recent Orders</h2>
-        </div>
-        <div class="cards-grid">
-            <% if (recentOrders && recentOrders.length > 0) { %>
-                <% recentOrders.forEach(order => { %>
-                    <div class="card order-card clickable-card" data-order-id="<%= order._id %>"
-                         data-order-number="<%= order.orderNumber %>"
-                         data-order-items="<%= encodeURIComponent(JSON.stringify(order.items)) %>">
-                        <div class="card-field">
-                            <span class="field-label">Order #:</span>
-                            <span class="field-value"><%= order.orderNumber %></span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Date:</span>
-                            <span class="field-value"><%= new Date(order.createdAt).toLocaleDateString() %></span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Status:</span>
-                            <span class="field-value">
-                                <% if (order.status === 'open') { %>
-                                    <span class="status-badge status-open">Open</span>
-                                <% } else if (order.status === 'partial') { %>
-                                    <span class="status-badge status-partial">Partial</span>
-                                <% } else { %>
-                                    <span class="status-badge status-received">Received</span>
-                                <% } %>
-                            </span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Items:</span>
-                            <span class="field-value"><%= order.items.length %></span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Created By:</span>
-                            <span class="field-value"><%= order.createdBy %></span>
-                        </div>
-                    </div>
-                <% }); %>
-            <% } else { %>
-                <div class="empty-state">No orders in the past 14 days</div>
-            <% } %>
-        </div>
-    </div>
-
-    <% if (typeof lowStockAlertEnabled === 'undefined' || lowStockAlertEnabled) { %>
-    <div class="card-wrapper" id="inventoryCardWrapper">
-        <div class="card-header-controls">
-            <h2 class="card-title">Need to Order</h2>
-        </div>
-        <div class="cards-grid">
-            <% if (lowInventoryItems && lowInventoryItems.length > 0) { %>
-                <% lowInventoryItems.forEach(item => { %>
-                    <% const itemOrders = onOrderMap[item._id.toString()] || []; %>
-                    <% const isOnOrder = itemOrders.length > 0; %>
-                    <div class="card<%= isOnOrder ? ' on-order-card clickable-card' : '' %>"
-                         data-item-id="<%= item._id %>"
-                         data-item-name="<%= item.item %>"
-                         data-item-brand="<%= item.brand || '' %>"
-                         data-item-catalog="<%= item.catalog || '' %>"
-                         data-item-quantity="<%= item.currentquantity %>"
-                         data-item-min="<%= item.minimumquantity %>"
-                         data-item-max="<%= item.maximumquantity || 0 %>"
-                         data-item-cost="<%= (item.cost || 0) %>"
-                         <% if (isOnOrder) { %>
-                         data-order-details="<%= encodeURIComponent(JSON.stringify(itemOrders)) %>"
-                         <% } %>>
-                        <% if (isOnOrder) { %>
-                            <div class="on-order-badge">On Order</div>
+    <!-- Alerts (only when there is something to act on) -->
+    <% if (expiringQuotes.length > 0 || unlinkedLocationItems.length > 0) { %>
+    <div class="dash-alerts">
+        <% if (expiringQuotes.length > 0) { const expiredCount = expiringQuotes.filter(q => q.daysLeft < 0).length; %>
+        <details class="dash-alert">
+            <summary>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <strong><%= expiringQuotes.length %></strong> quote<%= expiringQuotes.length === 1 ? '' : 's' %> expiring soon<% if (expiredCount) { %> (<%= expiredCount %> expired)<% } %>
+                <a href="/quotes" class="dash-alert-link">View quotes →</a>
+            </summary>
+            <ul class="dash-alert-list">
+                <% expiringQuotes.forEach(q => { %>
+                    <li>
+                        <a href="/quotes/<%= q._id %>"><%= q.vendor || 'Unknown vendor' %> · <%= q.quoteNumber || 'N/A' %></a>
+                        <% if (q.daysLeft < 0) { %>
+                            <span class="badge badge-critical">Expired <%= Math.abs(q.daysLeft) %>d ago</span>
+                        <% } else { %>
+                            <span class="badge badge-warning"><%= q.daysLeft %>d left</span>
                         <% } %>
-                        <div class="card-field">
-                            <span class="field-label">Item:</span>
-                            <span class="field-value"><%= item.item %></span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Brand:</span>
-                            <span class="field-value"><%= item.brand || 'N/A' %></span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Catalog:</span>
-                            <span class="field-value"><%= item.catalog || 'N/A' %></span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Current Qty:</span>
-                            <span class="field-value quantity-low"><%= item.currentquantity %></span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Min Qty:</span>
-                            <span class="field-value"><%= item.minimumquantity %></span>
-                        </div>
-                        <div class="card-field">
-                            <span class="field-label">Max Qty:</span>
-                            <span class="field-value"><%= item.maximumquantity || 'N/A' %></span>
-                        </div>
-                        <div class="card-actions-row">
-                            <button class="card-action-btn card-add-order-btn" title="Add to Order Cart">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                                Order
-                            </button>
-                        </div>
-                    </div>
+                    </li>
                 <% }); %>
-            <% } else { %>
-                <div class="empty-state">No items need to be ordered</div>
-            <% } %>
-        </div>
+            </ul>
+        </details>
+        <% } %>
+        <% if (unlinkedLocationItems.length > 0) { %>
+        <details class="dash-alert">
+            <summary>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <strong><%= unlinkedLocationItems.length %></strong> location item<%= unlinkedLocationItems.length === 1 ? '' : 's' %> not yet in inventory
+                <a href="/locations" class="dash-alert-link">Manage locations →</a>
+            </summary>
+            <ul class="dash-alert-list">
+                <% unlinkedLocationItems.forEach(item => { %>
+                    <li>
+                        <span><%= item.itemName %> <span class="muted">· <%= item.locationName %><%= item.specificLocation ? ' / ' + item.specificLocation : '' %></span></span>
+                        <a href="/entry" class="dash-alert-link">Add to inventory</a>
+                    </li>
+                <% }); %>
+            </ul>
+        </details>
+        <% } %>
     </div>
     <% } %>
 
-    <% if (typeof unlinkedLocationItems !== 'undefined' && unlinkedLocationItems && unlinkedLocationItems.length > 0) { %>
-    <div class="card-wrapper" id="unlinkedLocationCardWrapper" style="grid-column: 1 / 3;">
-        <div class="card-header-controls">
-            <h2 class="card-title" style="color:#92400e;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                Items in Locations Not Yet in Inventory
-            </h2>
-            <a href="/locations" style="font-size:13px;color:#3b82f6;text-decoration:none;font-weight:600;">Manage Locations →</a>
-        </div>
-        <div class="cards-grid">
-            <% unlinkedLocationItems.forEach(function(item) { %>
-                <div class="card" style="border-left:3px solid #f59e0b;">
-                    <div class="card-field">
-                        <span class="field-label">Item:</span>
-                        <span class="field-value"><%= item.itemName %></span>
-                    </div>
-                    <div class="card-field">
-                        <span class="field-label">Location:</span>
-                        <span class="field-value"><%= item.locationName %></span>
-                    </div>
-                    <% if (item.specificLocation) { %>
-                    <div class="card-field">
-                        <span class="field-label">Spot:</span>
-                        <span class="field-value"><%= item.specificLocation %></span>
-                    </div>
-                    <% } %>
-                    <div class="card-actions-row">
-                        <a href="/entry" class="card-action-btn" style="text-decoration:none;background:#3b82f6;color:white;border-color:#3b82f6;">+ Add to Inventory</a>
-                    </div>
+    <!-- KPI tiles -->
+    <section class="kpi-row" aria-label="At a glance">
+        <% if (lowStockAlertEnabled) { %>
+        <a href="#needToOrder" class="kpi">
+            <span class="kpi-label">Need to order</span>
+            <span class="kpi-value"><%= lowInventoryItems.length %></span>
+            <span class="kpi-sub"><%= lowOnOrder %> already on order</span>
+        </a>
+        <% } %>
+        <a href="#deliveries" class="kpi">
+            <span class="kpi-label">Arriving ≤ 7 days</span>
+            <span class="kpi-value"><%= deliveriesThisWeek %></span>
+            <span class="kpi-sub"><%= upcomingDeliveries.length %> open order<%= upcomingDeliveries.length === 1 ? '' : 's' %><% if (lateDeliveries) { %> · <span class="text-critical"><%= lateDeliveries %> late</span><% } %></span>
+        </a>
+        <a href="#recentOrders" class="kpi">
+            <span class="kpi-label">Orders (14 days)</span>
+            <span class="kpi-value"><%= recentOrders.length %></span>
+            <span class="kpi-sub"><%= openRecent %> still open</span>
+        </a>
+        <a href="/cycle-counts" class="kpi">
+            <span class="kpi-label">Cycle counts due</span>
+            <span class="kpi-value"><%= totalCycleCountsDue %></span>
+            <span class="kpi-sub">Open cycle counts →</span>
+        </a>
+        <a href="/cycle-counts#done" class="kpi">
+            <span class="kpi-label">Counted this week</span>
+            <span class="kpi-value"><%= countedThisWeek %></span>
+            <span class="kpi-sub">since <%= new Date(weekStart).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) %></span>
+        </a>
+    </section>
+
+    <div class="dash-grid">
+        <!-- Consumption chart -->
+        <section class="panel panel-wide" id="consumptionPanel"
+                 data-consumption="<%= encodeURIComponent(JSON.stringify(consumption)) %>">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Items consumed</h2>
+                    <p class="panel-sub"><span id="consumedTotal">0</span> units in the last <span id="consumedWindowLabel">30 days</span></p>
                 </div>
-            <% }); %>
-        </div>
-    </div>
-    <% } %>
-
-    <div class="card-wrapper cycle-count-wrapper" id="cycleCountCardWrapper">
-        <div class="card-header-controls">
-            <h2 class="card-title">Cycle Counts Due</h2>
-            <div class="controls-group">
-                <div class="display-limit-control">
-                    <label for="cycleCountLimit">Show:</label>
-                    <select id="cycleCountLimit">
-                        <option value="5">5 items</option>
-                        <option value="10" selected>10 items</option>
-                        <option value="15">15 items</option>
-                        <option value="20">20 items</option>
-                        <option value="all">All items</option>
-                    </select>
+                <div class="seg" role="group" aria-label="Time range">
+                    <% consumption.windows.forEach(w => { %>
+                        <button type="button" class="seg-btn<%= w === 30 ? ' active' : '' %>" data-window="<%= w %>"><%= w %>d</button>
+                    <% }); %>
                 </div>
             </div>
-        </div>
-        <div class="cards-grid" id="cycleCountCardsContainer">
-            <% if (cycleCountDueItems && cycleCountDueItems.length > 0) { %>
-                <% cycleCountDueItems.forEach((item, index) => { %>
-                    <div class="card cycle-count-card" data-index="<%= index %>" data-item-id="<%= item._id %>" data-current-qty="<%= item.currentquantity %>" data-item-catalog="<%= item.catalog || '' %>">
-                        <div class="card-field">
-                            <span class="field-label">Item:</span>
-                            <span class="field-value"><%= item.item %></span>
+            <div class="consumption-body">
+                <div class="chart-box">
+                    <canvas id="consumptionChart" aria-label="Units consumed per day" role="img"></canvas>
+                </div>
+                <div class="top-consumed">
+                    <h3 class="mini-title">Top items</h3>
+                    <ol id="topConsumedList" class="top-list"></ol>
+                </div>
+            </div>
+            <details class="chart-table">
+                <summary>View as table</summary>
+                <table class="mini-table">
+                    <thead><tr><th>Date</th><th>Units consumed</th></tr></thead>
+                    <tbody id="consumptionTableBody"></tbody>
+                </table>
+            </details>
+        </section>
+
+        <!-- Expected deliveries -->
+        <section class="panel" id="deliveries">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Expected deliveries</h2>
+                    <p class="panel-sub">Open orders by arrival date</p>
+                </div>
+                <a href="/orders/receive" class="panel-link">Receive →</a>
+            </div>
+            <ul class="list">
+                <% if (upcomingDeliveries.length === 0) { %>
+                    <li class="empty">Nothing on order</li>
+                <% } %>
+                <% upcomingDeliveries.forEach(d => {
+                    const tone = d.daysUntil < 0 ? 'critical' : d.daysUntil <= 2 ? 'good' : 'neutral';
+                    const dateVal = new Date(d.expectedDate);
+                    const isoVal = dateVal.getFullYear() + '-' + String(dateVal.getMonth() + 1).padStart(2, '0') + '-' + String(dateVal.getDate()).padStart(2, '0');
+                %>
+                    <li class="list-row delivery-row" data-order-id="<%= d._id %>">
+                        <div class="date-chip date-<%= tone %>">
+                            <span class="date-chip-day"><%= fmtShort(d.expectedDate) %></span>
+                            <span class="date-chip-rel"><%= relDay(d.daysUntil) %></span>
                         </div>
-                        <div class="card-field">
-                            <span class="field-label">Brand:</span>
-                            <span class="field-value"><%= item.brand || 'N/A' %></span>
+                        <div class="list-main">
+                            <span class="list-title"><%= d.orderNumber %></span>
+                            <span class="list-meta" title="<%= d.itemNames.join(', ') %>">
+                                <%= d.itemNames.slice(0, 2).join(', ') %><%= d.itemNames.length > 2 ? ' +' + (d.itemNames.length - 2) + ' more' : '' %> · <%= d.remainingUnits %> unit<%= d.remainingUnits === 1 ? '' : 's' %>
+                            </span>
                         </div>
-                        <div class="card-field">
-                            <span class="field-label">Catalog #:</span>
-                            <span class="field-value"><%= item.catalog || 'N/A' %></span>
+                        <div class="list-side">
+                            <% if (d.status === 'partial') { %><span class="badge badge-warning">Partial</span><% } %>
+                            <% if (d.isEstimate) { %><span class="est-tag" title="Estimated from order date + lead time">est.</span><% } %>
+                            <button type="button" class="icon-btn edit-delivery-btn" title="Set expected delivery date" aria-label="Set expected delivery date for <%= d.orderNumber %>">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            </button>
                         </div>
-                        <div class="card-field">
-                            <span class="field-label">Last Count:</span>
-                            <span class="field-value"><%= item.lastCycleCount ? new Date(item.lastCycleCount).toLocaleDateString() : 'Never' %></span>
+                        <form class="delivery-edit" hidden>
+                            <input type="date" value="<%= isoVal %>" aria-label="Expected delivery date">
+                            <button type="submit" class="dash-btn dash-btn-primary dash-btn-sm">Save</button>
+                            <% if (!d.isEstimate) { %><button type="button" class="dash-btn dash-btn-ghost dash-btn-sm delivery-clear">Clear</button><% } %>
+                            <button type="button" class="dash-btn dash-btn-ghost dash-btn-sm delivery-cancel">Cancel</button>
+                        </form>
+                    </li>
+                <% }); %>
+            </ul>
+        </section>
+
+        <!-- Need to order -->
+        <% if (lowStockAlertEnabled) { %>
+        <section class="panel" id="needToOrder">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Need to order</h2>
+                    <p class="panel-sub">At or below minimum</p>
+                </div>
+                <a href="/orders/new" class="panel-link">Shop →</a>
+            </div>
+            <ul class="list">
+                <% if (lowInventoryItems.length === 0) { %>
+                    <li class="empty">Everything is stocked</li>
+                <% } %>
+                <% lowInventoryItems.forEach(item => {
+                    const itemOrders = onOrderMap[item._id.toString()] || [];
+                    const isOnOrder = itemOrders.length > 0;
+                    const nextEta = isOnOrder ? itemOrders.map(o => o.expectedDate).filter(Boolean).sort((a, b) => new Date(a) - new Date(b))[0] : null;
+                    const pct = item.minimumquantity > 0 ? Math.min(100, Math.round(item.currentquantity / item.minimumquantity * 100)) : 0;
+                %>
+                    <li class="list-row low-row"
+                        data-item-id="<%= item._id %>"
+                        data-item-name="<%= item.item %>"
+                        data-item-brand="<%= item.brand || '' %>"
+                        data-item-catalog="<%= item.catalog || '' %>"
+                        data-item-quantity="<%= item.currentquantity %>"
+                        data-item-min="<%= item.minimumquantity %>"
+                        data-item-max="<%= item.maximumquantity || 0 %>"
+                        data-item-cost="<%= (item.cost || 0) %>">
+                        <div class="list-main">
+                            <span class="list-title"><%= item.item %></span>
+                            <span class="list-meta"><%= [item.brand, item.catalog].filter(Boolean).join(' · ') || '—' %></span>
+                            <span class="stock-bar" title="<%= item.currentquantity %> of minimum <%= item.minimumquantity %>"><span style="width:<%= pct %>%"></span></span>
                         </div>
-                        <div class="card-field">
-                            <span class="field-label">Days Since:</span>
-                            <span class="field-value"><%= item.daysSinceCount !== null ? item.daysSinceCount : 'N/A' %></span>
+                        <div class="list-side">
+                            <span class="qty"><strong class="text-critical"><%= item.currentquantity %></strong><span class="muted"> / <%= item.minimumquantity %></span></span>
+                            <% if (isOnOrder) { %>
+                                <button type="button" class="badge badge-info on-order-btn"
+                                        data-order-details="<%= encodeURIComponent(JSON.stringify(itemOrders)) %>"
+                                        title="View open orders for this item">
+                                    On order<%= nextEta ? ' · ' + fmtShort(nextEta) : '' %>
+                                </button>
+                            <% } else { %>
+                                <button type="button" class="icon-btn icon-btn-primary card-add-order-btn" title="Add to order cart" aria-label="Add <%= item.item %> to order cart">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                                </button>
+                            <% } %>
                         </div>
-                        <div class="card-field">
-                            <span class="field-label">Interval:</span>
-                            <span class="field-value"><%= item.cycleCountInterval || 90 %> days</span>
+                    </li>
+                <% }); %>
+            </ul>
+        </section>
+        <% } %>
+
+        <!-- Recent orders -->
+        <section class="panel" id="recentOrders">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Recent orders</h2>
+                    <p class="panel-sub">Past 14 days</p>
+                </div>
+                <a href="/orders/open" class="panel-link">All orders →</a>
+            </div>
+            <ul class="list">
+                <% if (recentOrders.length === 0) { %>
+                    <li class="empty">No orders in the past 14 days</li>
+                <% } %>
+                <% recentOrders.forEach(order => { %>
+                    <li class="list-row list-row-click order-row" tabindex="0" role="button"
+                        data-order-number="<%= order.orderNumber %>"
+                        data-order-items="<%= encodeURIComponent(JSON.stringify(order.items)) %>">
+                        <div class="list-main">
+                            <span class="list-title"><%= order.orderNumber %></span>
+                            <span class="list-meta"><%= fmtShort(order.createdAt) %> · <%= order.items.length %> item<%= order.items.length === 1 ? '' : 's' %> · <%= (order.createdBy || '').split('@')[0] %></span>
                         </div>
-                        <div class="card-field">
-                            <span class="field-label">Status:</span>
-                            <span class="field-value">
-                                <% if (!item.lastCycleCount) { %>
-                                    <span class="status-badge status-overdue">Never Counted</span>
-                                <% } else if (item.daysOverdue > 0) { %>
-                                    <span class="status-badge status-overdue">Overdue by <%= item.daysOverdue %> days</span>
+                        <div class="list-side">
+                            <% if (order.status === 'open') { %>
+                                <span class="badge badge-info">Open</span>
+                            <% } else if (order.status === 'partial') { %>
+                                <span class="badge badge-warning">Partial</span>
+                            <% } else { %>
+                                <span class="badge badge-good">Received</span>
+                            <% } %>
+                        </div>
+                    </li>
+                <% }); %>
+            </ul>
+        </section>
+
+        <!-- Cycle counts -->
+        <section class="panel" id="cycleCounts">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">Cycle counts</h2>
+                    <p class="panel-sub"><%= totalCycleCountsDue %> due · <%= countedThisWeek %> done this week</p>
+                </div>
+                <a href="/cycle-counts" class="panel-link">Open →</a>
+            </div>
+            <% const weekTotal = countedThisWeek + totalCycleCountsDue; const weekPct = weekTotal ? Math.round(countedThisWeek / weekTotal * 100) : 100; %>
+            <div class="progress" title="<%= countedThisWeek %> counted this week, <%= totalCycleCountsDue %> still due">
+                <span style="width:<%= weekPct %>%"></span>
+            </div>
+            <h3 class="mini-title">Due next</h3>
+            <ul class="list list-compact" id="cycleDueList">
+                <% if (cycleCountDueItems.length === 0) { %>
+                    <li class="empty">No cycle counts due</li>
+                <% } %>
+                <% cycleCountDueItems.forEach(item => { %>
+                    <li class="list-row cycle-row" data-item-id="<%= item._id %>" data-item-name="<%= item.item %>"
+                        data-current-qty="<%= item.currentquantity %>" data-item-catalog="<%= item.catalog || '' %>">
+                        <div class="list-main">
+                            <span class="list-title"><%= item.item %></span>
+                            <span class="list-meta">
+                                <% if (item.cycleStatus === 'never') { %>
+                                    <span class="badge badge-critical">Never counted</span>
+                                <% } else if (item.cycleStatus === 'overdue') { %>
+                                    <span class="badge badge-critical"><%= item.daysOverdue %>d overdue</span>
                                 <% } else { %>
-                                    <span class="status-badge status-due">Due Now</span>
+                                    <span class="badge badge-warning">Due today</span>
                                 <% } %>
                             </span>
                         </div>
-                        <div class="card-action">
-                            <button class="cycle-count-update-btn">
-                                Update Count
-                            </button>
+                        <div class="list-side">
+                            <button type="button" class="dash-btn dash-btn-ghost dash-btn-sm cycle-count-update-btn">Count</button>
                         </div>
-                    </div>
+                    </li>
                 <% }); %>
-            <% } else { %>
-                <div class="empty-state">No cycle counts due</div>
+            </ul>
+            <% if (totalCycleCountsDue > cycleCountDueItems.length) { %>
+                <a href="/cycle-counts" class="panel-more">+<%= totalCycleCountsDue - cycleCountDueItems.length %> more due</a>
             <% } %>
-        </div>
+            <h3 class="mini-title">Done this week</h3>
+            <ul class="list list-compact">
+                <% if (cycleCountsThisWeek.length === 0) { %>
+                    <li class="empty">None yet this week</li>
+                <% } %>
+                <% cycleCountsThisWeek.forEach(r => { const v = r.quantityChange || 0; %>
+                    <li class="list-row">
+                        <div class="list-main">
+                            <span class="list-title"><%= r.itemName %></span>
+                            <span class="list-meta"><%= new Date(r.changeDate).toLocaleDateString('en-US', { weekday: 'short' }) %> · <%= (r.userId || '').split('@')[0] %></span>
+                        </div>
+                        <div class="list-side">
+                            <span class="variance <%= v === 0 ? '' : v > 0 ? 'variance-up' : 'variance-down' %>"><%= v === 0 ? 'Match' : (v > 0 ? '+' : '') + v %></span>
+                        </div>
+                    </li>
+                <% }); %>
+            </ul>
+        </section>
     </div>
 </div>
 
 <!-- On Order Details Modal -->
 <div id="onOrderDetailsModal" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-content" style="max-width: 640px;">
         <span class="close on-order-modal-close">&times;</span>
-        <h2>Order Details for <span id="onOrderItemName"></span></h2>
+        <h2>Open orders for <span id="onOrderItemName"></span></h2>
         <div class="modal-body">
             <table class="order-items-table">
                 <thead>
@@ -279,9 +347,9 @@
                         <th>Order #</th>
                         <th>Status</th>
                         <th>Ordered</th>
-                        <th>Received</th>
                         <th>Remaining</th>
-                        <th>Date</th>
+                        <th>Placed</th>
+                        <th>Expected</th>
                     </tr>
                 </thead>
                 <tbody id="onOrderDetailsBody">
@@ -317,7 +385,7 @@
 <!-- Cycle Count Update Modal -->
 <div id="cycleCountModal" class="modal">
     <div class="modal-content">
-        <span class="close">&times;</span>
+        <span class="close cycle-modal-close">&times;</span>
         <h2>Update Cycle Count</h2>
         <div class="modal-body">
             <p><strong>Item:</strong> <span id="modalItemName"></span></p>
@@ -327,8 +395,8 @@
                 <input type="number" id="currentQty" readonly>
             </div>
             <div class="form-group">
-                <label for="updatedQty">Updated Quantity:</label>
-                <input type="number" id="updatedQty" placeholder="Enter counted quantity" required>
+                <label for="updatedQty">Counted Quantity:</label>
+                <input type="number" id="updatedQty" min="0" step="1" placeholder="Enter counted quantity" required>
             </div>
             <div class="modal-buttons">
                 <button class="btn-submit">Submit</button>
