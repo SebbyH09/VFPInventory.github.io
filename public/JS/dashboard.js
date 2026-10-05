@@ -1,180 +1,212 @@
 // Dashboard JavaScript
 // Extracted from inline script for CSP compliance
 
-let currentItemId = null;
+let currentCycleRow = null;
+let consumptionChart = null;
 
-async function updateCycleCountDisplay() {
-    const limit = document.getElementById('cycleCountLimit').value;
-    const currentCards = document.querySelectorAll('.cycle-count-card');
-    
-    console.log('Limit changed to:', limit);
-    console.log('Current cards:', currentCards.length);
-    
-    if (limit === 'all') {
-        // Fetch all remaining items
-        try {
-            const response = await fetch(`/cycle-counts-next?limit=1000&skip=${currentCards.length}`);
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success && result.items && result.items.length > 0) {
-                    const container = document.getElementById('cycleCountCardsContainer');
-                    result.items.forEach((item, index) => {
-                        const newCard = createCycleCountCard(item, currentCards.length + index);
-                        container.appendChild(newCard);
-                        
-                        const updateBtn = newCard.querySelector('.cycle-count-update-btn');
-                        updateBtn.addEventListener('click', function() {
-                            const card = this.closest('.card');
-                            const itemId = card.getAttribute('data-item-id');
-                            const itemName = card.querySelector('.field-value').textContent;
-                            const currentQty = card.getAttribute('data-current-qty');
-                            const catalog = card.getAttribute('data-item-catalog') || '';
-                            openCycleCountModal(itemId, itemName, currentQty, catalog);
-                        });
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching all items:', error);
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+function fmtDate(value) {
+    if (!value) return '—';
+    return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'block'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ---------- Consumption chart ----------
+
+function initConsumption() {
+    const panel = document.getElementById('consumptionPanel');
+    if (!panel) return;
+
+    let data;
+    try {
+        data = JSON.parse(decodeURIComponent(panel.getAttribute('data-consumption')));
+    } catch (e) {
+        return;
+    }
+    if (!data || !data.days) return;
+
+    const render = windowDays => {
+        const days = data.days.slice(-windowDays);
+        const total = days.reduce((s, d) => s + d.total, 0);
+        document.getElementById('consumedTotal').textContent = total.toLocaleString();
+        document.getElementById('consumedWindowLabel').textContent = windowDays + ' days';
+
+        // Top items
+        const list = document.getElementById('topConsumedList');
+        const top = (data.top && data.top[windowDays]) || [];
+        list.innerHTML = top.length
+            ? top.map(t => `<li><span class="top-name" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</span><span class="top-val">${t.total.toLocaleString()}</span></li>`).join('')
+            : '<li class="empty">No consumption logged</li>';
+
+        // Table view
+        document.getElementById('consumptionTableBody').innerHTML = days.slice().reverse()
+            .map(d => `<tr><td>${labelFor(d.date, true)}</td><td>${d.total}</td></tr>`).join('');
+
+        // Chart
+        if (typeof Chart === 'undefined') return;
+        const labels = days.map(d => labelFor(d.date, false));
+        const values = days.map(d => d.total);
+        if (consumptionChart) {
+            consumptionChart.data.labels = labels;
+            consumptionChart.data.datasets[0].data = values;
+            consumptionChart.$fullDates = days.map(d => labelFor(d.date, true));
+            consumptionChart.update();
+            return;
         }
-    } else {
-        // Fetch items to reach the new limit
-        const limitNum = parseInt(limit);
-        const needToFetch = limitNum - currentCards.length;
-        
-        if (needToFetch > 0) {
-            try {
-                const response = await fetch(`/cycle-counts-next?limit=${needToFetch}&skip=${currentCards.length}`);
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success && result.items && result.items.length > 0) {
-                        const container = document.getElementById('cycleCountCardsContainer');
-                        result.items.forEach((item, index) => {
-                            const newCard = createCycleCountCard(item, currentCards.length + index);
-                            container.appendChild(newCard);
-                            
-                            const updateBtn = newCard.querySelector('.cycle-count-update-btn');
-                            updateBtn.addEventListener('click', function() {
-                                const card = this.closest('.card');
-                                const itemId = card.getAttribute('data-item-id');
-                                const itemName = card.querySelector('.field-value').textContent;
-                                const currentQty = card.getAttribute('data-current-qty');
-                                const catalog = card.getAttribute('data-item-catalog') || '';
-                                openCycleCountModal(itemId, itemName, currentQty, catalog);
-                            });
-                        });
+        const ctx = document.getElementById('consumptionChart');
+        consumptionChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Units consumed',
+                    data: values,
+                    backgroundColor: '#3b82f6',
+                    hoverBackgroundColor: '#1d4ed8',
+                    borderRadius: { topLeft: 4, topRight: 4 },
+                    borderSkipped: 'bottom',
+                    maxBarThickness: 18,
+                    categoryPercentage: 0.85,
+                    barPercentage: 0.9
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 250 },
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        displayColors: false,
+                        callbacks: {
+                            title: items => consumptionChart.$fullDates[items[0].dataIndex],
+                            label: item => item.parsed.y + ' unit' + (item.parsed.y === 1 ? '' : 's')
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        border: { color: '#e5e7eb' },
+                        ticks: { color: '#6b7280', font: { size: 11 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f3f5' },
+                        border: { display: false },
+                        ticks: { color: '#6b7280', font: { size: 11 }, precision: 0, maxTicksLimit: 5 }
                     }
                 }
-            } catch (error) {
-                console.error('Error fetching items:', error);
             }
-        }
-    }
+        });
+        consumptionChart.$fullDates = days.map(d => labelFor(d.date, true));
+    };
+
+    panel.querySelectorAll('.seg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            panel.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+            render(parseInt(btn.getAttribute('data-window'), 10));
+        });
+    });
+
+    const active = panel.querySelector('.seg-btn.active');
+    render(active ? parseInt(active.getAttribute('data-window'), 10) : 30);
 }
 
-function openCycleCountModal(itemId, itemName, currentQty, catalog) {
-    currentItemId = itemId;
-    document.getElementById('modalItemName').textContent = itemName;
-    document.getElementById('modalCatalogNumber').textContent = catalog || 'N/A';
-    document.getElementById('currentQty').value = currentQty;
-    document.getElementById('updatedQty').value = '';
-    document.getElementById('cycleCountModal').style.display = 'block';
+// "YYYY-MM-DD" -> "Oct 5" / "Mon, Oct 5"
+function labelFor(key, long) {
+    const [y, m, d] = key.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString('en-US', long
+        ? { weekday: 'short', month: 'short', day: 'numeric' }
+        : { month: 'short', day: 'numeric' });
 }
 
-function closeCycleCountModal() {
-    document.getElementById('cycleCountModal').style.display = 'none';
-    currentItemId = null;
-}
+// ---------- Modals ----------
 
 function openOrderItemsModal(orderNumber, items) {
     document.getElementById('orderItemsModalNumber').textContent = orderNumber;
     const tbody = document.getElementById('orderItemsModalBody');
-    tbody.innerHTML = '';
-
-    items.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+    tbody.innerHTML = items.map(item => `
+        <tr>
             <td>${escapeHtml(item.itemName)}</td>
             <td>${escapeHtml(item.brand || 'N/A')}</td>
             <td>${item.quantityOrdered}</td>
             <td>${item.quantityReceived}</td>
-            <td>$${item.cost ? item.cost.toFixed(2) : '0.00'}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    document.getElementById('orderItemsModal').style.display = 'block';
-}
-
-function closeOrderItemsModal() {
-    document.getElementById('orderItemsModal').style.display = 'none';
+            <td>$${item.cost ? Number(item.cost).toFixed(2) : '0.00'}</td>
+        </tr>`).join('');
+    openModal('orderItemsModal');
 }
 
 function openOnOrderDetailsModal(itemName, orderDetails) {
     document.getElementById('onOrderItemName').textContent = itemName;
     const tbody = document.getElementById('onOrderDetailsBody');
-    tbody.innerHTML = '';
-
-    orderDetails.forEach(detail => {
-        const tr = document.createElement('tr');
-        const statusClass = detail.orderStatus === 'open' ? 'status-open' :
-                            detail.orderStatus === 'partial' ? 'status-partial' : 'status-received';
+    tbody.innerHTML = orderDetails.map(detail => {
+        const statusClass = detail.orderStatus === 'partial' ? 'badge-warning' : 'badge-info';
         const statusLabel = detail.orderStatus.charAt(0).toUpperCase() + detail.orderStatus.slice(1);
-        tr.innerHTML = `
+        return `
+        <tr>
             <td>${escapeHtml(detail.orderNumber)}</td>
-            <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            <td><span class="badge ${statusClass}">${statusLabel}</span></td>
             <td>${detail.quantityOrdered}</td>
-            <td>${detail.quantityReceived}</td>
             <td>${detail.remaining}</td>
-            <td>${new Date(detail.createdAt).toLocaleDateString()}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    document.getElementById('onOrderDetailsModal').style.display = 'block';
+            <td>${fmtDate(detail.createdAt)}</td>
+            <td>${fmtDate(detail.expectedDate)}${detail.isEstimate ? ' <span class="est-tag">est.</span>' : ''}</td>
+        </tr>`;
+    }).join('');
+    openModal('onOrderDetailsModal');
 }
 
-function closeOnOrderDetailsModal() {
-    document.getElementById('onOrderDetailsModal').style.display = 'none';
+function openCycleCountModal(row) {
+    currentCycleRow = row;
+    document.getElementById('modalItemName').textContent = row.getAttribute('data-item-name');
+    document.getElementById('modalCatalogNumber').textContent = row.getAttribute('data-item-catalog') || 'N/A';
+    document.getElementById('currentQty').value = row.getAttribute('data-current-qty');
+    document.getElementById('updatedQty').value = '';
+    openModal('cycleCountModal');
+    document.getElementById('updatedQty').focus();
+}
+
+function closeCycleCountModal() {
+    closeModal('cycleCountModal');
+    currentCycleRow = null;
 }
 
 async function submitCycleCount() {
-    const updatedQty = document.getElementById('updatedQty').value;
-
-    if (!updatedQty || updatedQty === '') {
-        alert('Please enter an updated quantity');
+    const raw = document.getElementById('updatedQty').value;
+    const qty = Number(raw);
+    if (raw === '' || !Number.isInteger(qty) || qty < 0) {
+        alert('Please enter a whole number of 0 or more');
         return;
     }
+    if (!currentCycleRow) return;
 
     try {
         const response = await fetch('/update-cycle-count', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                itemId: currentItemId,
-                newQuantity: parseInt(updatedQty),
+                itemId: currentCycleRow.getAttribute('data-item-id'),
+                newQuantity: qty,
                 date: new Date().toISOString()
             })
         });
 
-
         if (response.ok) {
-            
-            // Remove the card from the DOM
-            const card = document.querySelector(`.cycle-count-card[data-item-id="${currentItemId}"]`);
-            if (card) {
-                card.remove();
-            }
-
             closeCycleCountModal();
-
-            await refreshCycleCountCards();
-            alert('Cycle count updated successfully!');
-            
+            // Reload so the counts, progress, and "done this week" list stay in sync
+            window.location.reload();
         } else {
-            const error = await response.json();
+            const error = await response.json().catch(() => ({}));
             alert('Failed to update cycle count: ' + (error.message || 'Unknown error'));
         }
     } catch (error) {
@@ -183,257 +215,136 @@ async function submitCycleCount() {
     }
 }
 
-// Initialize display and restore saved sizes on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const cycleCountLimit = document.getElementById('cycleCountLimit');
-    if (cycleCountLimit) {
-        cycleCountLimit.addEventListener('change', updateCycleCountDisplay);
-    }
+// ---------- Expected delivery editing ----------
 
-    // Set up event listeners for cycle count modal buttons
-    const closeButtons = document.querySelectorAll('#cycleCountModal .close');
-    closeButtons.forEach(button => {
-        button.addEventListener('click', closeCycleCountModal);
-    });
+function initDeliveryEditing() {
+    document.querySelectorAll('.delivery-row').forEach(row => {
+        const form = row.querySelector('.delivery-edit');
+        const input = form.querySelector('input[type="date"]');
+        const original = input.value;
 
-    // Set up event listeners for order items modal close button
-    const orderModalCloseButtons = document.querySelectorAll('.order-modal-close');
-    orderModalCloseButtons.forEach(button => {
-        button.addEventListener('click', closeOrderItemsModal);
-    });
-
-    // Set up event listeners for on-order details modal close button
-    const onOrderModalCloseButtons = document.querySelectorAll('.on-order-modal-close');
-    onOrderModalCloseButtons.forEach(button => {
-        button.addEventListener('click', closeOnOrderDetailsModal);
-    });
-
-    // Set up clickable on-order inventory cards
-    const onOrderCards = document.querySelectorAll('.on-order-card.clickable-card');
-    onOrderCards.forEach(card => {
-        card.addEventListener('click', function() {
-            const itemName = this.getAttribute('data-item-name');
-            const detailsJson = decodeURIComponent(this.getAttribute('data-order-details'));
-            const details = JSON.parse(detailsJson);
-            openOnOrderDetailsModal(itemName, details);
+        row.querySelector('.edit-delivery-btn').addEventListener('click', () => {
+            form.hidden = !form.hidden;
+            if (!form.hidden) input.focus();
         });
-    });
-
-    const submitButton = document.querySelector('.btn-submit');
-    if (submitButton) {
-        submitButton.addEventListener('click', submitCycleCount);
-    }
-
-    const cancelButton = document.querySelector('.btn-cancel');
-    if (cancelButton) {
-        cancelButton.addEventListener('click', closeCycleCountModal);
-    }
-
-    // Set up event listeners for cycle count update buttons
-    const updateButtons = document.querySelectorAll('.cycle-count-update-btn');
-    updateButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const card = this.closest('.card');
-            const itemId = card.getAttribute('data-item-id');
-            const itemName = card.querySelector('.field-value').textContent;
-            const currentQty = card.getAttribute('data-current-qty');
-            const catalog = card.getAttribute('data-item-catalog') || '';
-            openCycleCountModal(itemId, itemName, currentQty, catalog);
+        form.querySelector('.delivery-cancel').addEventListener('click', () => {
+            input.value = original;
+            form.hidden = true;
         });
-    });
-
-    // Close modals when clicking outside of them
-    window.onclick = function(event) {
-        const cycleModal = document.getElementById('cycleCountModal');
-        if (event.target == cycleModal) {
-            closeCycleCountModal();
+        const clearBtn = form.querySelector('.delivery-clear');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => saveExpectedDelivery(row, ''));
         }
-        const orderModal = document.getElementById('orderItemsModal');
-        if (event.target == orderModal) {
-            closeOrderItemsModal();
-        }
-        const onOrderModal = document.getElementById('onOrderDetailsModal');
-        if (event.target == onOrderModal) {
-            closeOnOrderDetailsModal();
-        }
-    };
-
-    // Set up clickable order cards to open items modal
-    const orderCards = document.querySelectorAll('.order-card.clickable-card');
-    orderCards.forEach(card => {
-        card.addEventListener('click', function() {
-            const orderNumber = this.getAttribute('data-order-number');
-            const itemsJson = decodeURIComponent(this.getAttribute('data-order-items'));
-            const items = JSON.parse(itemsJson);
-            openOrderItemsModal(orderNumber, items);
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            if (!input.value) return;
+            saveExpectedDelivery(row, input.value);
         });
     });
+}
 
-    // Set up "Add to Order Cart" buttons on Need to Order cards
-    document.querySelectorAll('.card-add-order-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const card = this.closest('.card');
-            const item = getCardItemData(card);
-            if (window.CartManager) {
-                CartManager.addToOrderCart(item);
-                CartManager.showToast(item.name + ' added to order cart');
-                this.textContent = 'Added';
-                this.classList.add('added');
-                setTimeout(() => {
-                    this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Order';
-                    this.classList.remove('added');
-                }, 1500);
-            }
+async function saveExpectedDelivery(row, value) {
+    try {
+        const response = await fetch(`/orders/${row.getAttribute('data-order-id')}/expected-delivery`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ expectedDeliveryDate: value })
         });
-    });
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const error = await response.json().catch(() => ({}));
+            alert(error.message || 'Failed to update expected delivery');
+        }
+    } catch (error) {
+        console.error('Error updating expected delivery:', error);
+        alert('Error updating expected delivery');
+    }
+}
 
-    updateCycleCountDisplay();
-});
+// ---------- Need to order ----------
 
-function getCardItemData(card) {
+function getRowItemData(row) {
     return {
-        itemId: card.getAttribute('data-item-id'),
-        name: card.getAttribute('data-item-name'),
-        brand: card.getAttribute('data-item-brand') || '',
-        catalog: card.getAttribute('data-item-catalog') || '',
-        currentQty: parseInt(card.getAttribute('data-item-quantity')) || 0,
-        minQty: parseInt(card.getAttribute('data-item-min')) || 0,
-        maxQty: parseInt(card.getAttribute('data-item-max')) || 0,
-        cost: parseFloat(card.getAttribute('data-item-cost')) || 0,
+        itemId: row.getAttribute('data-item-id'),
+        name: row.getAttribute('data-item-name'),
+        brand: row.getAttribute('data-item-brand') || '',
+        catalog: row.getAttribute('data-item-catalog') || '',
+        currentQty: parseInt(row.getAttribute('data-item-quantity')) || 0,
+        minQty: parseInt(row.getAttribute('data-item-min')) || 0,
+        maxQty: parseInt(row.getAttribute('data-item-max')) || 0,
+        cost: parseFloat(row.getAttribute('data-item-cost')) || 0,
         quantity: 1
     };
 }
 
+// ---------- Init ----------
 
-async function refreshCycleCountCards() {
-    console.log('=== refreshCycleCountCards CALLED ===');
-    
-    const container = document.getElementById('cycleCountCardsContainer');
-    const limit = document.getElementById('cycleCountLimit').value;
-    const currentCards = document.querySelectorAll('.cycle-count-card');
-    
-    console.log('Current cards in DOM:', currentCards.length);
-    console.log('Selected limit:', limit);
-    
-    // If no cards left, show empty state
-    if (currentCards.length === 0) {
-        console.log('No cards left - showing empty state');
-        container.innerHTML = '<div class="empty-state">No cycle counts due</div>';
-        return;
-    }
-    
-    // If we're below the limit, fetch one more item
-    if (limit !== 'all') {
-        const limitNum = parseInt(limit);
-        console.log('Need', limitNum, 'cards, have', currentCards.length);
-        
-        if (currentCards.length < limitNum) {
-            console.log('Fetching next item...');
-            try {
-                const response = await fetch(`/cycle-counts-next?limit=1&skip=${currentCards.length}`);
-                console.log('Response status:', response.status);
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Result:', result);
-                    
-                    if (result.success && result.items && result.items.length > 0) {
-                        const nextItem = result.items[0];
-                        const newCard = createCycleCountCard(nextItem, currentCards.length);
-                        container.appendChild(newCard);
-                        
-                        // Attach event listener
-                        const updateBtn = newCard.querySelector('.cycle-count-update-btn');
-                        updateBtn.addEventListener('click', function() {
-                            const card = this.closest('.card');
-                            const itemId = card.getAttribute('data-item-id');
-                            const itemName = card.querySelector('.field-value').textContent;
-                            const currentQty = card.getAttribute('data-current-qty');
-                            const catalog = card.getAttribute('data-item-catalog') || '';
-                            openCycleCountModal(itemId, itemName, currentQty, catalog);
-                        });
+document.addEventListener('DOMContentLoaded', function() {
+    initConsumption();
+    initDeliveryEditing();
 
-                        console.log('Successfully added new card');
-                    } else {
-                        console.log('No more items available');
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching next item:', error);
+    // Recent order rows -> items modal
+    document.querySelectorAll('.order-row').forEach(row => {
+        const open = () => openOrderItemsModal(
+            row.getAttribute('data-order-number'),
+            JSON.parse(decodeURIComponent(row.getAttribute('data-order-items')))
+        );
+        row.addEventListener('click', open);
+        row.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+        });
+    });
+
+    // "On order" chips -> order details modal
+    document.querySelectorAll('.on-order-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const row = btn.closest('.low-row');
+            openOnOrderDetailsModal(
+                row.getAttribute('data-item-name'),
+                JSON.parse(decodeURIComponent(btn.getAttribute('data-order-details')))
+            );
+        });
+    });
+
+    // Add to order cart
+    document.querySelectorAll('.card-add-order-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const item = getRowItemData(this.closest('.low-row'));
+            if (window.CartManager) {
+                CartManager.addToOrderCart(item);
+                CartManager.showToast(item.name + ' added to order cart');
+                this.classList.add('added');
+                setTimeout(() => this.classList.remove('added'), 1500);
             }
-        } else {
-            console.log('Already have enough cards');
-        }
-    }
-    
-    console.log('=== refreshCycleCountCards COMPLETE ===');
-}
+        });
+    });
 
-function createCycleCountCard(item, index) {
-    const card = document.createElement('div');
-    card.className = 'card cycle-count-card';
-    card.setAttribute('data-index', index);
-    card.setAttribute('data-item-id', item._id);
-    card.setAttribute('data-current-qty', item.currentquantity);
-    card.setAttribute('data-item-catalog', item.catalog || '');
+    // Cycle count buttons
+    document.querySelectorAll('.cycle-count-update-btn').forEach(btn => {
+        btn.addEventListener('click', () => openCycleCountModal(btn.closest('.cycle-row')));
+    });
 
-    const lastCount = item.lastCycleCount
-        ? new Date(item.lastCycleCount).toLocaleDateString()
-        : 'Never';
+    document.querySelector('.cycle-modal-close').addEventListener('click', closeCycleCountModal);
+    document.querySelector('#cycleCountModal .btn-cancel').addEventListener('click', closeCycleCountModal);
+    document.querySelector('#cycleCountModal .btn-submit').addEventListener('click', submitCycleCount);
+    document.getElementById('updatedQty').addEventListener('keydown', e => {
+        if (e.key === 'Enter') submitCycleCount();
+    });
+    document.querySelector('.order-modal-close').addEventListener('click', () => closeModal('orderItemsModal'));
+    document.querySelector('.on-order-modal-close').addEventListener('click', () => closeModal('onOrderDetailsModal'));
 
-    const statusBadge = getStatusBadge(item);
-
-    card.innerHTML = `
-        <div class="card-field">
-            <span class="field-label">Item:</span>
-            <span class="field-value">${escapeHtml(item.item)}</span>
-        </div>
-        <div class="card-field">
-            <span class="field-label">Brand:</span>
-            <span class="field-value">${escapeHtml(item.brand || 'N/A')}</span>
-        </div>
-        <div class="card-field">
-            <span class="field-label">Catalog #:</span>
-            <span class="field-value">${escapeHtml(item.catalog || 'N/A')}</span>
-        </div>
-        <div class="card-field">
-            <span class="field-label">Last Count:</span>
-            <span class="field-value">${lastCount}</span>
-        </div>
-        <div class="card-field">
-            <span class="field-label">Days Since:</span>
-            <span class="field-value">${item.daysSinceCount !== null ? item.daysSinceCount : 'N/A'}</span>
-        </div>
-        <div class="card-field">
-            <span class="field-label">Interval:</span>
-            <span class="field-value">${item.cycleCountInterval || 90} days</span>
-        </div>
-        <div class="card-field">
-            <span class="field-label">Status:</span>
-            <span class="field-value">${statusBadge}</span>
-        </div>
-        <div class="card-action">
-            <button class="cycle-count-update-btn">Update Count</button>
-        </div>
-    `;
-    
-    return card;
-}
-
-function getStatusBadge(item) {
-    if (!item.lastCycleCount) {
-        return '<span class="status-badge status-overdue">Never Counted</span>';
-    } else if (item.daysOverdue > 0) {
-        return `<span class="status-badge status-overdue">Overdue by ${item.daysOverdue} days</span>`;
-    } else {
-        return '<span class="status-badge status-due">Due Now</span>';
-    }
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+    // Close modals when clicking the backdrop or pressing Escape
+    window.addEventListener('click', event => {
+        if (event.target.id === 'cycleCountModal') closeCycleCountModal();
+        if (event.target.id === 'orderItemsModal') closeModal('orderItemsModal');
+        if (event.target.id === 'onOrderDetailsModal') closeModal('onOrderDetailsModal');
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        closeCycleCountModal();
+        closeModal('orderItemsModal');
+        closeModal('onOrderDetailsModal');
+    });
+});

@@ -1,0 +1,173 @@
+<head>
+    <title>Cycle Counts</title>
+    <link rel="stylesheet" href="/dashboardstyle.css">
+    <link rel="stylesheet" href="/cyclecounts.css">
+    <script defer src="/cycleCounts.js"></script>
+</head>
+<%
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Never';
+    const tabCounts = { due: stats.due, upcoming: stats.upcoming, all: stats.total };
+    const countedIds = new Set(weekCounts.map(r => r.itemId.toString()));
+%>
+
+<div class="dash cc">
+    <header class="dash-header">
+        <div>
+            <h1 class="dash-title">Cycle Counts</h1>
+            <p class="dash-subtitle">Count what's on the shelf and record it — the system quantity is updated when you save.</p>
+        </div>
+        <div class="dash-header-actions">
+            <a href="/history" class="dash-btn dash-btn-ghost">History log</a>
+        </div>
+    </header>
+
+    <% if (error) { %>
+        <div class="dash-error"><%= error %></div>
+    <% } %>
+
+    <section class="kpi-row" aria-label="Cycle count summary">
+        <div class="kpi kpi-static">
+            <span class="kpi-label">Due now</span>
+            <span class="kpi-value" id="statDue"><%= stats.due %></span>
+            <span class="kpi-sub"><%= stats.overdue %> overdue · <%= stats.never %> never counted</span>
+        </div>
+        <div class="kpi kpi-static">
+            <span class="kpi-label">Coming up</span>
+            <span class="kpi-value"><%= stats.upcoming %></span>
+            <span class="kpi-sub">due in the next <%= upcomingWindowDays %> days</span>
+        </div>
+        <div class="kpi kpi-static">
+            <span class="kpi-label">Counted this week</span>
+            <span class="kpi-value" id="statWeek"><%= stats.countedThisWeek %></span>
+            <span class="kpi-sub">since <%= new Date(weekStart).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) %></span>
+        </div>
+        <div class="kpi kpi-static">
+            <span class="kpi-label">Up to date</span>
+            <span class="kpi-value" id="statCoverage"><%= stats.total ? Math.round((stats.total - stats.due) / stats.total * 100) : 100 %>%</span>
+            <span class="kpi-sub">of <span id="statTotal"><%= stats.total %></span> active items</span>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="cc-toolbar">
+            <div class="seg" role="tablist" aria-label="Which items">
+                <% [['due', 'Due'], ['upcoming', 'Coming up'], ['all', 'All items']].forEach(([key, label], i) => { %>
+                    <button type="button" class="seg-btn cc-tab<%= i === 0 ? ' active' : '' %>" data-tab="<%= key %>" role="tab" aria-selected="<%= i === 0 %>">
+                        <%= label %> <span class="cc-tab-count" data-count-for="<%= key %>"><%= tabCounts[key] %></span>
+                    </button>
+                <% }); %>
+            </div>
+            <div class="cc-filters">
+                <input type="search" id="ccSearch" placeholder="Search item, brand, catalog…" aria-label="Search items">
+                <% if (locations.length > 0) { %>
+                <select id="ccLocation" aria-label="Filter by location">
+                    <option value="">All locations</option>
+                    <% locations.forEach(loc => { %>
+                        <option value="<%= loc %>"><%= loc %></option>
+                    <% }); %>
+                </select>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="cc-table-wrap">
+            <table class="cc-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Location</th>
+                        <th>Last counted</th>
+                        <th>Status</th>
+                        <th class="num">System qty</th>
+                        <th>Counted qty</th>
+                    </tr>
+                </thead>
+                <tbody id="ccBody">
+                    <% items.forEach(item => {
+                        const search = [item.item, item.brand, item.catalog, item.vendor].filter(Boolean).join(' ').toLowerCase();
+                    %>
+                    <tr class="cc-row" data-item-id="<%= item._id %>"
+                        data-status="<%= item.cycleStatus %>"
+                        data-due="<%= item.isDue ? '1' : '0' %>"
+                        data-week="<%= countedIds.has(item._id.toString()) ? '1' : '0' %>"
+                        data-search="<%= search %>"
+                        data-locations="<%= JSON.stringify(item.locations) %>"
+                        data-current-qty="<%= item.currentquantity %>">
+                        <td data-label="Item">
+                            <div>
+                                <span class="cc-item"><%= item.item %></span>
+                                <span class="cc-sub"><%= [item.brand, item.catalog].filter(Boolean).join(' · ') || '—' %></span>
+                            </div>
+                        </td>
+                        <td data-label="Location"><%= item.locations.join(', ') || '—' %></td>
+                        <td data-label="Last counted">
+                            <div>
+                                <span class="cc-last"><%= fmtDate(item.lastCycleCount) %></span>
+                                <span class="cc-sub">every <%= item.cycleCountInterval %> days</span>
+                            </div>
+                        </td>
+                        <td data-label="Status" class="cc-status">
+                            <% if (item.cycleStatus === 'never') { %>
+                                <span class="badge badge-critical">Never counted</span>
+                            <% } else if (item.cycleStatus === 'overdue') { %>
+                                <span class="badge badge-critical"><%= item.daysOverdue %>d overdue</span>
+                            <% } else if (item.cycleStatus === 'due') { %>
+                                <span class="badge badge-warning">Due today</span>
+                            <% } else if (item.cycleStatus === 'upcoming') { %>
+                                <span class="badge badge-info">Due in <%= item.dueInDays %>d</span>
+                            <% } else { %>
+                                <span class="badge badge-neutral">OK · <%= item.dueInDays %>d</span>
+                            <% } %>
+                        </td>
+                        <td data-label="System qty" class="num cc-system"><%= item.currentquantity %></td>
+                        <td data-label="Counted qty">
+                            <form class="cc-count-form">
+                                <input type="number" class="cc-input" min="0" step="1" inputmode="numeric" placeholder="Qty" aria-label="Counted quantity for <%= item.item %>">
+                                <span class="cc-variance" aria-live="polite"></span>
+                                <button type="submit" class="dash-btn dash-btn-primary dash-btn-sm">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <div class="empty" id="ccEmpty" hidden>No items match.</div>
+        </div>
+    </section>
+
+    <section class="panel cc-done" id="done">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">Completed this week</h2>
+                <p class="panel-sub">Every count recorded since <%= new Date(weekStart).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) %></p>
+            </div>
+        </div>
+        <div class="cc-table-wrap">
+            <table class="cc-table cc-table-done">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>When</th>
+                        <th>By</th>
+                        <th class="num">Before</th>
+                        <th class="num">Counted</th>
+                        <th class="num">Variance</th>
+                    </tr>
+                </thead>
+                <tbody id="ccDoneBody">
+                    <% weekCounts.forEach(r => { const v = r.quantityChange || 0; %>
+                    <tr>
+                        <td data-label="Item"><%= r.itemName %></td>
+                        <td data-label="When"><%= new Date(r.changeDate).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) %></td>
+                        <td data-label="By"><%= (r.userId || '').split('@')[0] || '—' %></td>
+                        <td data-label="Before" class="num"><%= r.previousQuantity != null ? r.previousQuantity : '—' %></td>
+                        <td data-label="Counted" class="num"><%= r.newQuantity != null ? r.newQuantity : '—' %></td>
+                        <td data-label="Variance" class="num"><span class="variance <%= v === 0 ? '' : v > 0 ? 'variance-up' : 'variance-down' %>"><%= v === 0 ? 'Match' : (v > 0 ? '+' : '') + v %></span></td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <div class="empty" id="ccDoneEmpty"<%= weekCounts.length ? ' hidden' : '' %>>No counts recorded yet this week.</div>
+        </div>
+    </section>
+</div>
