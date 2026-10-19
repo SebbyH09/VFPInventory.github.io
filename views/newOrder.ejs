@@ -6,6 +6,8 @@
 </head>
 <body>
     <% const items = inventoryItems || []; %>
+    <% const openOrderMap = (typeof onOrder !== 'undefined' && onOrder) || {}; %>
+    <% const onOrderCount = items.filter(item => openOrderMap[item._id]).length; %>
     <% const lowCount = items.filter(item => item.minimumquantity > 0 && item.currentquantity <= item.minimumquantity).length; %>
     <div class="order-container shop-page">
         <div class="order-page-header shop-header">
@@ -51,6 +53,7 @@
             <div class="shop-filters" role="group" aria-label="Filter products">
                 <button type="button" class="shop-chip active" data-filter="all">All <span class="shop-chip-count"><%= items.length %></span></button>
                 <button type="button" class="shop-chip" data-filter="low">Low stock <span class="shop-chip-count"><%= lowCount %></span></button>
+                <button type="button" class="shop-chip" data-filter="onorder">On order <span class="shop-chip-count"><%= onOrderCount %></span></button>
                 <button type="button" class="shop-chip" data-filter="incart">In cart <span class="shop-chip-count" data-order-cart-count>0</span></button>
             </div>
             <label class="shop-sort">
@@ -75,8 +78,9 @@
                     let stockClass = 'stock-ok', stockLabel = 'In stock';
                     if (cur <= 0) { stockClass = 'stock-out'; stockLabel = 'Out of stock'; }
                     else if (min > 0 && cur <= min) { stockClass = 'stock-low'; stockLabel = 'Low stock'; }
+                    const openOrder = openOrderMap[item._id];
                 %>
-                <article class="product-card"
+                <article class="product-card<%= openOrder ? ' has-open-order' : '' %>"
                     data-item-id="<%= item._id %>"
                     data-item-name="<%= item.item %>"
                     data-item-brand="<%= item.brand || '' %>"
@@ -87,6 +91,7 @@
                     data-item-max="<%= item.maximumquantity || 0 %>"
                     data-item-cost="<%= (item.cost || 0).toFixed(2) %>"
                     data-low="<%= (min > 0 && cur <= min) ? '1' : '0' %>"
+                    data-on-order="<%= openOrder ? openOrder.quantity : 0 %>"
                     data-item-alternates='<%= JSON.stringify(item.alternateItems || []) %>'>
                     <div class="product-card-top">
                         <span class="stock-pill <%= stockClass %>"><%= stockLabel %></span>
@@ -104,6 +109,12 @@
                         <span><strong><%= cur %></strong> on hand</span>
                         <% if (min > 0) { %><span>Min <%= min %></span><% } %>
                     </div>
+                    <% if (openOrder) { %>
+                        <div class="product-on-order" title="Open order<%= openOrder.orderNumbers.length !== 1 ? 's' : '' %>: <%= openOrder.orderNumbers.join(', ') %>">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                            <span><strong><%= openOrder.quantity %></strong> on order · <%= openOrder.orderNumbers.length %> open order<%= openOrder.orderNumbers.length !== 1 ? 's' : '' %></span>
+                        </div>
+                    <% } %>
                     <div class="product-footer">
                         <span class="product-price">$<%= (item.cost || 0).toFixed(2) %></span>
                         <div class="product-actions"></div>

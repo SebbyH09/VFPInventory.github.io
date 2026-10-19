@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let visible = cards.filter(card => {
             if (activeFilter === 'low' && card.dataset.low !== '1') return false;
             if (activeFilter === 'incart' && !cart[card.dataset.itemId]) return false;
+            if (activeFilter === 'onorder' && !(parseInt(card.dataset.onOrder, 10) > 0)) return false;
             if (!query) return true;
             if (ranked) return ranked.set.has(card.dataset.itemId);
             return [card.dataset.itemName, card.dataset.itemBrand, card.dataset.itemVendor, card.dataset.itemCatalog]
