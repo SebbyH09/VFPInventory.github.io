@@ -40,13 +40,32 @@ function parseDeliveryDate(value) {
 router.get('/new', requireAuth, async (req, res) => {
     try {
         const inventoryItems = await inventory.find({ isActive: { $ne: false } }).sort({ item: 1 });
+
+        // Outstanding quantity per item across open/partial orders, so the
+        // page can flag items that are already on order.
+        const openOrders = await Order.find({ status: { $in: ['open', 'partial'] } })
+            .select('orderNumber items.itemId items.quantityOrdered items.quantityReceived')
+            .lean();
+        const onOrder = {};
+        openOrders.forEach(order => {
+            order.items.forEach(oi => {
+                const outstanding = (oi.quantityOrdered || 0) - (oi.quantityReceived || 0);
+                if (outstanding <= 0) return;
+                const entry = onOrder[oi.itemId] || (onOrder[oi.itemId] = { quantity: 0, orderNumbers: [] });
+                entry.quantity += outstanding;
+                if (!entry.orderNumbers.includes(order.orderNumber)) entry.orderNumbers.push(order.orderNumber);
+            });
+        });
+
         res.render('newOrder', {
             inventoryItems: inventoryItems,
+            onOrder: onOrder,
             user: req.session.user
         });
     } catch (error) {
         res.render('newOrder', {
             inventoryItems: [],
+            onOrder: {},
             user: req.session.user,
             error: 'Failed to load inventory data'
         });

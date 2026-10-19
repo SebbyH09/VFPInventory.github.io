@@ -2138,6 +2138,30 @@ body:has(.cart-page) .floating-cart-order {
     box-shadow: 0 0 0 1px #86efac;
 }
 
+.product-card.has-open-order {
+    background-color: #f5f9ff;
+    border-color: #93c5fd;
+}
+
+.product-card.has-open-order.in-cart {
+    border-color: #86efac;
+}
+
+.product-on-order {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    padding: 5px 9px;
+    border-radius: 8px;
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    font-size: 12px;
+    cursor: help;
+}
+
+.product-on-order svg { flex-shrink: 0; }
+
 .product-card-top {
     display: flex;
     align-items: center;
