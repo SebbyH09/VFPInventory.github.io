@@ -113,9 +113,8 @@
         </div>
     </div>
 
-    <script>
-        window.__ANALYTICS_FILTER_OPTIONS__ = <%- JSON.stringify(filterOptions).replace(/</g, '\\u003c') %>;
-    </script>
+    <%# JSON data block: not executed, so it is allowed by the CSP (inline scripts are blocked) %>
+    <script type="application/json" id="analyticsFilterOptions"><%- JSON.stringify(filterOptions).replace(/</g, '\\u003c') %></script>
     <script src="/analytics.js"></script>
 </body>
 </html>
