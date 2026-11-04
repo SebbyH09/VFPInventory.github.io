@@ -4,7 +4,16 @@
 // filter (date range, items, categories, vendors, users) changes.
 // ================================================
 
-const FILTER_OPTIONS = window.__ANALYTICS_FILTER_OPTIONS__ || { items: [], users: [], categories: [], vendors: [] };
+const FILTER_OPTIONS = (() => {
+    const empty = { items: [], users: [], categories: [], vendors: [] };
+    try {
+        const el = document.getElementById('analyticsFilterOptions');
+        return el ? { ...empty, ...JSON.parse(el.textContent) } : empty;
+    } catch (e) {
+        console.error('Failed to read analytics filter options:', e);
+        return empty;
+    }
+})();
 const BUDGET_KEY = 'vfp_analyticsMonthlyBudget';
 const DEFAULT_PRESET = '30d';
 
